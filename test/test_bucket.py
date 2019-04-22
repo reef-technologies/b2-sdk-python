@@ -14,6 +14,8 @@ from nose import SkipTest
 import os
 import platform
 
+from requests.exceptions import ConnectionError
+
 import six
 
 from .stub_account_info import StubAccountInfo
@@ -25,7 +27,7 @@ from b2sdk.exception import AlreadyFailed, B2Error, InvalidAuthToken, InvalidRan
 from b2sdk.file_version import FileVersionInfo
 from b2sdk.part import Part
 from b2sdk.progress import AbstractProgressListener
-from b2sdk.raw_simulator import RawSimulator
+from b2sdk.raw_simulator import RawSimulator, BucketSimulator, fail_until
 from b2sdk.transferer.parallel import ParallelDownloader
 from b2sdk.transferer.simple import SimpleDownloader
 from b2sdk.upload_source import UploadSourceBytes
@@ -587,19 +589,119 @@ class EmptyFileDownloadScenarioMixin(object):
         self._verify('')
 
 
-class TestDownloadDefault(DownloadTests, EmptyFileDownloadScenarioMixin, TestCaseWithBucket):
+class DownloadMixin(DownloadTests, TestCaseWithBucket):
+
+    ENABLE_RETRIES = False
+
+    FAILING_RETRIES = False
+    RETRY_FAIL_UNTIL = 5
+    RETRY_FAIL_EXCEPTION = ConnectionError
+
+    def setUp(self):
+        super(DownloadMixin, self).setUp()
+        self.retries_patcher = mock.patch.object(
+            BucketSimulator,
+            '_download_file_sim',
+            new=BucketSimulator._download_file_sim_with_retries
+        )
+        self.time_sleep_patcher = mock.patch('time.sleep')
+        self.failing_retries_patcher = mock.patch.object(
+            BucketSimulator,
+            '_do_get',
+            new=fail_until(
+                BucketSimulator._do_get, self.RETRY_FAIL_UNTIL, self.RETRY_FAIL_EXCEPTION
+            )
+        )
+        if self.ENABLE_RETRIES:
+            self.retries_patcher.start()
+            self.time_sleep_patcher.start()
+        if self.FAILING_RETRIES:
+            self.failing_retries_patcher.start()
+
+    def tearDown(self):
+        super(DownloadMixin, self).tearDown()
+        if self.ENABLE_RETRIES:
+            self.retries_patcher.stop()
+            self.time_sleep_patcher.stop()
+        if self.FAILING_RETRIES:
+            self.failing_retries_patcher.stop()
+
+
+class TestDownloadDefault(DownloadMixin, EmptyFileDownloadScenarioMixin):
+
     pass
 
 
-class TestDownloadSimple(DownloadTests, EmptyFileDownloadScenarioMixin, TestCaseWithBucket):
+class TestDownloadDefaultWithRetries(DownloadMixin, EmptyFileDownloadScenarioMixin):
+
+    ENABLE_RETRIES = True
+
+
+class TestDownloadDefaultWithFailingRetries(DownloadMixin, EmptyFileDownloadScenarioMixin):
+
+    ENABLE_RETRIES = True
+    FAILING_RETRIES = True
+
+
+class TestDownloadSimple(DownloadMixin, EmptyFileDownloadScenarioMixin):
     def setUp(self):
         super(TestDownloadSimple, self).setUp()
         self.bucket.api.transferer.strategies = [SimpleDownloader(force_chunk_size=20,)]
 
 
-class TestDownloadParallel(DownloadTests, TestCaseWithBucket):
+class TestDownloadSimpleWithRetries(DownloadMixin, EmptyFileDownloadScenarioMixin):
+
+    ENABLE_RETRIES = True
+
+    def setUp(self):
+        super(TestDownloadSimpleWithRetries, self).setUp()
+        self.bucket.api.transferer.strategies = [SimpleDownloader(force_chunk_size=20,)]
+
+
+class TestDownloadSimpleWithFailingRetries(DownloadMixin, EmptyFileDownloadScenarioMixin):
+
+    ENABLE_RETRIES = True
+    FAILING_RETRIES = True
+
+    def setUp(self):
+        super(TestDownloadSimpleWithFailingRetries, self).setUp()
+        self.bucket.api.transferer.strategies = [SimpleDownloader(force_chunk_size=20,)]
+
+
+class TestDownloadParallel(DownloadMixin):
     def setUp(self):
         super(TestDownloadParallel, self).setUp()
+        self.bucket.api.transferer.strategies = [
+            ParallelDownloader(
+                force_chunk_size=2,
+                max_streams=999,
+                min_part_size=2,
+            )
+        ]
+
+
+class TestDownloadParallelWithRetries(DownloadMixin):
+
+    ENABLE_RETRIES = True
+
+    def setUp(self):
+        super(TestDownloadParallelWithRetries, self).setUp()
+        self.bucket.api.transferer.strategies = [
+            ParallelDownloader(
+                force_chunk_size=2,
+                max_streams=999,
+                min_part_size=2,
+            )
+        ]
+
+
+class TestDownloadParallelWithFailingRetries(DownloadMixin):
+
+    ENABLE_RETRIES = True
+    FAILING_RETRIES = True
+
+    def setUp(self):
+        super(TestDownloadParallelWithFailingRetries, self).setUp()
         self.bucket.api.transferer.strategies = [
             ParallelDownloader(
                 force_chunk_size=2,

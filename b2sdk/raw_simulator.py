@@ -9,13 +9,14 @@
 ######################################################################
 
 import collections
+from functools import partial, wraps
 import re
 import time
 
 import six
 from six.moves import range
 
-from .b2http import ResponseContextManager
+from .b2http import ResponseContextManager, _translate_and_retry
 from .exception import (
     BadJson,
     BadUploadUrl,
@@ -347,8 +348,17 @@ class BucketSimulator(object):
         file_sim = self.file_name_and_id_to_file[(file_name, file_dict['fileId'])]
         return self._download_file_sim(file_sim, url, range_=range_)
 
-    def _download_file_sim(self, file_sim, url, range_=None):
-        return ResponseContextManager(FakeResponse(file_sim, url, range_))
+    def _do_get(self, file_sim, url, range_):
+        return FakeResponse(file_sim, url, range_)
+
+    def _download_file_sim_without_retries(self, file_sim, url, range_=None):
+        return ResponseContextManager(self._do_get(file_sim, url, range_))
+
+    def _download_file_sim_with_retries(self, file_sim, url, range_=None):
+        response = _translate_and_retry(partial(self._do_get, file_sim, url, range_), 5, None)
+        return ResponseContextManager(response)
+
+    _download_file_sim = _download_file_sim_without_retries
 
     def finish_large_file(self, file_id, part_sha1_array):
         file_sim = self.file_id_to_file[file_id]
@@ -986,13 +996,14 @@ FakeRequest = collections.namedtuple('FakeRequest', 'url headers')
 
 
 class FakeResponse(object):
-    def __init__(self, file_sim, url, range_=None):
+    def __init__(self, file_sim, url, range_=None, status_code=200):
         self.data_bytes = file_sim.data_bytes
         self.headers = file_sim.as_download_headers(range_)
         self.url = url
         self.range_ = range_
         if range_ is not None:
             self.data_bytes = self.data_bytes[range_[0]:range_[1] + 1]
+        self.status_code = status_code
 
     def iter_content(self, chunk_size=1):
         start = 0
@@ -1009,3 +1020,19 @@ class FakeResponse(object):
 
     def close(self):
         pass
+
+
+def fail_until(func, number_of_calls, exception):
+
+    func.number_of_calls = 0
+    func.target_number_of_calls = number_of_calls
+
+    @wraps(func)
+    def failing_func(*args, **kwargs):
+        func.number_of_calls += 1
+        if func.number_of_calls < func.target_number_of_calls:
+            raise exception(None, None)
+        func.number_of_calls = 0
+        return func(*args, **kwargs)
+
+    return failing_func

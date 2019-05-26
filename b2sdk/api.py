@@ -299,6 +299,10 @@ class B2Api(object):
         :type bucket: b2sdk.bucket.Bucket
         """
         account_id = self.account_info.get_account_id()
+        response = self.session.list_buckets(account_id)
+        buckets = BucketFactory.from_api_response(self, response)
+        for bucket in buckets:
+            self.cache.save_bucket(bucket)
         return self.session.delete_bucket(account_id, bucket.id_)
 
     def list_buckets(self, bucket_name=None):

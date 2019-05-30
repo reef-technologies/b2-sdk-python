@@ -9,6 +9,7 @@
 ######################################################################
 
 from abc import (ABCMeta, abstractmethod)
+from .account_info.in_memory import InMemoryAccountInfo
 
 import six
 
@@ -72,9 +73,10 @@ class InMemoryCache(AbstractCache):
 
     def set_bucket_name_cache(self, buckets):
         self.name_id_map = dict(self._name_id_iterator(buckets))
+        self.name_id_map = dict(self.name_id_iterator(buckets))
 
 
-class AuthInfoCache(AbstractCache):
+class AuthInfoCache(InMemoryAccountInfo):
     """ Cache that stores data persistently in StoredAccountInfo """
 
     def __init__(self, info):

@@ -351,6 +351,19 @@ class PartSha1Mismatch(B2Error):
         return 'Part number %s has wrong SHA1' % (self.key,)
 
 
+class BadBucket(B2Error):
+    """
+    Raised when bucket not found in cache
+    """
+
+    def __init__(self, key):
+        super(BadBucket, self).__init__()
+        self.key = key
+
+    def __str__(self):
+        return 'No such bucket: %s ' % (self.key,)
+
+
 class ServiceError(TransientErrorMixin, B2Error):
     """
     Used for HTTP status codes 500 through 599.
@@ -426,6 +439,9 @@ def interpret_b2_error(status, code, message, response_headers, post_params=None
         return MissingPart(post_params.get('fileId'))
     elif status == 400 and code == "part_sha1_mismatch":
         return PartSha1Mismatch(post_params.get('fileId'))
+    # handling unknown error thrown saying "bad_bucket_id"
+    elif status == 400 and code == "bad_bucket_id":
+        return BadBucket(post_params.get('bad_bucket_id'))
     elif status == 401 and code in ("bad_auth_token", "expired_auth_token"):
         return InvalidAuthToken(message, code)
     elif status == 401:

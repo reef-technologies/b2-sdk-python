@@ -104,6 +104,9 @@ class InMemoryAccountInfo(UrlPoolAccountInfo):
         """
         return self._buckets.get(bucket_name)
 
+    def _name_id_iterator(self, buckets):
+        return ((bucket.name, bucket.id_) for bucket in buckets)
+
     def save_bucket(self, bucket):
         """
         Remembers the ID for a bucket name.

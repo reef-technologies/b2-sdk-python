@@ -11,11 +11,13 @@
 import six
 
 from .account_info.sqlite_account_info import SqliteAccountInfo
-from .account_info.exception import MissingAccountData
 from .account_info.in_memory import InMemoryAccountInfo
+from .account_info.exception import MissingAccountData
 from .b2http import B2Http
 from .bucket import Bucket, BucketFactory
+from .cache import AuthInfoCache, DummyCache
 from .transferer import Transferer
+from .exception import BadBucket
 from .exception import NonExistentBucket, RestrictedBucket
 from .file_version import FileVersionInfoFactory, FileIdAndName
 from .part import PartFactory
@@ -87,7 +89,7 @@ class B2Api(object):
         if account_info is None:
             account_info = SqliteAccountInfo()
             if cache is None:
-                cache = InMemoryAccountInfo(account_info)
+                cache = AuthInfoCache(account_info)
         self.session = B2Session(self, self.raw_api)
         self.transferer = Transferer(self.session, account_info)
         self.account_info = account_info
@@ -299,11 +301,14 @@ class B2Api(object):
         :type bucket: b2sdk.bucket.Bucket
         """
         account_id = self.account_info.get_account_id()
-        response = self.session.list_buckets(account_id)
-        buckets = BucketFactory.from_api_response(self, response)
-        for bucket in buckets:
-            self.cache.save_bucket(bucket)
-        return self.session.delete_bucket(account_id, bucket.id_)
+        # trying to find the selected bucket in cache. If not found, resetting the bucket cache!
+        try:
+            return self.session.delete_bucket(account_id, bucket.id_)
+        except BadBucket:
+            response = self.session.list_buckets(account_id)
+            buckets = BucketFactory.from_api_response(self, response)
+            self.cache.set_bucket_name_cache(buckets)
+            return self.session.delete_bucket(account_id, bucket.id_)
 
     def list_buckets(self, bucket_name=None):
         """
@@ -338,7 +343,7 @@ class B2Api(object):
         else:
             # Otherwise we want to clear the cache and save the buckets returned from list_buckets
             # since we just got a new list of all the buckets for this account.
-            self.cache.clear()
+            self.cache.set_bucket_name_cache(buckets)
         return buckets
 
     def list_parts(self, file_id, start_part_number=None, batch_size=None):

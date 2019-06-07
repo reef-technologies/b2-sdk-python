@@ -194,8 +194,8 @@ class Synchronizer(object):
             allow_empty_source=False,
             newer_file_mode=None,
             keep_days_or_delete=None,
-            compare_version_mode=AbstractFileSyncPolicy.COMPARE_VERSION_MODTIME,
-            compare_threshold=0,
+            compare_version_mode=None,
+            compare_threshold=None,
             keep_days=None,
     ):
         """
@@ -214,18 +214,18 @@ class Synchronizer(object):
         :type newer_file_mode: int
         :param keep_days_or_delete: one of 301 (Delete policy), 302 (keep for days policy), can be None
         :type keep_days_or_delete: int
-        :param compare_version_mode: one of 201 (Modification time), 201 (Size), can be None, default is 201
+        :param compare_version_mode: one of 201 (Modification time), 202 (Size), 203 (none), default is 201
         :type compare_version_mode: int
         :param compare_threshold: should be greater than 0, default is 0
         :type compare_threshold: int
-        :param keep_days: if keep_days_or_delete is 302, then this should be greater than 0, default is None
+        :param keep_days: if keep_days_or_delete is 302, then this should be greater than 0
         :type keep_days: int
         """
         self.newer_file_mode = newer_file_mode
         self.keep_days_or_delete = keep_days_or_delete
         self.keep_days = keep_days
-        self.compare_version_mode = compare_version_mode
-        self.compare_threshold = compare_threshold
+        self.compare_version_mode = compare_version_mode or AbstractFileSyncPolicy.COMPARE_VERSION_MODTIME
+        self.compare_threshold = compare_threshold or 0
         self.dry_run = dry_run
         self.allow_empty_source = allow_empty_source
         self.policies_manager = policies_manager
@@ -395,7 +395,6 @@ class Synchronizer(object):
         :type now_millis: int
         """
         delete = self.keep_days_or_delete == self.DELETE_MODE
-        keep_days = self.keep_days
 
         policy = POLICY_MANAGER.get_policy(
             sync_type,
@@ -405,7 +404,10 @@ class Synchronizer(object):
             dest_folder,
             now_millis,
             delete,
-            keep_days,
+            self.keep_days,
+            self.newer_file_mode,
+            self.compare_threshold,
+            self.compare_version_mode,
         )
         for action in policy.get_all_actions():
             yield action

@@ -52,6 +52,20 @@ API_VERSION = 'v2'
 
 
 @unique
+class TokenType(Enum):
+    API = 'api'
+    UPLOAD_PART = 'upload_part'
+    UPLOAD_SMALL = 'upload_small'
+
+
+def set_token_type(token_type):
+    def inner(func, *args, **kwargs):
+        func.token_type = token_type
+        return func
+    return inner
+
+
+@unique
 class MetadataDirectiveMode(Enum):
     COPY = 401
     REPLACE = 402
@@ -120,7 +134,7 @@ class AbstractRawApi(object):
 
     @abstractmethod
     def upload_part(
-        self, upload_url, upload_auth_token, part_number, content_length, sha1_sum, input_stream
+        self, upload_url, upload_auth_token, bucket_id, file_id, part_number, content_length, sha1_sum, input_stream
     ):
         pass
 
@@ -502,9 +516,10 @@ class B2RawApi(AbstractRawApi):
         if long_segment > 250:
             raise UnusableFileName("Filename segment too long (maximum 250 bytes in utf-8).")
 
+    @set_token_type(TokenType.UPLOAD_SMALL)
     def upload_file(
-        self, upload_url, upload_auth_token, file_name, content_length, content_type, content_sha1,
-        file_infos, data_stream
+        self, upload_url, upload_auth_token, bucket_id, file_id, file_name,
+        content_length, content_type, content_sha1, file_infos, data_stream
     ):
         """
         Upload one, small file to b2.
@@ -533,8 +548,9 @@ class B2RawApi(AbstractRawApi):
 
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 
+    @set_token_type(TokenType.UPLOAD_PART)
     def upload_part(
-        self, upload_url, upload_auth_token, part_number, content_length, content_sha1, data_stream
+        self, upload_url, upload_auth_token, bucket_id, file_id, part_number, content_length, content_sha1, data_stream
     ):
         headers = {
             'Authorization': upload_auth_token,

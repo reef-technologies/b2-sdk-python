@@ -59,6 +59,14 @@ class TokenType(Enum):
 
 
 def set_token_type(token_type):
+    """
+    This is a decorator to identify the type of token to be used in session.
+    When the raw_api is used through B2Session, it will be used to identify the type of url and token to be used.
+    If the decorator is not there api token will be used by default.
+
+    :param token_type: TokenType enum
+    :return:
+    """
     def inner(func, *args, **kwargs):
         func.token_type = token_type
         return func
@@ -134,7 +142,7 @@ class AbstractRawApi(object):
 
     @abstractmethod
     def upload_part(
-        self, upload_url, upload_auth_token, bucket_id, file_id, part_number, content_length, sha1_sum, input_stream
+        self, upload_url, upload_auth_token, part_number, content_length, sha1_sum, input_stream
     ):
         pass
 
@@ -518,7 +526,7 @@ class B2RawApi(AbstractRawApi):
 
     @set_token_type(TokenType.UPLOAD_SMALL)
     def upload_file(
-        self, upload_url, upload_auth_token, bucket_id, file_id, file_name,
+        self, upload_url, upload_auth_token, file_name,
         content_length, content_type, content_sha1, file_infos, data_stream
     ):
         """
@@ -550,7 +558,7 @@ class B2RawApi(AbstractRawApi):
 
     @set_token_type(TokenType.UPLOAD_PART)
     def upload_part(
-        self, upload_url, upload_auth_token, bucket_id, file_id, part_number, content_length, content_sha1, data_stream
+        self, upload_url, upload_auth_token, part_number, content_length, content_sha1, data_stream
     ):
         headers = {
             'Authorization': upload_auth_token,

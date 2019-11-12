@@ -30,31 +30,20 @@ class B2Session(object):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             auth_failure_encountered = False
+            # Based on the token type decorator on the B2RawApi method it will identify and generate the correct type of Url and token.
             token_type = getattr(f, 'token_type', TokenType.API)
             # download_by_name uses different URLs
             url_factory = kwargs.pop('url_factory', self._api.account_info.get_api_url)
             while 1:
                 try:
-                    if token_type in [TokenType.UPLOAD_SMALL, TokenType.UPLOAD_PART]:
-                        bucket_id = args[0]
-                        file_id = args[1]
-                        if token_type == TokenType.UPLOAD_SMALL:
-                            upload_url, upload_auth_token = self._get_upload_data(bucket_id)
-                            response = f(upload_url, upload_auth_token, *args, **kwargs)
-                            self._api.account_info.put_bucket_upload_url(
-                                file_id, upload_url, upload_auth_token
-                            )
-                        else:
-                            upload_url, upload_auth_token = self._get_upload_part_data(file_id)
-                            response = f(upload_url, upload_auth_token, *args, **kwargs)
-                            self.api.account_info.put_large_file_upload_url(
-                                file_id, upload_url, upload_auth_token
-                            )
-                        return response
-                    else:
+                    if token_type == TokenType.API:
                         api_url = url_factory()
                         account_auth_token = self._api.account_info.get_account_auth_token()
                         return f(api_url, account_auth_token, *args, **kwargs)
+                    elif token_type == TokenType.UPLOAD_SMALL:
+                        return self._upload_small(f, *args, **kwargs)
+                    elif token_type == TokenType.UPLOAD_PART:
+                        return self._upload_part(f, *args, **kwargs)
                 except InvalidAuthToken:
                     if not auth_failure_encountered:
                         auth_failure_encountered = True
@@ -124,3 +113,19 @@ class B2Session(object):
 
         response = self.get_upload_part_url(file_id)
         return response['uploadUrl'], response['authorizationToken']
+
+    def _upload_small(self, f, bucket_id, file_id, *args, **kwargs):
+        upload_url, upload_auth_token = self._get_upload_data(bucket_id)
+        response = f(upload_url, upload_auth_token, *args, **kwargs)
+        self._api.account_info.put_bucket_upload_url(
+            bucket_id, upload_url, upload_auth_token
+        )
+        return response
+
+    def _upload_part(self, f, bucket_id, file_id, *args, **kwargs):
+        upload_url, upload_auth_token = self._get_upload_part_data(file_id)
+        response = f(upload_url, upload_auth_token, *args, **kwargs)
+        self._api.account_info.put_large_file_upload_url(
+            file_id, upload_url, upload_auth_token
+        )
+        return response

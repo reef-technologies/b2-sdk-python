@@ -537,8 +537,6 @@ class Bucket(object):
                         assert hashing_stream.hash == response['contentSha1']
                         return FileVersionInfoFactory.from_api_response(response)
                 except B2Error as e:
-                    # TODO: Add exception log (with upload_url) in session or here somehow
-                    # logger.exception('error when uploading, upload_url was %s', upload_url)
                     if not e.should_retry_upload():
                         raise
                     exception_info_list.append(e)
@@ -675,7 +673,7 @@ class Bucket(object):
                     hashing_stream = StreamWithHash(input_stream)
                     length_with_hash = content_length + hashing_stream.hash_size()
                     response = self.session.upload_part(
-                        self.id_, None, part_number, length_with_hash, HEX_DIGITS_AT_END, hashing_stream
+                        self.id_, file_id, part_number, length_with_hash, HEX_DIGITS_AT_END, hashing_stream
                     )
                     assert hashing_stream.hash == response['contentSha1']
                     return response

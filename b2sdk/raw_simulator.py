@@ -573,7 +573,7 @@ class BucketSimulator(object):
         return self.bucket_dict()
 
     def upload_file(
-        self, upload_id, upload_auth_token, bucket_id, file_id, file_name, content_length, content_type, content_sha1,
+        self, upload_id, upload_auth_token, file_name, content_length, content_type, content_sha1,
         file_infos, data_stream
     ):
         data_bytes = data_stream.read()
@@ -591,7 +591,7 @@ class BucketSimulator(object):
         self.file_name_and_id_to_file[file_sim.sort_key()] = file_sim
         return file_sim.as_upload_result()
 
-    def upload_part(self, bucket_id, file_id, part_number, content_length, sha1_sum, input_stream):
+    def upload_part(self, file_id, part_number, content_length, sha1_sum, input_stream):
         file_sim = self.file_id_to_file[file_id]
         part_data = input_stream.read()
         assert len(part_data) == content_length
@@ -1066,7 +1066,7 @@ class RawSimulator(AbstractRawApi):
         )
 
     def upload_file(
-        self, upload_url, upload_auth_token, bucket_id, file_id, file_name,
+        self, upload_url, upload_auth_token, file_name,
         content_length, content_type, content_sha1, file_infos, data_stream
     ):
         assert upload_url == upload_auth_token
@@ -1086,7 +1086,7 @@ class RawSimulator(AbstractRawApi):
         return response
 
     def upload_part(
-        self, upload_url, upload_auth_token, bucket_id, file_id, part_number, content_length, sha1_sum, input_stream
+        self, upload_url, upload_auth_token, part_number, content_length, sha1_sum, input_stream
     ):
         url_match = self.UPLOAD_PART_MATCHER.match(upload_url)
         if url_match is None:

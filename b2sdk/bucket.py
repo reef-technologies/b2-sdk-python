@@ -530,7 +530,7 @@ class Bucket(object):
                         input_stream = ReadingStreamWithProgress(file, progress_listener)
                         hashing_stream = StreamWithHash(input_stream)
                         length_with_hash = content_length + hashing_stream.hash_size()
-                        response = self.session.upload_file(
+                        response = self.api.session.upload_file(
                             self.id_, None, file_name, length_with_hash,
                             content_type, HEX_DIGITS_AT_END, file_info, hashing_stream
                         )
@@ -672,7 +672,7 @@ class Bucket(object):
                     input_stream = ReadingStreamWithProgress(range_stream, part_progress_listener)
                     hashing_stream = StreamWithHash(input_stream)
                     length_with_hash = content_length + hashing_stream.hash_size()
-                    response = self.session.upload_part(
+                    response = self.api.session.upload_part(
                         self.id_, file_id, part_number, length_with_hash, HEX_DIGITS_AT_END, hashing_stream
                     )
                     assert hashing_stream.hash == response['contentSha1']

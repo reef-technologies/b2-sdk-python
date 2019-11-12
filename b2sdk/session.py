@@ -44,6 +44,8 @@ class B2Session(object):
                         return self._upload_small(f, *args, **kwargs)
                     elif token_type == TokenType.UPLOAD_PART:
                         return self._upload_part(f, *args, **kwargs)
+                    else:
+                        assert False, 'token type is not supported'
                 except InvalidAuthToken:
                     if not auth_failure_encountered:
                         auth_failure_encountered = True

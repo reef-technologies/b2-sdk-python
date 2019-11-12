@@ -62,7 +62,6 @@ def set_token_type(token_type):
     """
     This is a decorator to identify the type of token to be used in session.
     When the raw_api is used through B2Session, it will be used to identify the type of url and token to be used.
-    If the decorator is not there api token will be used by default.
 
     :param token_type: TokenType enum
     :return:

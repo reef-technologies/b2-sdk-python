@@ -531,8 +531,8 @@ class Bucket(object):
                         hashing_stream = StreamWithHash(input_stream)
                         length_with_hash = content_length + hashing_stream.hash_size()
                         response = self.api.session.upload_file(
-                            self.id_, None, file_name, length_with_hash,
-                            content_type, HEX_DIGITS_AT_END, file_info, hashing_stream
+                            self.id_, None, file_name, length_with_hash, content_type,
+                            HEX_DIGITS_AT_END, file_info, hashing_stream
                         )
                         assert hashing_stream.hash == response['contentSha1']
                         return FileVersionInfoFactory.from_api_response(response)
@@ -655,7 +655,6 @@ class Bucket(object):
         # Set up a progress listener
         part_progress_listener = PartProgressReporter(large_file_upload_state)
 
-        upload_url = None
         # Retry the upload as needed
         exception_list = []
         for _ in six.moves.xrange(self.MAX_UPLOAD_ATTEMPTS):
@@ -673,7 +672,8 @@ class Bucket(object):
                     hashing_stream = StreamWithHash(input_stream)
                     length_with_hash = content_length + hashing_stream.hash_size()
                     response = self.api.session.upload_part(
-                        self.id_, file_id, part_number, length_with_hash, HEX_DIGITS_AT_END, hashing_stream
+                        self.id_, file_id, part_number, length_with_hash, HEX_DIGITS_AT_END,
+                        hashing_stream
                     )
                     assert hashing_stream.hash == response['contentSha1']
                     return response

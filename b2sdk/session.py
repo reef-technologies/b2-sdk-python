@@ -117,15 +117,11 @@ class B2Session(object):
     def _upload_small(self, f, bucket_id, file_id, *args, **kwargs):
         upload_url, upload_auth_token = self._get_upload_data(bucket_id)
         response = f(upload_url, upload_auth_token, *args, **kwargs)
-        self._api.account_info.put_bucket_upload_url(
-            bucket_id, upload_url, upload_auth_token
-        )
+        self._api.account_info.put_bucket_upload_url(bucket_id, upload_url, upload_auth_token)
         return response
 
     def _upload_part(self, f, bucket_id, file_id, *args, **kwargs):
         upload_url, upload_auth_token = self._get_upload_part_data(file_id)
         response = f(upload_url, upload_auth_token, *args, **kwargs)
-        self._api.account_info.put_large_file_upload_url(
-            file_id, upload_url, upload_auth_token
-        )
+        self._api.account_info.put_large_file_upload_url(file_id, upload_url, upload_auth_token)
         return response

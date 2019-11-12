@@ -67,9 +67,11 @@ def set_token_type(token_type):
     :param token_type: TokenType enum
     :return:
     """
+
     def inner(func, *args, **kwargs):
         func.token_type = token_type
         return func
+
     return inner
 
 
@@ -526,8 +528,8 @@ class B2RawApi(AbstractRawApi):
 
     @set_token_type(TokenType.UPLOAD_SMALL)
     def upload_file(
-        self, upload_url, upload_auth_token, file_name,
-        content_length, content_type, content_sha1, file_infos, data_stream
+        self, upload_url, upload_auth_token, file_name, content_length, content_type, content_sha1,
+        file_infos, data_stream
     ):
         """
         Upload one, small file to b2.

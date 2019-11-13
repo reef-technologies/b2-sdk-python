@@ -572,7 +572,6 @@ class BucketSimulator(object):
         self.revision += 1
         return self.bucket_dict()
 
-    @set_token_type(TokenType.UPLOAD_SMALL)
     def upload_file(
         self, upload_id, upload_auth_token, file_name, content_length, content_type, content_sha1,
         file_infos, data_stream
@@ -592,7 +591,6 @@ class BucketSimulator(object):
         self.file_name_and_id_to_file[file_sim.sort_key()] = file_sim
         return file_sim.as_upload_result()
 
-    @set_token_type(TokenType.UPLOAD_PART)
     def upload_part(self, file_id, part_number, content_length, sha1_sum, input_stream):
         file_sim = self.file_id_to_file[file_id]
         part_data = input_stream.read()

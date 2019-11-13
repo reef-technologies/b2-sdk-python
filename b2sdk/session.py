@@ -30,7 +30,7 @@ class B2Session(object):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             auth_failure_encountered = False
-            # Based on the token type decorator on the B2RawApi method it will identify and generate the correct type of Url and token.
+            # A *magic* that will identify and generate the correct type of Url and token based on the decorator on the B2RawApi method.
             token_type = getattr(f, 'token_type', TokenType.API)
             # download_by_name uses different URLs
             url_factory = kwargs.pop('url_factory', self._api.account_info.get_api_url)

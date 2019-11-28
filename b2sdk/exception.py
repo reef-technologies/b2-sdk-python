@@ -422,7 +422,7 @@ class UploadTokenUsedConcurrently(B2Error):
         self.token = token
 
     def __str__(self):
-        return "More than one concurrent upload using auth token %s" % self.token
+        return "More than one concurrent upload using auth token %s" % (self.token,)
 
 
 def interpret_b2_error(status, code, message, response_headers, post_params=None):

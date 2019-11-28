@@ -1098,9 +1098,15 @@ class RawSimulator(AbstractRawApi):
             bucket_id, upload_id = url_match.groups()
             bucket = self._get_bucket_by_id(bucket_id)
             response = bucket.upload_file(
-                upload_id, upload_auth_token, file_name, content_length, content_type, content_sha1,
-                file_infos, data_stream
-            )  # yapf: disable
+                upload_id,
+                upload_auth_token,
+                file_name,
+                content_length,
+                content_type,
+                content_sha1,
+                file_infos,
+                data_stream,
+            )
             file_id = response['fileId']
             self.file_id_to_bucket_id[file_id] = bucket_id
         finally:

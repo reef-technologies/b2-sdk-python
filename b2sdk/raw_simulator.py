@@ -634,6 +634,7 @@ class RawSimulator(AbstractRawApi):
     MAX_DURATION_IN_SECONDS = 86400000
 
     UPLOAD_PART_MATCHER = re.compile('https://upload.example.com/part/([^/]*)')
+    UPLOAD_URL_MATCHER = re.compile(r'https://upload.example.com/([^/]*)/([^/]*)')
     DOWNLOAD_URL_MATCHER = re.compile(
         DOWNLOAD_URL + '(?:' + '|'.join(
             (
@@ -1090,7 +1091,7 @@ class RawSimulator(AbstractRawApi):
 
         try:
             assert upload_url == upload_auth_token
-            url_match = re.match(r'https://upload.example.com/([^/]*)/([^/]*)', upload_url)
+            url_match = self.UPLOAD_URL_MATCHER.match(upload_url)
             if url_match is None:
                 raise BadUploadUrl(upload_url)
             if len(self.upload_errors) != 0:

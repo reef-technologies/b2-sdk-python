@@ -11,9 +11,14 @@
 from abc import ABCMeta
 
 import json
+import re
 import six
 
 from .utils import camelcase_to_underscore
+
+UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE = re.compile(
+    r'more than one upload using auth token (?P<token>.*)'
+)
 
 
 @six.add_metaclass(ABCMeta)
@@ -447,9 +452,11 @@ def interpret_b2_error(status, code, message, response_headers, post_params=None
         return MissingPart(post_params.get('fileId'))
     elif status == 400 and code == "part_sha1_mismatch":
         return PartSha1Mismatch(post_params.get('fileId'))
-    elif status == 400 and code == "bad_request" and 'more than one upload using auth token' in message:
-        token = message.lstrip('more than one upload using auth token ')
-        return UploadTokenUsedConcurrently(token)
+    elif status == 400 and code == "bad_request":
+        m = UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE.match(message)
+        if m:
+            token = m.group('token')
+            return UploadTokenUsedConcurrently(token)
     elif status == 401 and code in ("bad_auth_token", "expired_auth_token"):
         return InvalidAuthToken(message, code)
     elif status == 401:

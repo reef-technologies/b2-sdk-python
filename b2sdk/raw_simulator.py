@@ -1085,7 +1085,7 @@ class RawSimulator(AbstractRawApi):
         self, upload_url, upload_auth_token, file_name, content_length, content_type, content_sha1,
         file_infos, data_stream
     ):
-        if not self.currently_used_auth_tokens[upload_auth_token].acquire(blocking=False):
+        if not self.currently_used_auth_tokens[upload_auth_token].acquire(False):
             raise UploadTokenUsedConcurrently(upload_auth_token)
 
         try:
@@ -1111,7 +1111,7 @@ class RawSimulator(AbstractRawApi):
     def upload_part(
         self, upload_url, upload_auth_token, part_number, content_length, sha1_sum, input_stream
     ):
-        if not self.currently_used_auth_tokens[upload_auth_token].acquire(blocking=False):
+        if not self.currently_used_auth_tokens[upload_auth_token].acquire(False):
             raise UploadTokenUsedConcurrently(upload_auth_token)
 
         try:

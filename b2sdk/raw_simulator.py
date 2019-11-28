@@ -30,10 +30,9 @@ from .exception import (
     NonExistentBucket,
     Unauthorized,
     UnsatisfiableRange,
-    UploadTokenUsedConcurrently,
 )
 from .raw_api import AbstractRawApi, HEX_DIGITS_AT_END, MetadataDirectiveMode, set_token_type, TokenType
-from .utils import b2_url_decode, b2_url_encode
+from .utils import b2_url_decode, b2_url_encode, ConcurrentUsedAuthTokenGuard
 
 ALL_CAPABILITES = [
     'listKeys',
@@ -1086,10 +1085,7 @@ class RawSimulator(AbstractRawApi):
         self, upload_url, upload_auth_token, file_name, content_length, content_type, content_sha1,
         file_infos, data_stream
     ):
-        if not self.currently_used_auth_tokens[upload_auth_token].acquire(False):
-            raise UploadTokenUsedConcurrently(upload_auth_token)
-
-        try:
+        with ConcurrentUsedAuthTokenGuard(self.currently_used_auth_tokens, upload_auth_token):
             assert upload_url == upload_auth_token
             url_match = self.UPLOAD_URL_MATCHER.match(upload_url)
             if url_match is None:
@@ -1110,18 +1106,13 @@ class RawSimulator(AbstractRawApi):
             )
             file_id = response['fileId']
             self.file_id_to_bucket_id[file_id] = bucket_id
-        finally:
-            self.currently_used_auth_tokens[upload_auth_token].release()
         return response
 
     @set_token_type(TokenType.UPLOAD_PART)
     def upload_part(
         self, upload_url, upload_auth_token, part_number, content_length, sha1_sum, input_stream
     ):
-        if not self.currently_used_auth_tokens[upload_auth_token].acquire(False):
-            raise UploadTokenUsedConcurrently(upload_auth_token)
-
-        try:
+        with ConcurrentUsedAuthTokenGuard(self.currently_used_auth_tokens, upload_auth_token):
             url_match = self.UPLOAD_PART_MATCHER.match(upload_url)
             if url_match is None:
                 raise BadUploadUrl(upload_url)
@@ -1129,8 +1120,6 @@ class RawSimulator(AbstractRawApi):
             bucket_id = self.file_id_to_bucket_id[file_id]
             bucket = self._get_bucket_by_id(bucket_id)
             part = bucket.upload_part(file_id, part_number, content_length, sha1_sum, input_stream)
-        finally:
-            self.currently_used_auth_tokens[upload_auth_token].release()
         return part
 
     def _assert_account_auth(

@@ -455,7 +455,7 @@ def interpret_b2_error(status, code, message, response_headers, post_params=None
     elif status == 400 and code == "bad_request":
         matcher = UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE.match(message)
         if matcher is not None:
-            token = m.group('token')
+            token = matcher.group('token')
             return UploadTokenUsedConcurrently(token)
     elif status == 401 and code in ("bad_auth_token", "expired_auth_token"):
         return InvalidAuthToken(message, code)

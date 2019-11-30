@@ -453,7 +453,7 @@ def interpret_b2_error(status, code, message, response_headers, post_params=None
     elif status == 400 and code == "part_sha1_mismatch":
         return PartSha1Mismatch(post_params.get('fileId'))
     elif status == 400 and code == "bad_request":
-        m = UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE.match(message)
+        matcher = UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE.match(message)
         if m:
             token = m.group('token')
             return UploadTokenUsedConcurrently(token)

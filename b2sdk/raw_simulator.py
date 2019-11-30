@@ -1085,7 +1085,9 @@ class RawSimulator(AbstractRawApi):
         self, upload_url, upload_auth_token, file_name, content_length, content_type, content_sha1,
         file_infos, data_stream
     ):
-        with ConcurrentUsedAuthTokenGuard(self.currently_used_auth_tokens, upload_auth_token):
+        with ConcurrentUsedAuthTokenGuard(
+            self.currently_used_auth_tokens[upload_auth_token], upload_auth_token
+        ):
             assert upload_url == upload_auth_token
             url_match = self.UPLOAD_URL_MATCHER.match(upload_url)
             if url_match is None:
@@ -1112,7 +1114,9 @@ class RawSimulator(AbstractRawApi):
     def upload_part(
         self, upload_url, upload_auth_token, part_number, content_length, sha1_sum, input_stream
     ):
-        with ConcurrentUsedAuthTokenGuard(self.currently_used_auth_tokens, upload_auth_token):
+        with ConcurrentUsedAuthTokenGuard(
+            self.currently_used_auth_tokens[upload_auth_token], upload_auth_token
+        ):
             url_match = self.UPLOAD_PART_MATCHER.match(upload_url)
             if url_match is None:
                 raise BadUploadUrl(upload_url)

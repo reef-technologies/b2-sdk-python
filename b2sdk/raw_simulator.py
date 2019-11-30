@@ -1090,7 +1090,7 @@ class RawSimulator(AbstractRawApi):
             url_match = self.UPLOAD_URL_MATCHER.match(upload_url)
             if url_match is None:
                 raise BadUploadUrl(upload_url)
-            if len(self.upload_errors) != 0:
+            if self.upload_errors:
                 raise self.upload_errors.pop(0)
             bucket_id, upload_id = url_match.groups()
             bucket = self._get_bucket_by_id(bucket_id)

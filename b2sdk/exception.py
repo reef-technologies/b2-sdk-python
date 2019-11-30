@@ -17,7 +17,7 @@ import six
 from .utils import camelcase_to_underscore
 
 UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE = re.compile(
-    r'more than one upload using auth token (?P<token>.*)'
+    r'^more than one upload using auth token (?P<token>[^)]+)$'
 )
 
 

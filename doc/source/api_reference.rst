@@ -59,12 +59,19 @@ Internal API
    api/internal/sync/policy_manager
    api/internal/sync/scan_policies
    api/internal/sync/sync
-   api/internal/transferer/abstract
-   api/internal/transferer/file_metadata
-   api/internal/transferer/parallel
-   api/internal/transferer/range
-   api/internal/transferer/simple
-   api/internal/transferer/transferer
+   api/internal/transfer/inbound/downloader/abstract
+   api/internal/transfer/inbound/downloader/parallel
+   api/internal/transfer/inbound/downloader/range
+   api/internal/transfer/inbound/downloader/simple
+   api/internal/transfer/inbound/file_metadata
+   api/internal/transfer/inbound/download_manager
+   api/internal/transfer/outbound/copy_manager
+   api/internal/transfer/outbound/copy_source
+   api/internal/transfer/outbound/large_file_upload_state
+   api/internal/transfer/outbound/progress_reporter
+   api/internal/transfer/outbound/upload_manager
+   api/internal/transfer/outbound/upload_source_part
+   api/internal/transfer/emerger
    api/internal/upload_source
    api/internal/raw_simulator
 

@@ -1,7 +1,7 @@
-:mod:`b2sdk.transferer.parallel` -- ParallelTransferer
+:mod:`b2sdk.transfer.outbound.large_file_upload_state`
 ======================================================
 
-.. automodule:: b2sdk.transferer.parallel
+.. automodule:: b2sdk.transfer.outbound.large_file_upload_state
     :members:
     :undoc-members:
     :show-inheritance:

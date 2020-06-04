@@ -743,6 +743,7 @@ class TestDownloadParallel(DownloadTests, TestCaseWithBucket):
                 force_chunk_size=2,
                 max_streams=999,
                 min_part_size=2,
+                protected_semaphore=self.bucket.api.services.download_manager.max_workers_semaphore,
             )
         ]
 
@@ -792,5 +793,6 @@ class TestTruncatedDownloadParallel(DownloadTests, TestCaseWithTruncatedDownload
                 force_chunk_size=3,
                 max_streams=2,
                 min_part_size=2,
+                protected_semaphore=self.bucket.api.services.download_manager.max_workers_semaphore,
             )
         ]

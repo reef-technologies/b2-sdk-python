@@ -43,13 +43,14 @@ class ParallelDownloader(AbstractDownloader):
     #
     FINISH_HASHING_BUFFER_SIZE = 1024**2
 
-    def __init__(self, max_streams, min_part_size, *args, **kwargs):
+    def __init__(self, max_streams, min_part_size, protected_semaphore, *args, **kwargs):
         """
         :param max_streams: maximum number of simultaneous streams
         :param min_part_size: minimum amount of data a single stream will retrieve, in bytes
         """
         self.max_streams = max_streams
         self.min_part_size = min_part_size
+        self.protected_semaphore = protected_semaphore
         super(ParallelDownloader, self).__init__(*args, **kwargs)
 
     def is_suitable(self, metadata, progress_listener):
@@ -132,29 +133,57 @@ class ParallelDownloader(AbstractDownloader):
     def _get_parts(
         self, response, session, writer, hasher, first_part, parts_to_download, chunk_size
     ):
-        stream = FirstPartDownloaderThread(
-            response,
-            hasher,
-            session,
-            writer,
-            first_part,
-            chunk_size,
-        )
-        stream.start()
-        streams = [stream]
+        with self.protected_semaphore.get_semaphore() as semaphore:
+            semaphore.acquire()
+            try:
+                stream = FirstPartDownloaderThread(
+                    response,
+                    hasher,
+                    session,
+                    writer,
+                    first_part,
+                    chunk_size,
+                    semaphore,
+                )
+                stream.start()
+            except Exception:
+                semaphore.release()
+                raise
 
-        for part in parts_to_download:
-            stream = NonHashingDownloaderThread(
-                response.request.url,
-                session,
-                writer,
-                part,
-                chunk_size,
-            )
-            stream.start()
-            streams.append(stream)
+            streams = [stream]
+
+            for part in parts_to_download:
+                semaphore.acquire()
+                try:
+                    stream = NonHashingDownloaderThread(
+                        response.request.url,
+                        session,
+                        writer,
+                        part,
+                        chunk_size,
+                        semaphore,
+                    )
+                    stream.start()
+                except Exception:
+                    semaphore.release()
+                    raise
+                streams.append(stream)
         for stream in streams:
             stream.join()
+
+
+class ClosableQueue(queue.Queue):
+    def __init__(self, *args, **kwargs):
+        super(ClosableQueue, self).__init__(*args, **kwargs)
+        self._closed = False
+
+    def put(self, *args, **kwargs):
+        if self._closed:
+            raise RuntimeError('queue closed')
+        return super(ClosableQueue, self).put(*args, **kwargs)
+
+    def close(self):
+        self._closed = True
 
 
 class WriterThread(threading.Thread):
@@ -183,7 +212,7 @@ class WriterThread(threading.Thread):
 
     def __init__(self, file, max_queue_depth):
         self.file = file
-        self.queue = queue.Queue(max_queue_depth)
+        self.queue = ClosableQueue(max_queue_depth)
         self.total = 0
         super(WriterThread, self).__init__()
 
@@ -204,25 +233,35 @@ class WriterThread(threading.Thread):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.queue.put((True, None, None))
+        # any thread trying to put somthing on queue would fail with RuntimeError
+        self.queue.close()
         self.join()
 
 
 class AbstractDownloaderThread(threading.Thread):
-    def __init__(self, session, writer, part_to_download, chunk_size):
+    def __init__(self, session, writer, part_to_download, chunk_size, semaphore):
         """
         :param session: raw_api wrapper
         :param writer: where to write data
         :param part_to_download: PartToDownload object
         :param chunk_size: internal buffer size to use for writing and hashing
+        :param semaphore: already acquired semaphore that downloader thread has to release on finish
         """
         self.session = session
         self.writer = writer
         self.part_to_download = part_to_download
         self.chunk_size = chunk_size
+        self.semaphore = semaphore
         super(AbstractDownloaderThread, self).__init__()
 
-    @abstractmethod
     def run(self):
+        try:
+            self.run_download()
+        finally:
+            self.semaphore.release()
+
+    @abstractmethod
+    def run_download(self):
         pass
 
 
@@ -236,7 +275,7 @@ class FirstPartDownloaderThread(AbstractDownloaderThread):
         self.hasher = hasher
         super(FirstPartDownloaderThread, self).__init__(*args, **kwargs)
 
-    def run(self):
+    def run_download(self):
         writer_queue_put = self.writer.queue.put
         hasher_update = self.hasher.update
         first_offset = self.part_to_download.local_range.start
@@ -291,7 +330,7 @@ class NonHashingDownloaderThread(AbstractDownloaderThread):
         self.url = url
         super(NonHashingDownloaderThread, self).__init__(*args, **kwargs)
 
-    def run(self):
+    def run_download(self):
         writer_queue_put = self.writer.queue.put
         start_range = self.part_to_download.local_range.start
         actual_part_size = self.part_to_download.local_range.size()

@@ -43,17 +43,21 @@ def url_for_api(info, api_name):
 class Services(object):
     """ Gathers objects that provide high level logic over raw api usage. """
 
-    def __init__(self, session, max_upload_workers=10, max_copy_workers=10):
+    def __init__(
+        self, session, max_upload_workers=10, max_copy_workers=10, max_download_workers=None
+    ):
         """
         Initialize Services object using given session.
 
         :param b2sdk.v1.Session session:
         :param int max_upload_workers: a number of upload threads
         :param int max_copy_workers: a number of copy threads
+        :param int max_download_workers: a maximum number of download threads.
+                        If ``None`` then :class:`~b2sdk.v1.DownloadManager` ``4 * DEFAULT_MAX_STREAMS`` is used.
         """
         self.session = session
         self.large_file = LargeFileServices(self)
-        self.download_manager = DownloadManager(self)
+        self.download_manager = DownloadManager(self, max_download_workers=max_download_workers)
         self.upload_manager = UploadManager(self, max_upload_workers=max_upload_workers)
         self.copy_manager = CopyManager(self, max_copy_workers=max_copy_workers)
         self.emerger = Emerger(self)
@@ -89,7 +93,8 @@ class B2Api(object):
         cache=None,
         raw_api=None,
         max_upload_workers=10,
-        max_copy_workers=10
+        max_copy_workers=10,
+        max_download_workers=None,
     ):
         """
         Initialize the API using the given account info.
@@ -116,12 +121,15 @@ class B2Api(object):
 
         :param int max_upload_workers: a number of upload threads, default is 10
         :param int max_copy_workers: a number of copy threads, default is 10
+        :param int max_download_workers: a maximum number of download threads.
+                        If ``None`` then :class:`~b2sdk.v1.DownloadManager` ``4 * DEFAULT_MAX_STREAMS`` is used.
         """
         self.session = B2Session(account_info=account_info, cache=cache, raw_api=raw_api)
         self.services = Services(
             self.session,
             max_upload_workers=max_upload_workers,
             max_copy_workers=max_copy_workers,
+            max_download_workers=max_download_workers,
         )
 
     @property

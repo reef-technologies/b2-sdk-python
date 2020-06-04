@@ -10,6 +10,9 @@
 
 import logging
 import six
+import threading
+
+from contextlib import contextmanager
 
 from b2sdk.download_dest import DownloadDestProgressWrapper
 from b2sdk.progress import DoNothingProgressListener
@@ -30,6 +33,17 @@ from .file_metadata import FileMetadata
 logger = logging.getLogger(__name__)
 
 
+class ProtectedSemaphore(object):
+    def __init__(self, semaphore):
+        self._lock = threading.RLock()
+        self._semaphore = semaphore
+
+    @contextmanager
+    def get_semaphore(self):
+        with self._lock:
+            yield self._semaphore
+
+
 @six.add_metaclass(B2TraceMetaAbstract)
 class DownloadManager(object):
     """
@@ -46,18 +60,26 @@ class DownloadManager(object):
     MIN_CHUNK_SIZE = 8192  # ~1MB file will show ~1% progress increment
     MAX_CHUNK_SIZE = 1024**2
 
-    def __init__(self, services):
+    def __init__(self, services, max_download_workers=None):
         """
         Initialize the DownloadManager using the given services object.
 
         :param b2sdk.v1.Services services:
+        :param int max_download_workers: a maximum number of download threads.
+                If ``None`` then ``4 * DEFAULT_MAX_STREAMS`` is used.
         """
 
         self.services = services
+        self.max_download_workers = max_download_workers or 4 * self.DEFAULT_MAX_STREAMS
+        self.max_workers_semaphore = ProtectedSemaphore(
+            threading.BoundedSemaphore(self.max_download_workers)
+        )
+
         self.strategies = [
             ParallelDownloader(
                 max_streams=self.DEFAULT_MAX_STREAMS,
                 min_part_size=self.DEFAULT_MIN_PART_SIZE,
+                protected_semaphore=self.max_workers_semaphore,
                 min_chunk_size=self.MIN_CHUNK_SIZE,
                 max_chunk_size=self.MAX_CHUNK_SIZE,
             ),

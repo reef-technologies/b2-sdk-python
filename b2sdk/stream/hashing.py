@@ -17,13 +17,16 @@ from b2sdk.stream.base import ReadOnlyStreamMixin
 
 class StreamWithHash(ReadOnlyStreamMixin, StreamWithLengthWrapper):
     """
-    Wrap a file-like object, calculates SHA1 while reading
-    and appends hash at the end.
+    Wrap a file-like object, calculates SHA1 while reading and appends hash at the end.
+
+    :ivar ~.hash: sha1 checksum of the stream, can be ``None`` if unknown (yet)
+    :vartype ~.hash: str or None
     """
 
-    def __init__(self, stream, stream_length=None):
+    def __init__(self, stream, stream_length=None, upload_source=None):
         """
         :param stream: the stream to read from
+        :param upload_source: used to set content_sha1 in upload_source (in case of retry etc)
         """
         self.digest = self.get_digest()
         total_length = None
@@ -44,6 +47,7 @@ class StreamWithHash(ReadOnlyStreamMixin, StreamWithLengthWrapper):
         self.digest = self.get_digest()
         self.hash = None
         self.hash_read = 0
+        self.upload_source = upload_source
         return super(StreamWithHash, self).seek(0)
 
     def read(self, size=None):
@@ -63,6 +67,8 @@ class StreamWithHash(ReadOnlyStreamMixin, StreamWithLengthWrapper):
             # Check for end of stream
             if size is None or len(data) < size:
                 self.hash = self.digest.hexdigest()
+                if self.upload_source is not None:
+                    self.upload_source.content_sha1 = self.hash
                 if size is not None:
                     size -= len(data)
 

@@ -158,15 +158,26 @@ class UploadManager(object):
             try:
                 with part_upload_source.open() as part_stream:
                     input_stream = ReadingStreamWithProgress(part_stream, part_progress_listener)
-                    hashing_stream = StreamWithHash(
-                        input_stream, stream_length=part_upload_source.get_content_length()
-                    )
-                    # it is important that `len()` works on `hashing_stream`
+
+                    if part_upload_source.is_sha1_known():
+                        sha1_checksum = part_upload_source.content_sha1
+                        logger.debug('hash for part %s is known: %s, use that', part_upload_source, sha1_checksum)
+                    else:
+                        sha1_checksum = HEX_DIGITS_AT_END
+                        # wrap it with a hasher
+                        input_stream = StreamWithHash(
+                            input_stream,
+                            stream_length=part_upload_source.get_content_length(),
+                        )
+                        logger.debug('hash for part %s is unknown, calculate it and provide it at the end of the stream', part_upload_source)
                     response = self.services.session.upload_part(
-                        file_id, part_number, hashing_stream.length, HEX_DIGITS_AT_END,
-                        hashing_stream
+                        file_id,
+                        part_number,
+                        part_upload_source.get_content_length(),
+                        HEX_DIGITS_AT_END,
+                        input_stream,
                     )
-                    assert hashing_stream.hash == response['contentSha1']
+                    assert part_upload_source.get_content_sha1() == response['contentSha1'], 'part checksum mismatch! %s vs %s' % (part_upload_source.get_content_sha1(), response['contentSha1'])
                     return response
 
             except B2Error as e:
@@ -189,13 +200,24 @@ class UploadManager(object):
                 try:
                     with upload_source.open() as file:
                         input_stream = ReadingStreamWithProgress(file, progress_listener)
-                        hashing_stream = StreamWithHash(input_stream, stream_length=content_length)
-                        # it is important that `len()` works on `hashing_stream`
+                        if upload_source.is_sha1_known():
+                            sha1_checksum = upload_source.content_sha1
+                            logger.debug('hash for %s is known: %s, use that', upload_source, sha1_checksum)
+                        else:
+                            sha1_checksum = HEX_DIGITS_AT_END
+                            # wrap it with a hasher
+                            input_stream = StreamWithHash(input_stream, stream_length=content_length)
+                            logger.debug('hash for %s is unknown, calculate it and provide it at the end of the stream', upload_source)
                         response = self.services.session.upload_file(
-                            bucket_id, file_name, hashing_stream.length, content_type,
-                            HEX_DIGITS_AT_END, file_info, hashing_stream
+                            bucket_id,
+                            file_name,
+                            content_length,
+                            content_type,
+                            sha1_checksum,  # can be HEX_DIGITS_AT_END
+                            file_info,
+                            input_stream,  # can be a hashing stream or a raw stream
                         )
-                        assert hashing_stream.hash == response['contentSha1']
+                        assert upload_source.get_content_sha1() == response['contentSha1'], 'small file checksum mismatch!'
                         return FileVersionInfoFactory.from_api_response(response)
 
                 except B2Error as e:
@@ -203,5 +225,6 @@ class UploadManager(object):
                         raise
                     exception_info_list.append(e)
                     self.account_info.clear_bucket_upload_data(bucket_id)
+
 
         raise MaxRetriesExceeded(self.MAX_UPLOAD_ATTEMPTS, exception_info_list)

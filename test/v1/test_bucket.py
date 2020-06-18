@@ -523,6 +523,18 @@ class TestUpload(TestCaseWithBucket):
             with self.assertRaises(InvalidUploadSource):
                 self.bucket.upload_local_file(path, 'file1')
 
+    def test_upload_local_wrong_sha(self):
+        with TempDir() as d:
+            path = os.path.join(d, 'file123')
+            data = six.b('hello world')
+            write_file(path, data)
+            with self.assertRaises(AssertionError):
+                self.bucket.upload_local_file(
+                    path,
+                    'file123',
+                    sha1_sum='abcabcabc',
+                )
+
     def test_upload_one_retryable_error(self):
         self.simulator.set_upload_errors([CanRetry(True)])
         data = six.b('hello world')

@@ -10,7 +10,7 @@
 
 import threading
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 
 import six
 
@@ -18,6 +18,7 @@ from b2sdk.exception import MaxFileSizeExceeded
 from b2sdk.file_version import FileVersionInfoFactory
 from b2sdk.transfer.outbound.large_file_upload_state import LargeFileUploadState
 from b2sdk.transfer.outbound.upload_source import UploadSourceStream
+from b2sdk.utils import B2TraceMetaAbstract
 from b2sdk.utils import interruptible_get_result
 
 AUTO_CONTENT_TYPE = 'b2/x-auto'
@@ -63,7 +64,7 @@ class EmergeExecutor(object):
         return execution.execute_plan(emerge_plan)
 
 
-@six.add_metaclass(ABCMeta)
+@six.add_metaclass(B2TraceMetaAbstract)
 class BaseEmergeExecution(object):
     DEFAULT_CONTENT_TYPE = AUTO_CONTENT_TYPE
 
@@ -300,7 +301,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         return None, {}
 
 
-@six.add_metaclass(ABCMeta)
+@six.add_metaclass(B2TraceMetaAbstract)
 class BaseExecutionStepFactory(object):
     def __init__(self, emerge_execution, emerge_part):
         self.emerge_execution = emerge_execution
@@ -369,7 +370,7 @@ class LargeFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
         )
 
 
-@six.add_metaclass(ABCMeta)
+@six.add_metaclass(B2TraceMetaAbstract)
 class BaseExecutionStep(object):
     @abstractmethod
     def execute(self):

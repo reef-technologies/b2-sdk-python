@@ -45,6 +45,7 @@ Documentation index
    install
    tutorial
    quick_start
+   server_side_encryption
    advanced
    glossary
    api_types

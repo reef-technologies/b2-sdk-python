@@ -206,7 +206,6 @@ class UploadManager(metaclass=B2TraceMetaAbstract):
         progress_listener,
         encryption: EncryptionSetting,
     ):
-        assert encryption is None or encryption.mode in (EncryptionMode.SSE_B2,)
         content_length = upload_source.get_content_length()
         exception_info_list = []
         progress_listener.set_total_bytes(content_length)

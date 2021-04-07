@@ -41,12 +41,22 @@ from .deps import ParallelDownloader
 from .deps import SimpleDownloader
 from .deps import UploadSourceBytes
 from .deps import hex_sha1_of_bytes, TempDir
-from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode
+from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, UNKNOWN_KEY
 
 SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
 SSE_B2_AES = EncryptionSetting(
     mode=EncryptionMode.SSE_B2,
     algorithm=EncryptionAlgorithm.AES256,
+)
+SSE_C_AES = EncryptionSetting(
+    mode=EncryptionMode.SSE_C,
+    algorithm=EncryptionAlgorithm.AES256,
+    key='some_key'
+)
+SSE_C_AES_FROM_SERVER = EncryptionSetting(
+    mode=EncryptionMode.SSE_C,
+    algorithm=EncryptionAlgorithm.AES256,
+    key=UNKNOWN_KEY
 )
 
 
@@ -597,6 +607,12 @@ class TestUpload(TestCaseWithBucket):
         file_info = self.bucket.upload_bytes(data, 'file1', encryption=SSE_B2_AES)
         self.assertTrue(isinstance(file_info, FileVersionInfo))
         self.assertEqual(file_info.server_side_encryption, SSE_B2_AES)
+
+    def test_upload_bytes_sse_c(self):
+        data = b'hello world'
+        file_info = self.bucket.upload_bytes(data, 'file1', encryption=SSE_C_AES)
+        self.assertTrue(isinstance(file_info, FileVersionInfo))
+        self.assertEqual(file_info.server_side_encryption, SSE_C_AES_FROM_SERVER)
 
     def test_upload_local_file_sse_b2(self):
         with TempDir() as d:

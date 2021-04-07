@@ -17,6 +17,8 @@ from .types import EncryptionAlgorithm, EncryptionKey, EncryptionMode
 
 logger = logging.getLogger(__name__)
 
+UNKNOWN_KEY = object()  # EncryptionSetting.key for EncryptionSetting created from server response
+
 
 class EncryptionSetting:
     """
@@ -66,6 +68,8 @@ class EncryptionSetting:
         elif self.mode == EncryptionMode.SSE_B2:
             headers['X-Bz-Server-Side-Encryption'] = self.algorithm.name
         elif self.mode == EncryptionMode.SSE_C:
+            if self.key is UNKNOWN_KEY:
+                raise ValueError('Cannot use UNKOWN_KEY in upload headers')
             headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
             headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self.key
             headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = hex_md5_of_bytes(self.key)
@@ -76,6 +80,8 @@ class EncryptionSetting:
         key_repr = '******'
         if self.key is None:
             key_repr = None
+        if self.key is UNKNOWN_KEY:
+            key_repr = 'Unknown Key'
         return '<%s(%s, %s, %s)>' % (self.__class__.__name__, self.mode, self.algorithm, key_repr)
 
 
@@ -177,7 +183,7 @@ class EncryptionSettingFactory:
             if algorithm is not None:
                 kwargs['algorithm'] = EncryptionAlgorithm(algorithm)
 
-        return EncryptionSetting(**kwargs)
+        return cls._from_server_response(**kwargs)
 
     @classmethod
     def from_response_headers(cls, headers):
@@ -188,4 +194,10 @@ class EncryptionSettingFactory:
         if algorithm is not None:
             kwargs['algorithm'] = EncryptionAlgorithm(algorithm)
 
-        return EncryptionSetting(**kwargs)
+        return cls._from_server_response(**kwargs)
+
+    @classmethod
+    def _from_server_response(cls, mode=None, **kwargs):
+        if mode == EncryptionMode.SSE_C:
+            kwargs['key'] = UNKNOWN_KEY
+        return EncryptionSetting(**kwargs, mode=mode)

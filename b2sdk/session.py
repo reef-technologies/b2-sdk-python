@@ -17,7 +17,7 @@ from b2sdk.account_info.sqlite_account_info import SqliteAccountInfo
 from b2sdk.account_info.exception import MissingAccountData
 from b2sdk.b2http import B2Http
 from b2sdk.cache import AuthInfoCache, DummyCache
-from b2sdk.encryption.setting import EncryptionSetting
+from b2sdk.encryption.setting import EncryptionSetting, EncryptionMode
 from b2sdk.exception import (InvalidAuthToken, Unauthorized)
 from b2sdk.raw_api import ALL_CAPABILITIES, B2RawApi
 
@@ -281,6 +281,7 @@ class B2Session(object):
         file_info,
         server_side_encryption: Optional[EncryptionSetting] = None,
     ):
+        file_info = self._add_key_id_to_file_info(file_info, server_side_encryption)
         return self._wrap_default_token(
             self.raw_api.start_large_file,
             bucket_id,
@@ -324,6 +325,7 @@ class B2Session(object):
         data_stream,
         server_side_encryption: Optional[EncryptionSetting] = None,
     ):
+        file_infos = self._add_key_id_to_file_info(file_infos, server_side_encryption)
         return self._wrap_token(
             self.raw_api.upload_file,
             TokenType.UPLOAD_SMALL,
@@ -375,7 +377,9 @@ class B2Session(object):
         file_info=None,
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
+        file_info = self._add_key_id_to_file_info(file_info, destination_server_side_encryption)
         return self._wrap_default_token(
             self.raw_api.copy_file,
             source_file_id,
@@ -386,6 +390,7 @@ class B2Session(object):
             file_info=file_info,
             destination_bucket_id=destination_bucket_id,
             destination_server_side_encryption=destination_server_side_encryption,
+            source_server_side_encryption=source_server_side_encryption,
         )
 
     def copy_part(
@@ -395,6 +400,7 @@ class B2Session(object):
         part_number,
         bytes_range=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         return self._wrap_default_token(
             self.raw_api.copy_part,
@@ -403,6 +409,7 @@ class B2Session(object):
             part_number,
             bytes_range=bytes_range,
             destination_server_side_encryption=destination_server_side_encryption,
+            source_server_side_encryption=source_server_side_encryption,
         )
 
     def _wrap_default_token(self, raw_api_method, *args, **kwargs):
@@ -505,3 +512,11 @@ class B2Session(object):
         response = f(upload_url, upload_auth_token, *args, **kwargs)
         self.account_info.put_large_file_upload_url(file_id, upload_url, upload_auth_token)
         return response
+
+    def _add_key_id_to_file_info(self, file_info: Optional[dict], encryption: Optional[EncryptionSetting]):
+        if not encryption or encryption.key_id is None:
+            return file_info
+        if file_info is None:
+            file_info = {}
+        file_info['sse_c_key_id'] = encryption.key_id
+        return file_info

@@ -34,6 +34,7 @@ from .exception import (
     PartSha1Mismatch,
     Unauthorized,
     UnsatisfiableRange,
+    SSE_C_Key_Error,
 )
 from .raw_api import AbstractRawApi, HEX_DIGITS_AT_END, MetadataDirectiveMode, ALL_CAPABILITIES
 from .utils import (
@@ -296,6 +297,12 @@ class FileSimulator(object):
             parts = parts[:max_part_count]
         return dict(parts=parts, nextPartNumber=next_part_number)
 
+    def validate_source_sse(self, source_server_side_encryption):
+        if self.server_side_encryption is None or self.server_side_encryption.mode != EncryptionMode.SSE_C:
+            return
+        if source_server_side_encryption.mode != EncryptionMode.SSE_C or source_server_side_encryption.key != self.server_side_encryption.key:
+            raise SSE_C_Key_Error()
+
 
 FakeRequest = collections.namedtuple('FakeRequest', 'url headers')
 
@@ -488,6 +495,7 @@ class BucketSimulator(object):
         file_info=None,
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         if metadata_directive is not None:
             assert metadata_directive in tuple(MetadataDirectiveMode)
@@ -503,6 +511,7 @@ class BucketSimulator(object):
                 )
 
         file_sim = self.file_id_to_file[file_id]
+        file_sim.validate_source_sse(source_server_side_encryption)
         new_file_id = self._next_file_id()
 
         data_bytes = get_bytes_range(file_sim.data_bytes, bytes_range)
@@ -1089,6 +1098,7 @@ class RawSimulator(AbstractRawApi):
         file_info=None,
         destination_bucket_id=None,
         destination_server_side_encryption=None,
+        source_server_side_encryption=None,
     ):
         bucket_id = self.file_id_to_bucket_id[source_file_id]
         bucket = self._get_bucket_by_id(bucket_id)
@@ -1124,6 +1134,7 @@ class RawSimulator(AbstractRawApi):
         part_number,
         bytes_range=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         if destination_server_side_encryption is not None and destination_server_side_encryption.mode == EncryptionMode.SSE_B2:
             raise ValueError(
@@ -1137,6 +1148,7 @@ class RawSimulator(AbstractRawApi):
         self._assert_account_auth(api_url, account_auth_token, dest_bucket.account_id, 'writeFiles')
 
         file_sim = src_bucket.file_id_to_file[source_file_id]
+        file_sim.validate_source_sse(source_server_side_encryption)
         data_bytes = get_bytes_range(file_sim.data_bytes, bytes_range)
 
         data_stream = StreamWithHash(io.BytesIO(data_bytes), len(data_bytes))

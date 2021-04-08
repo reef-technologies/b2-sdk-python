@@ -31,6 +31,7 @@ class EncryptionSetting:
         mode: EncryptionMode,
         algorithm: EncryptionAlgorithm = None,
         key: EncryptionKey = None,
+        key_id: Optional[str] = None,
     ):
         """
         :param b2sdk.v1.EncryptionMode mode: encryption mode
@@ -40,6 +41,7 @@ class EncryptionSetting:
         self.mode = mode
         self.algorithm = algorithm
         self.key = key
+        self.key_id = key_id
         if self.mode == EncryptionMode.NONE and (self.algorithm or self.key):
             raise ValueError("cannot specify algorithm or key for 'plaintext' encryption mode")
         if self.mode in ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM and not self.algorithm:
@@ -56,9 +58,28 @@ class EncryptionSetting:
         return self.mode == other.mode and self.algorithm == other.algorithm and self.key == other.key
 
     def as_value_dict(self):
+        """
+        Dump EncryptionSetting as dict for serializing a to json for requests
+        :return: dict
+        """
+        if self.key is UNKNOWN_KEY:
+            raise ValueError('cannot use UNKNOWN_KEY in transmission')
+        return self.repr_as_dict()
+
+    def repr_as_dict(self):
+        """
+        Dump EncryptionSetting as dict for representing
+        :return: dict
+        """
         result = {'mode': self.mode.value}
         if self.algorithm is not None:
             result['algorithm'] = self.algorithm.value
+        if self.mode == EncryptionMode.SSE_C:
+            result['customerKey'] = self.key
+            if self.key is UNKNOWN_KEY:
+                result['customerKeyMd5'] = ''
+            else:
+                result['customerKeyMd5'] = hex_md5_of_bytes(self.key)
         return result
 
     def add_to_upload_headers(self, headers):

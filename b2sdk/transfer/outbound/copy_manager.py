@@ -72,6 +72,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
         destination_bucket_id,
         progress_listener,
         destination_encryption: Optional[EncryptionSetting] = None,
+        source_encryption: Optional[EncryptionSetting] = None,
     ):
         # Run small copies in the same thread pool as large file copies,
         # so that they share resources during a sync.
@@ -84,6 +85,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
             destination_bucket_id=destination_bucket_id,
             progress_listener=progress_listener,
             destination_encryption=destination_encryption,
+            source_encryption=source_encryption,
         )
 
     def copy_part(
@@ -94,6 +96,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
         large_file_upload_state,
         finished_parts=None,
         destination_encryption: Optional[EncryptionSetting] = None,
+        source_encryption: Optional[EncryptionSetting] = None,
     ):
         return self.get_thread_pool().submit(
             self._copy_part,
@@ -103,6 +106,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
             large_file_upload_state,
             finished_parts=finished_parts,
             destination_encryption=destination_encryption,
+            source_encryption=source_encryption,
         )
 
     def _copy_part(
@@ -113,6 +117,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
         large_file_upload_state,
         finished_parts,
         destination_encryption: Optional[EncryptionSetting],
+        source_encryption: Optional[EncryptionSetting],
     ):
         """
         Copy a file part to started large file.
@@ -125,6 +130,8 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
         :param dict,None finished_parts: dictionary of known finished parts, keys are part numbers,
                                          values are instances of :class:`~b2sdk.v1.Part`
         :param b2sdk.v1.EncryptionSetting destination_encryption: encryption settings for the destination
+                        (``None`` if unknown)
+        :param b2sdk.v1.EncryptionSetting source_encryption: encryption settings for the source
                         (``None`` if unknown)
         """
         assert destination_encryption is None or destination_encryption.mode in (
@@ -155,6 +162,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
             part_number,
             bytes_range=part_copy_source.get_bytes_range(),
             destination_server_side_encryption=destination_encryption,
+            source_server_side_encryption=source_encryption,
         )
         large_file_upload_state.update_part_bytes(response['contentLength'])
         return response
@@ -168,10 +176,8 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
         destination_bucket_id,
         progress_listener,
         destination_encryption: Optional[EncryptionSetting],
+        source_encryption: Optional[EncryptionSetting],
     ):
-        assert destination_encryption is None or destination_encryption.mode in (
-            EncryptionMode.SSE_B2,
-        )
         with progress_listener:
             progress_listener.set_total_bytes(copy_source.get_content_length() or 0)
 
@@ -195,6 +201,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
                 file_info=file_info,
                 destination_bucket_id=destination_bucket_id,
                 destination_server_side_encryption=destination_encryption,
+                source_server_side_encryption=source_encryption,
             )
             file_info = FileVersionInfoFactory.from_api_response(response)
             if progress_listener is not None:

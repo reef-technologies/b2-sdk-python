@@ -805,6 +805,7 @@ class Bucket(metaclass=B2TraceMeta):
         content_type=None,
         file_info=None,
         destination_encryption: Optional[EncryptionSetting] = None,
+        source_encryption: Optional[EncryptionSetting] = None,
     ):
         """
         Creates a new file in this bucket by (server-side) copying from an existing file.
@@ -817,10 +818,9 @@ class Bucket(metaclass=B2TraceMeta):
         :param dict,None file_info: file_info for the new file if metadata_directive is set to :py:attr:`b2sdk.v1.MetadataDirectiveMode.REPLACE`, default will copy the file_info of old file
         :param b2sdk.v1.EncryptionSetting destination_encryption: encryption settings for the destination
                 (``None`` if unknown)
+        :param b2sdk.v1.EncryptionSetting source_encryption: encryption settings for the source
+                (``None`` if unknown)
         """
-        assert destination_encryption is None or destination_encryption.mode in (
-            EncryptionMode.SSE_B2,
-        )
         return self.api.session.copy_file(
             file_id,
             new_file_name,
@@ -830,6 +830,7 @@ class Bucket(metaclass=B2TraceMeta):
             file_info,
             self.id_,
             destination_server_side_encryption=destination_encryption,
+            source_server_side_encryption=source_encryption,
         )
 
     def delete_file_version(self, file_id, file_name):
@@ -862,7 +863,7 @@ class Bucket(metaclass=B2TraceMeta):
         result['lifecycleRules'] = self.lifecycle_rules
         result['revision'] = self.revision
         result['options'] = self.options_set
-        result['defaultServerSideEncryption'] = self.default_server_side_encryption.as_value_dict()
+        result['defaultServerSideEncryption'] = self.default_server_side_encryption.repr_as_dict()
         return result
 
     def __repr__(self):

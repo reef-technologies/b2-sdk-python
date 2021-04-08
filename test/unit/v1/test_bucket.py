@@ -51,7 +51,7 @@ SSE_B2_AES = EncryptionSetting(
 SSE_C_AES = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key='some_key'
+    key=b'some_key'
 )
 SSE_C_AES_FROM_SERVER = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
@@ -622,6 +622,16 @@ class TestUpload(TestCaseWithBucket):
             file_info = self.bucket.upload_local_file(path, 'file1', encryption=SSE_B2_AES)
             self.assertTrue(isinstance(file_info, FileVersionInfo))
             self.assertEqual(file_info.server_side_encryption, SSE_B2_AES)
+            self._check_file_contents('file1', data)
+
+    def test_upload_local_file_sse_c(self):
+        with TempDir() as d:
+            path = os.path.join(d, 'file1')
+            data = b'hello world'
+            write_file(path, data)
+            file_info = self.bucket.upload_local_file(path, 'file1', encryption=SSE_C_AES)
+            self.assertTrue(isinstance(file_info, FileVersionInfo))
+            self.assertEqual(file_info.server_side_encryption, SSE_C_AES_FROM_SERVER)
             self._check_file_contents('file1', data)
 
     def test_upload_bytes_progress(self):

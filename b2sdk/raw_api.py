@@ -88,6 +88,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         file_info=None,
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         pass
 
@@ -101,6 +102,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         part_number,
         bytes_range=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         pass
 
@@ -370,6 +372,7 @@ class B2RawApi(AbstractRawApi):
         if lifecycle_rules is not None:
             kwargs['lifecycleRules'] = lifecycle_rules
         if default_server_side_encryption is not None:
+            assert default_server_side_encryption.mode != EncryptionMode.SSE_C
             kwargs['defaultServerSideEncryption'] = default_server_side_encryption.as_value_dict()
         return self._post_json(
             api_url,
@@ -642,6 +645,7 @@ class B2RawApi(AbstractRawApi):
         if lifecycle_rules is not None:
             kwargs['lifecycleRules'] = lifecycle_rules
         if default_server_side_encryption is not None:
+            assert default_server_side_encryption.mode != EncryptionMode.SSE_C
             kwargs['defaultServerSideEncryption'] = default_server_side_encryption.as_value_dict()
 
         return self._post_json(
@@ -774,6 +778,7 @@ class B2RawApi(AbstractRawApi):
         file_info=None,
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         kwargs = {}
         if bytes_range is not None:
@@ -804,6 +809,10 @@ class B2RawApi(AbstractRawApi):
         if destination_server_side_encryption is not None:
             kwargs['destinationServerSideEncryption'
                   ] = destination_server_side_encryption.as_value_dict()
+        if source_server_side_encryption is not None:
+            assert source_server_side_encryption.mode == EncryptionMode.SSE_C
+            kwargs['sourceServerSideEncryption'
+                  ] = source_server_side_encryption.as_value_dict()
 
         return self._post_json(
             api_url,
@@ -823,6 +832,7 @@ class B2RawApi(AbstractRawApi):
         part_number,
         bytes_range=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         kwargs = {}
         if bytes_range is not None:
@@ -830,9 +840,13 @@ class B2RawApi(AbstractRawApi):
             _add_range_header(range_dict, bytes_range)
             kwargs['range'] = range_dict['Range']
         if destination_server_side_encryption is not None:
-            assert destination_server_side_encryption.mode != EncryptionMode.SSE_B2
+            assert destination_server_side_encryption.mode == EncryptionMode.SSE_C
             kwargs['destinationServerSideEncryption'
                   ] = destination_server_side_encryption.as_value_dict()
+        if source_server_side_encryption is not None:
+            assert source_server_side_encryption.mode == EncryptionMode.SSE_C
+            kwargs['sourceServerSideEncryption'
+                  ] = source_server_side_encryption.as_value_dict()
         return self._post_json(
             api_url,
             'b2_copy_part',

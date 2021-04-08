@@ -471,6 +471,11 @@ class UploadTokenUsedConcurrently(B2Error):
         return "More than one concurrent upload using auth token %s" % (self.token,)
 
 
+class SSE_C_Key_Error(B2Error):
+    def __str__(self):
+        return "Wrong or no SSE-C key provided when reading a file."
+
+
 def interpret_b2_error(
     status: int,
     code: Optional[str],

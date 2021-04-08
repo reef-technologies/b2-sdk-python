@@ -8,9 +8,9 @@ Server-Side Encryption
 Cloud
 ***********************
 B2 cloud supports `Server-Side Encryption <https://www.backblaze.com/b2/docs/server_side_encryption.html>`_. All read
-and write operations provided by **b2sdk** accept encyrption settings as an optional argument. Not supplying this
+and write operations provided by **b2sdk** accept encryption settings as an optional argument. Not supplying this
 argument means relying on bucket defaults - for **SSE-B2** and for no encryption. In case of **SSE-C**, providing an
-encryption key is crucial for succesfull donwloading and copying.
+encryption key is crucial for successful downloading and copying.
 
 ***
 API
@@ -47,8 +47,8 @@ implementations (necessary for using Sync) is outside of the scope of this libra
 
 There is, however, a convention to such managers that authors of this library strongly suggest: if a manager needs to generate
 a new key-key_id pair for uploading, it's best to commit this data to the underlying storage before commencing the upload.
-The justification of such approach is: should the key-key_id pair be commited to permanent storage after completing an IO
-operation, commiting could fail after succesfully upload the data. This data, however, is now just a random blob, that
+The justification of such approach is: should the key-key_id pair be committed to permanent storage after completing an IO
+operation, committing could fail after successfully upload the data. This data, however, is now just a random blob, that
 can never be read, since the key to decrypting it is lost.
 
 This approach comes an overhead: to download a file, its `fileInfo` has to be known. This means that fetching metadata

@@ -99,7 +99,7 @@ class EncryptionSetting:
             headers['X-Bz-Server-Side-Encryption'] = self.algorithm.name
         elif self.mode == EncryptionMode.SSE_C:
             if self.key == UNKNOWN_KEY:
-                raise ValueError('Cannot use UNKOWN_KEY in upload headers')
+                raise ValueError('Cannot use UNKNOWN_KEY in upload headers')
             headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
             headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self._key_b64()
             headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = self._key_md5()
@@ -114,7 +114,7 @@ class EncryptionSetting:
             headers['X-Bz-Server-Side-Encryption'] = self.algorithm.name
         elif self.mode == EncryptionMode.SSE_C:
             if self.key == UNKNOWN_KEY:
-                raise ValueError('Cannot use UNKOWN_KEY in upload headers')
+                raise ValueError('Cannot use UNKNOWN_KEY in upload headers')
             headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
             headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self._key_b64()
             headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = self._key_md5()
@@ -171,7 +171,7 @@ class EncryptionSettingFactory:
     @classmethod
     def from_bucket_dict(cls, bucket_dict: dict) -> Optional[EncryptionSetting]:
         """
-        Returns EncryptionSetting for the given bucket dict retrieved from the api, or None if unautorized
+        Returns EncryptionSetting for the given bucket dict retrieved from the api, or None if unauthorized
 
         Example inputs:
 

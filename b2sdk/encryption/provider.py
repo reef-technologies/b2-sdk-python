@@ -43,7 +43,7 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
         length: int,
     ) -> Optional[EncryptionSetting]:
         """
-        Return an EncryptionSetting for source of copying an object or None if not required
+        Return an EncryptionSetting for a source of copying an object or None if not required
 
         WARNING: the signature of this method is not final yet and not part of the public interface
         """
@@ -57,7 +57,7 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
         length: int,
     ) -> Optional[EncryptionSetting]:
         """
-        Return an EncryptionSetting for destination for copying an object or None if server should decide
+        Return an EncryptionSetting for a destination for copying an object or None if server should decide
 
         WARNING: the signature of this method is not final yet and not part of the public interface
         """

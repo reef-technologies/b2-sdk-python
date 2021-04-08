@@ -51,8 +51,8 @@ Synchronization
 
     >>> no_progress = False
     >>> encryption_settings_provider = BasicEncryptionSettingsProvider({
-            'bucket1': EncyrptionSettings(mode=EncrytpionMode.SSE_B2),
-            'bucket2': EncyrptionSettings(mode=EncrytpionMode.SSE_C, key=b'aes_key', key_id='user-generated-id'),
+            'bucket1': EncryptionSettings(mode=EncryptionMode.SSE_B2),
+            'bucket2': EncryptionSettings(mode=EncryptionMode.SSE_C, key=b'aes_key', key_id='user-generated-id'),
             'bucket3': None,
         })
     >>> with SyncReport(sys.stdout, no_progress) as reporter:

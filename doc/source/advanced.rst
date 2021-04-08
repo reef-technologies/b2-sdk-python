@@ -6,7 +6,7 @@ Advanced usage patterns
 
 B2 server API allows for creation of an object from existing objects. This allows to avoid transferring data from the source machine if the desired outcome can be (at least partially) constructed from what is already on the server.
 
-The way **b2sdk** exposes this functonality is through a few functions that allow the user to express the desired outcome and then the library takes care of planning and executing the work. Please refer to the table below to compare the support of object creation methods for various usage patterns.
+The way **b2sdk** exposes this functionality is through a few functions that allow the user to express the desired outcome and then the library takes care of planning and executing the work. Please refer to the table below to compare the support of object creation methods for various usage patterns.
 
 *****************
 Available methods
@@ -37,7 +37,7 @@ Available methods
 Range overlap
 =============
 
-Some methods support overlapping ranges between local and remote files. **b2sdk** tries to use the remote ranges as much as possible, but due to limitations of ``b2_copy_part`` (specifically the minimum size of a part) that may not be always possible. A possible solutuon for such case is to download a (small) range and then upload it along with another one, to meet the ``b2_copy_part`` requirements. This can be improved if the same data is already available locally - in such case **b2sdk** will use the local range rather than downloading it.
+Some methods support overlapping ranges between local and remote files. **b2sdk** tries to use the remote ranges as much as possible, but due to limitations of ``b2_copy_part`` (specifically the minimum size of a part) that may not be always possible. A possible solution for such case is to download a (small) range and then upload it along with another one, to meet the ``b2_copy_part`` requirements. This can be improved if the same data is already available locally - in such case **b2sdk** will use the local range rather than downloading it.
 
 
 Streaming interface

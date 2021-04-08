@@ -750,6 +750,7 @@ class Bucket(metaclass=B2TraceMeta):
         length=None,
         progress_listener=None,
         destination_encryption: Optional[EncryptionSetting] = None,
+        source_encryption: Optional[EncryptionSetting] = None,
     ):
         """
         Creates a new file in this bucket by (server-side) copying from an existing file.
@@ -769,9 +770,11 @@ class Bucket(metaclass=B2TraceMeta):
                         for multipart copy, or ``None`` to not report progress
         :param b2sdk.v1.EncryptionSetting destination_encryption: encryption settings for the destination
                         (``None`` if unknown)
+        :param b2sdk.v1.EncryptionSetting source_encryption: encryption settings for the source
+                        (``None`` if unknown)
         """
 
-        copy_source = CopySource(file_id, offset=offset, length=length)
+        copy_source = CopySource(file_id, offset=offset, length=length, encryption=source_encryption)
         if not length:
             # TODO: it feels like this should be checked on lower level - eg. RawApi
             validate_b2_file_name(new_file_name)
@@ -784,6 +787,7 @@ class Bucket(metaclass=B2TraceMeta):
                 destination_bucket_id=self.id_,
                 progress_listener=progress_listener,
                 destination_encryption=destination_encryption,
+                source_encryption=source_encryption,
             ).result()
         else:
             return self.create_file(

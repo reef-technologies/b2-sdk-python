@@ -527,6 +527,8 @@ def interpret_b2_error(
         return StorageCapExceeded()
     elif status == 403 and code == "transaction_cap_exceeded":
         return TransactionCapExceeded()
+    elif status == 403 and code == "access_denied":
+        return SSE_C_Key_Error()
     elif status == 409:
         return Conflict()
     elif status == 416 and code == "range_not_satisfiable":

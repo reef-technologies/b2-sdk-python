@@ -129,7 +129,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def download_file_from_url(self, account_auth_token_or_none, url, range_=None):
+    def download_file_from_url(self, account_auth_token_or_none, url, range_=None, encryption: Optional[EncryptionSetting] = None):
         pass
 
     @abstractmethod
@@ -423,17 +423,21 @@ class B2RawApi(AbstractRawApi):
             applicationKeyId=application_key_id,
         )
 
-    def download_file_from_url(self, account_auth_token_or_none, url, range_=None):
+    def download_file_from_url(self, account_auth_token_or_none, url, range_=None, encryption: Optional[EncryptionSetting] = None):
         """
         Issue a streaming request for download of a file, potentially authorized.
 
-        :param account_auth_token_or_none: an optional account auth token to pass in
-        :param url: the full URL to download from
-        :param range: two-element tuple for http Range header
+        :paramstr  account_auth_token_or_none: an optional account auth token to pass in
+        :param str url: the full URL to download from
+        :param tuple range: two-element tuple for http Range header
+        :param b2sdk.v1.EncryptionSetting encryption: encryption settings for downloading
         :return: b2_http response
         """
         request_headers = {}
         _add_range_header(request_headers, range_)
+
+        if encryption is not None:
+            encryption.add_to_download_headers(request_headers)
 
         if account_auth_token_or_none is not None:
             request_headers['Authorization'] = account_auth_token_or_none

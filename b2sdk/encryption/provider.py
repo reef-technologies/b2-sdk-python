@@ -82,8 +82,6 @@ class ServerDefaultEncryptionSettingsProvider(AbstractEncryptionSettingsProvider
     """
     Encryption settings provider which assumes setting-less reads
     and a bucket default for writes.
-
-    As of 2021-03-18 this means either encryption or SSE-B2
     """
 
     def get_setting_for_upload(self, *args, **kwargs) -> None:
@@ -109,7 +107,7 @@ class BasicEncryptionSettingsProvider(AbstractEncryptionSettingsProvider):
     WARNING: This class can be used by B2CLI for SSE-B2, but it's still in development
     """
 
-    def __init__(self, bucket_settings: Dict[str, EncryptionSetting]):
+    def __init__(self, bucket_settings: Dict[str, Optional[EncryptionSetting]]):
         """
         :param dict bucket_settings: a mapping from bucket name to EncryptionSetting object
         """

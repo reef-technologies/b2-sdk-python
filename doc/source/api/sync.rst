@@ -188,6 +188,11 @@ also uploaded a new version of f2.txt to bucket using B2 web.
     upload f2.txt
 
 
+Handling encryption
+===================
+The `Synchronizer` object may need `EncryptionSetting` instances to perform downloads and copies. For this reason, the
+`sync_folder` method accepts an `EncryptionSettingsProvider`, see :ref:`server_side_encryption` for details.
+
 .. autoclass:: b2sdk.v1.ScanPoliciesManager()
    :special-members: __init__
    :members:

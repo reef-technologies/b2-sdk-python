@@ -69,8 +69,7 @@ class EncryptionSetting:
 
     def as_value_dict(self):
         """
-        Dump EncryptionSetting as dict for serializing a to json for requests
-        :return: dict
+        Dump EncryptionSetting as dict for serializing a to json for requests.
         """
         if self.key == UNKNOWN_KEY:
             raise ValueError('cannot use UNKNOWN_KEY in transmission')
@@ -78,8 +77,7 @@ class EncryptionSetting:
 
     def repr_as_dict(self):
         """
-        Dump EncryptionSetting as dict for representing
-        :return: dict
+        Dump EncryptionSetting as dict for representing.
         """
         result = {'mode': self.mode.value}
         if self.algorithm is not None:

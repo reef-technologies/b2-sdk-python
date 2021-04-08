@@ -50,6 +50,11 @@ Synchronization
         )
 
     >>> no_progress = False
+    >>> encryption_settings_provider = BasicEncryptionSettingsProvider({
+            'bucket1': EncyrptionSettings(mode=EncrytpionMode.SSE_B2),
+            'bucket2': EncyrptionSettings(mode=EncrytpionMode.SSE_C, key=b'aes_key', key_id='user-generated-id'),
+            'bucket3': None,
+        })
     >>> with SyncReport(sys.stdout, no_progress) as reporter:
             synchronizer.sync_folders(
                 source_folder=source,
@@ -65,8 +70,14 @@ Synchronization
 
     To learn more about sync, see :ref:`sync`.
 
-TODO: add encryption provider, or rather a link to server-side encryption
+Sync uses an encryption provider. In principle, it's a mapping between file metadata (bucket_name, file_info, etc.) and
+`EncryptionSetting`. The reason for employing such a mapping, rather than a single `EncryptionSetting`, is the fact that
+users of Sync do not necessarily know up front what files it's going to upload and download. This approach enables using
+unique keys, or key identifiers, across files. This is covered in greater detail in :ref:`server_side_encryption`.
 
+In the example above, Sync will assume `SSE-B2` for all files in `bucket1`, `SSE-C` with the key provided for `bucket2`
+and rely on bucket default for `bucket3`. Should developers need to provide keys per file (and not per bucket), they
+need to implement their own :class:`b2sdk.v1.AbstractEncryptionSettingsProvider`.
 
 **************
 Bucket actions
@@ -225,7 +236,7 @@ Downloading encrypted files
 ---------------------------
 
 Both methods (`By name`_ and `By id`_) accept an optional `encryption` argument, similarly to `Upload file`_. This
-setting is necessary to download files encrypted with `SSE-C`.
+parameter is necessary for downloading files encrypted with `SSE-C`.
 
 List files
 ==========

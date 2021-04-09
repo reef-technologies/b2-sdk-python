@@ -9,9 +9,6 @@
 ######################################################################
 
 from enum import Enum, unique
-from typing import NewType
-
-EncryptionKey = NewType('EncryptionKey', bytes)
 
 
 @unique

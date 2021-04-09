@@ -41,7 +41,7 @@ from .deps import ParallelDownloader
 from .deps import SimpleDownloader
 from .deps import UploadSourceBytes
 from .deps import hex_sha1_of_bytes, TempDir
-from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, UNKNOWN_KEY
+from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, EncryptionKey
 
 SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
 SSE_B2_AES = EncryptionSetting(
@@ -51,12 +51,12 @@ SSE_B2_AES = EncryptionSetting(
 SSE_C_AES = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=b'some_key'
+    key=EncryptionKey(secret=b'some_key', id=None),
 )
 SSE_C_AES_FROM_SERVER = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=UNKNOWN_KEY
+    key=EncryptionKey(id=None, secret=None),
 )
 
 

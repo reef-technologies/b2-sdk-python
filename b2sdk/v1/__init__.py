@@ -20,11 +20,9 @@ from b2sdk.raw_api import ALL_CAPABILITIES
 
 # encryption
 
-from b2sdk.encryption.setting import EncryptionSetting
+from b2sdk.encryption.setting import EncryptionSetting, EncryptionKey
 from b2sdk.encryption.setting import EncryptionSettingFactory
-from b2sdk.encryption.setting import UNKNOWN_KEY
 from b2sdk.encryption.types import EncryptionAlgorithm
-from b2sdk.encryption.types import EncryptionKey
 from b2sdk.encryption.types import EncryptionMode
 from b2sdk.encryption.provider import AbstractEncryptionSettingsProvider
 from b2sdk.encryption.provider import BasicEncryptionSettingsProvider

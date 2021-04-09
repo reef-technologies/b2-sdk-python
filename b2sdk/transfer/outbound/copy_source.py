@@ -24,12 +24,13 @@ class CopySource(OutboundTransferSource):
         self.encryption = encryption
 
     def __repr__(self):
-        return '<{classname} file_id={file_id} offset={offset} length={length} id={id}>'.format(
+        return '<{classname} file_id={file_id} offset={offset} length={length} id={id}, encryption={encryption}>'.format(
             classname=self.__class__.__name__,
             file_id=self.file_id,
             offset=self.offset,
             length=self.length,
             id=id(self),
+            encryption=self.encryption,
         )
 
     def get_content_length(self):
@@ -56,4 +57,4 @@ class CopySource(OutboundTransferSource):
         if self.length is not None and range_length + relative_offset > self.length:
             raise ValueError('Range length overflow source length')
         range_offset = self.offset + relative_offset
-        return self.__class__(self.file_id, range_offset, range_length)
+        return self.__class__(self.file_id, range_offset, range_length, encryption=self.encryption)

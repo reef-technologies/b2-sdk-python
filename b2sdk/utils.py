@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+import base64
 import hashlib
 import os
 import platform
@@ -149,11 +150,18 @@ def hex_sha1_of_bytes(data: bytes) -> str:
     return hashlib.sha1(data).hexdigest()
 
 
-def hex_md5_of_bytes(data: bytes) -> str:
+def md5_of_bytes(data: bytes) -> bytes:
     """
-    Return the 32-character hex MD5 checksum of the data.
+    Return the 16-byte MD5 checksum of the data.
     """
-    return hashlib.md5(data).hexdigest()
+    return hashlib.md5(data).digest()
+
+
+def b64_of_bytes(data: bytes) -> str:
+    """
+    Return the base64 encoded represtantion of the data.
+    """
+    return base64.b64encode(data).decode()
 
 
 def validate_b2_file_name(name):

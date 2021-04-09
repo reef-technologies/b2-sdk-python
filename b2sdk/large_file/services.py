@@ -94,7 +94,7 @@ class LargeFileServices(object):
         :param dict,None file_info: a file info to store with the file or ``None`` to not store anything
         :param b2sdk.v1.EncryptionSetting encryption: encryption settings (``None`` if unknown)
         """
-        assert encryption is None or encryption.mode in (EncryptionMode.SSE_B2,)
+        assert encryption is None or encryption.mode != EncryptionMode.UNKNOWN
         return UnfinishedLargeFile(
             self.services.session.start_large_file(
                 bucket_id,

@@ -461,7 +461,7 @@ class Bucket(metaclass=B2TraceMeta):
         :param int min_part_size: a minimum size of a part
         :param b2sdk.v1.AbstractProgressListener,None progress_listener: a progress listener object to use, or ``None`` to not report progress
         :param b2sdk.v1.EncryptionSetting encryption: encryption settings (``None`` if unknown)
-        :rtype: generator[b2sdk.v1.FileVersion]
+        :rtype: b2sdk.v1.FileVersion
         """
         upload_source = UploadSourceLocalFile(local_path=local_file, content_sha1=sha1_sum)
         return self.upload(
@@ -502,7 +502,7 @@ class Bucket(metaclass=B2TraceMeta):
         :param int,None min_part_size: the smallest part size to use or ``None`` to determine automatically
         :param b2sdk.v1.AbstractProgressListener,None progress_listener: a progress listener object to use, or ``None`` to not report progress
         :param b2sdk.v1.EncryptionSetting encryption: encryption settings (``None`` if unknown)
-        :rtype: generator[b2sdk.v1.FileVersion]
+        :rtype: b2sdk.v1.FileVersion
         """
         return self.create_file(
             [WriteIntent(upload_source)],

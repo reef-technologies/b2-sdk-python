@@ -483,6 +483,7 @@ class CopyPartExecutionStep(BaseExecutionStep):
             self.large_file_upload_state,
             finished_parts=self.finished_parts,
             destination_encryption=self.emerge_execution.encryption,
+            source_encryption=self.copy_source_range.encryption,
         )
 
 

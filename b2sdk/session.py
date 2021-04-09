@@ -514,9 +514,6 @@ class B2Session(object):
         return response
 
     def _add_key_id_to_file_info(self, file_info: Optional[dict], encryption: Optional[EncryptionSetting]):
-        if not encryption or encryption.key_id is None:
+        if encryption is None:
             return file_info
-        if file_info is None:
-            file_info = {}
-        file_info['sse_c_key_id'] = encryption.key_id
-        return file_info
+        return encryption.add_key_id_to_file_info(file_info)

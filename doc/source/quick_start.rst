@@ -52,7 +52,10 @@ Synchronization
     >>> no_progress = False
     >>> encryption_settings_provider = BasicEncryptionSettingsProvider({
             'bucket1': EncryptionSettings(mode=EncryptionMode.SSE_B2),
-            'bucket2': EncryptionSettings(mode=EncryptionMode.SSE_C, key=b'aes_key', key_id='user-generated-id'),
+            'bucket2': EncryptionSettings(
+                           mode=EncryptionMode.SSE_C,
+                           key=EncryptionKey(secret=b'aes_key', id='user-generated-id')
+                       ),
             'bucket3': None,
         })
     >>> with SyncReport(sys.stdout, no_progress) as reporter:
@@ -164,7 +167,10 @@ Upload file
     >>> local_file_path = '/home/user1/b2_example/new.pdf'
     >>> b2_file_name = 'dummy_new.pdf'
     >>> file_info = {'how': 'good-file'}
-    >>> encryption_setting = EncryptionSetting(mode=EncryptionMode.SSE_C, key=b'aes_key', key_id='user-generated-id')
+    >>> encryption_setting = EncryptionSetting(
+            mode=EncryptionMode.SSE_C,
+            key=EncryptionKey(secret=b'aes_key', id='user-generated-id'),
+        )
 
     >>> bucket = b2_api.get_bucket_by_name(bucket_name)
     >>> bucket.upload_local_file(

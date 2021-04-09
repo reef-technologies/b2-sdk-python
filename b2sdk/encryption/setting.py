@@ -117,7 +117,7 @@ class EncryptionSetting:
             headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
             headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self.key.key_b64()
             headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = self.key.key_md5()
-            headers['X-Bz-Info-sse-c-key-id'] = self.key.id
+            headers['X-Bz-Info-sse_c_key_id'] = self.key.id
         else:
             raise NotImplementedError('unsupported encryption setting: %s' % (self,))
 
@@ -128,7 +128,7 @@ class EncryptionSetting:
             headers['X-Bz-Server-Side-Encryption'] = self.algorithm.name
         elif self.mode == EncryptionMode.SSE_C:
             if self.key.secret is None:
-                raise ValueError('Cannot use an unknown key in upload headers')
+                raise ValueError('Cannot use an unknown key in download headers')
             headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
             headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self.key.key_b64()
             headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = self.key.key_md5()

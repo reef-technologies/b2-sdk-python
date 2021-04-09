@@ -9,6 +9,7 @@
 ######################################################################
 
 from abc import abstractmethod
+from typing import Optional
 import logging
 import hashlib
 import queue
@@ -16,6 +17,7 @@ import threading
 
 from .abstract import AbstractDownloader
 from .range import Range
+from b2sdk.encryption.setting import EncryptionSetting
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +67,7 @@ class ParallelDownloader(AbstractDownloader):
         response,
         metadata,
         session,
+        encryption: Optional[EncryptionSetting] = None
     ):
         """
         Download a file from given url using parallel download sessions and stores it in the given download_destination.

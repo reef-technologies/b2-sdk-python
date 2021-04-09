@@ -42,6 +42,7 @@ from .deps import SimpleDownloader
 from .deps import UploadSourceBytes
 from .deps import hex_sha1_of_bytes, TempDir
 from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, EncryptionKey
+from .deps import CopySource, UploadSourceLocalFile, WriteIntent
 
 SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
 SSE_B2_AES = EncryptionSetting(
@@ -51,7 +52,22 @@ SSE_B2_AES = EncryptionSetting(
 SSE_C_AES = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=EncryptionKey(secret=b'some_key', id=None),
+    key=EncryptionKey(secret=b'some_key', id='some-id'),
+)
+SSE_C_AES_NO_SECRET = EncryptionSetting(
+    mode=EncryptionMode.SSE_C,
+    algorithm=EncryptionAlgorithm.AES256,
+    key=EncryptionKey(secret=None, id='some-id'),
+)
+SSE_C_AES_2 = EncryptionSetting(
+    mode=EncryptionMode.SSE_C,
+    algorithm=EncryptionAlgorithm.AES256,
+    key=EncryptionKey(secret=b'some_other_key', id='some-id-2'),
+)
+SSE_C_AES_2_NO_SECRET = EncryptionSetting(
+    mode=EncryptionMode.SSE_C,
+    algorithm=EncryptionAlgorithm.AES256,
+    key=EncryptionKey(secret=None, id='some-id-2'),
 )
 SSE_C_AES_FROM_SERVER = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
@@ -445,15 +461,24 @@ class TestListVersions(TestCaseWithBucket):
 
     def test_encryption(self):
         data = b'hello world'
+
         a = self.bucket.upload_bytes(data, 'a')
         a_id = a.id_
         self.assertEqual(a.server_side_encryption, SSE_NONE)
+
         b = self.bucket.upload_bytes(data, 'b', encryption=SSE_B2_AES)
         self.assertEqual(b.server_side_encryption, SSE_B2_AES)
         b_id = b.id_
+
+        c = self.bucket.upload_bytes(data, 'c', encryption=SSE_C_AES)
+        # self.assertEqual(c.server_side_encryption, SSE_C_AES_FROM_SERVER)
+        c_id = c.id_
+
         #c_id = self.bucket.upload_bytes(data, 'c', encryption=SSE_NONE).id_  # TODO
         d_id = self.bucket.copy(a_id, 'd', destination_encryption=SSE_B2_AES).id_
         e_id = self.bucket.copy(b_id, 'e').id_
+        self.bucket.copy(c_id, 'f', source_encryption=SSE_C_AES)
+        self.bucket.copy(c_id, 'g', source_encryption=SSE_C_AES, destination_encryption=SSE_C_AES_2)
 
         actual = [info.server_side_encryption for info in self.bucket.list_file_versions('a')][0]
         self.assertEqual(SSE_NONE, actual)  # bucket default
@@ -464,11 +489,20 @@ class TestListVersions(TestCaseWithBucket):
         #actual = [info.server_side_encryption for info in self.bucket.list_file_versions('c')][0]
         #self.assertEqual(SSE_NONE, actual)  # explicitly requested none
 
+        actual = [info.server_side_encryption for info in self.bucket.list_file_versions('c')][0]
+        self.assertEqual(SSE_C_AES_NO_SECRET, actual)  # explicitly requested sse-c
+
         actual = [info.server_side_encryption for info in self.bucket.list_file_versions('d')][0]
         self.assertEqual(SSE_B2_AES, actual)  # explicitly requested sse-b2
 
         actual = [info.server_side_encryption for info in self.bucket.list_file_versions('e')][0]
         self.assertEqual(SSE_NONE, actual)  # bucket default
+
+        actual = [info.server_side_encryption for info in self.bucket.list_file_versions('f')][0]
+        self.assertEqual(SSE_NONE, actual)  # bucket default
+
+        actual = [info.server_side_encryption for info in self.bucket.list_file_versions('g')][0]
+        self.assertEqual(SSE_C_AES_2_NO_SECRET, actual)  # explicitly requested sse-c
 
 
 class TestCopyFile(TestCaseWithBucket):
@@ -579,6 +613,15 @@ class TestCopyFile(TestCaseWithBucket):
         )
         self.assertTrue(isinstance(file_info, FileVersionInfo))
         self.assertEqual(file_info.server_side_encryption, SSE_B2_AES)
+
+        file_info = self.bucket.copy(
+            file_id,
+            'hello_new.txt',
+            destination_encryption=SSE_C_AES,
+        )
+
+        self.assertTrue(isinstance(file_info, FileVersionInfo))
+        self.assertEqual(file_info.server_side_encryption, SSE_C_AES_FROM_SERVER)
 
         #file_info = self.bucket.copy(
         #    file_id,
@@ -850,6 +893,59 @@ class TestUpload(TestCaseWithBucket):
             fragments.append(fragment)
         return b''.join(fragments)
 
+
+class TestConcatenate(TestCaseWithBucket):
+
+    def _create_remote(self, sources, file_name, encryption=None):
+        self.bucket.concatenate(sources, file_name=file_name, encryption=encryption)
+
+    def test_create_remote(self):
+        data = b'hello world'
+
+        f1_id = self.bucket.upload_bytes(data, 'f1').id_
+        f2_id = self.bucket.upload_bytes(data, 'f1').id_
+        with TempDir() as d:
+            path = os.path.join(d, 'file')
+            write_file(path, data)
+            self._create_remote([
+                CopySource(f1_id, length=len(data), offset=0),
+                UploadSourceLocalFile(path),
+                CopySource(f2_id, length=len(data), offset=0),
+            ], file_name='created_file')
+
+    def test_create_remote_encryption(self):
+        data = b'hello world'
+
+        f1_id = self.bucket.upload_bytes(data, 'f1', encryption=SSE_C_AES).id_
+        f2_id = self.bucket.upload_bytes(data, 'f1', encryption=SSE_C_AES_2).id_
+        with TempDir() as d:
+            path = os.path.join(d, 'file')
+            write_file(path, data)
+            self._create_remote([
+                CopySource(f1_id, length=len(data), offset=0, encryption=SSE_C_AES),
+                UploadSourceLocalFile(path),
+                CopySource(f2_id, length=len(data), offset=0, encryption=SSE_C_AES_2),
+            ], file_name='created_file', encryption=SSE_C_AES)
+
+
+class TestCreateFile(TestConcatenate):
+
+    def _create_remote(self, sources, file_name, encryption=None):
+        self.bucket.create_file([wi for wi in WriteIntent.wrap_sources_iterator(sources)],
+                                file_name=file_name, encryption=encryption)
+
+
+class TestConcatenateStream(TestConcatenate):
+
+    def _create_remote(self, sources, file_name, encryption=None):
+        self.bucket.concatenate_stream(sources, file_name=file_name, encryption=encryption)
+
+
+class TestCreateFileStream(TestConcatenate):
+
+    def _create_remote(self, sources, file_name, encryption=None):
+        self.bucket.create_file_stream([wi for wi in WriteIntent.wrap_sources_iterator(sources)],
+                                       file_name=file_name, encryption=encryption)
 
 # Downloads
 

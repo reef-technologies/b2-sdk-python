@@ -26,6 +26,7 @@ class EncryptionKey:
     in encrypted file's fileInfo. The secret may be None, if encryption metadata is read from the server.
     """
     secret_repr = '******'
+
     def __init__(self, secret: Optional[bytes], id: Optional[str]):
         self.secret = secret
         self.id = id

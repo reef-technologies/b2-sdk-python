@@ -774,7 +774,9 @@ class Bucket(metaclass=B2TraceMeta):
                         (``None`` if unknown)
         """
 
-        copy_source = CopySource(file_id, offset=offset, length=length, encryption=source_encryption)
+        copy_source = CopySource(
+            file_id, offset=offset, length=length, encryption=source_encryption
+        )
         if not length:
             # TODO: it feels like this should be checked on lower level - eg. RawApi
             validate_b2_file_name(new_file_name)

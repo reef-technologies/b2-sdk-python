@@ -435,11 +435,15 @@ class BucketSimulator(object):
         del self.file_id_to_file[file_id]
         return dict(fileId=file_id, fileName=file_name, uploadTimestamp=file_sim.upload_timestamp)
 
-    def download_file_by_id(self, file_id, url, range_=None, encryption: Optional[EncryptionSetting] = None):
+    def download_file_by_id(
+        self, file_id, url, range_=None, encryption: Optional[EncryptionSetting] = None
+    ):
         file_sim = self.file_id_to_file[file_id]
         return self._download_file_sim(file_sim, url, range_=range_)
 
-    def download_file_by_name(self, file_name, url, range_=None, encryption: Optional[EncryptionSetting] = None):
+    def download_file_by_name(
+        self, file_name, url, range_=None, encryption: Optional[EncryptionSetting] = None
+    ):
         files = self.list_file_names(file_name, 1)['files']
         if len(files) == 0:
             raise FileNotPresent(file_id_or_name=file_name)
@@ -1006,7 +1010,13 @@ class RawSimulator(AbstractRawApi):
         del self.bucket_id_to_bucket[bucket_id]
         return bucket.bucket_dict(account_auth_token)
 
-    def download_file_from_url(self, account_auth_token_or_none, url, range_=None, encryption: Optional[EncryptionSetting] = None):
+    def download_file_from_url(
+        self,
+        account_auth_token_or_none,
+        url,
+        range_=None,
+        encryption: Optional[EncryptionSetting] = None
+    ):
         # TODO: check auth token if bucket is not public
         matcher = self.DOWNLOAD_URL_MATCHER.match(url)
         assert matcher is not None, url
@@ -1017,10 +1027,14 @@ class RawSimulator(AbstractRawApi):
         if file_id is not None:
             bucket_id = self.file_id_to_bucket_id[file_id]
             bucket = self._get_bucket_by_id(bucket_id)
-            return bucket.download_file_by_id(file_id, range_=range_, url=url, encryption=encryption)
+            return bucket.download_file_by_id(
+                file_id, range_=range_, url=url, encryption=encryption
+            )
         elif bucket_name is not None and file_name is not None:
             bucket = self._get_bucket_by_name(bucket_name)
-            return bucket.download_file_by_name(b2_url_decode(file_name), range_=range_, url=url, encryption=encryption)
+            return bucket.download_file_by_name(
+                b2_url_decode(file_name), range_=range_, url=url, encryption=encryption
+            )
         else:
             assert False
 

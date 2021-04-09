@@ -895,7 +895,6 @@ class TestUpload(TestCaseWithBucket):
 
 
 class TestConcatenate(TestCaseWithBucket):
-
     def _create_remote(self, sources, file_name, encryption=None):
         self.bucket.concatenate(sources, file_name=file_name, encryption=encryption)
 
@@ -907,11 +906,14 @@ class TestConcatenate(TestCaseWithBucket):
         with TempDir() as d:
             path = os.path.join(d, 'file')
             write_file(path, data)
-            self._create_remote([
-                CopySource(f1_id, length=len(data), offset=0),
-                UploadSourceLocalFile(path),
-                CopySource(f2_id, length=len(data), offset=0),
-            ], file_name='created_file')
+            self._create_remote(
+                [
+                    CopySource(f1_id, length=len(data), offset=0),
+                    UploadSourceLocalFile(path),
+                    CopySource(f2_id, length=len(data), offset=0),
+                ],
+                file_name='created_file'
+            )
 
     def test_create_remote_encryption(self):
         data = b'hello world'
@@ -921,31 +923,39 @@ class TestConcatenate(TestCaseWithBucket):
         with TempDir() as d:
             path = os.path.join(d, 'file')
             write_file(path, data)
-            self._create_remote([
-                CopySource(f1_id, length=len(data), offset=0, encryption=SSE_C_AES),
-                UploadSourceLocalFile(path),
-                CopySource(f2_id, length=len(data), offset=0, encryption=SSE_C_AES_2),
-            ], file_name='created_file', encryption=SSE_C_AES)
+            self._create_remote(
+                [
+                    CopySource(f1_id, length=len(data), offset=0, encryption=SSE_C_AES),
+                    UploadSourceLocalFile(path),
+                    CopySource(f2_id, length=len(data), offset=0, encryption=SSE_C_AES_2),
+                ],
+                file_name='created_file',
+                encryption=SSE_C_AES
+            )
 
 
 class TestCreateFile(TestConcatenate):
-
     def _create_remote(self, sources, file_name, encryption=None):
-        self.bucket.create_file([wi for wi in WriteIntent.wrap_sources_iterator(sources)],
-                                file_name=file_name, encryption=encryption)
+        self.bucket.create_file(
+            [wi for wi in WriteIntent.wrap_sources_iterator(sources)],
+            file_name=file_name,
+            encryption=encryption
+        )
 
 
 class TestConcatenateStream(TestConcatenate):
-
     def _create_remote(self, sources, file_name, encryption=None):
         self.bucket.concatenate_stream(sources, file_name=file_name, encryption=encryption)
 
 
 class TestCreateFileStream(TestConcatenate):
-
     def _create_remote(self, sources, file_name, encryption=None):
-        self.bucket.create_file_stream([wi for wi in WriteIntent.wrap_sources_iterator(sources)],
-                                       file_name=file_name, encryption=encryption)
+        self.bucket.create_file_stream(
+            [wi for wi in WriteIntent.wrap_sources_iterator(sources)],
+            file_name=file_name,
+            encryption=encryption
+        )
+
 
 # Downloads
 

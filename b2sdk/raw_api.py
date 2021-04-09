@@ -129,7 +129,13 @@ class AbstractRawApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def download_file_from_url(self, account_auth_token_or_none, url, range_=None, encryption: Optional[EncryptionSetting] = None):
+    def download_file_from_url(
+        self,
+        account_auth_token_or_none,
+        url,
+        range_=None,
+        encryption: Optional[EncryptionSetting] = None
+    ):
         pass
 
     @abstractmethod
@@ -423,7 +429,13 @@ class B2RawApi(AbstractRawApi):
             applicationKeyId=application_key_id,
         )
 
-    def download_file_from_url(self, account_auth_token_or_none, url, range_=None, encryption: Optional[EncryptionSetting] = None):
+    def download_file_from_url(
+        self,
+        account_auth_token_or_none,
+        url,
+        range_=None,
+        encryption: Optional[EncryptionSetting] = None
+    ):
         """
         Issue a streaming request for download of a file, potentially authorized.
 
@@ -815,8 +827,7 @@ class B2RawApi(AbstractRawApi):
                   ] = destination_server_side_encryption.as_value_dict()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode == EncryptionMode.SSE_C
-            kwargs['sourceServerSideEncryption'
-                  ] = source_server_side_encryption.as_value_dict()
+            kwargs['sourceServerSideEncryption'] = source_server_side_encryption.as_value_dict()
 
         return self._post_json(
             api_url,
@@ -849,8 +860,7 @@ class B2RawApi(AbstractRawApi):
                   ] = destination_server_side_encryption.as_value_dict()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode == EncryptionMode.SSE_C
-            kwargs['sourceServerSideEncryption'
-                  ] = source_server_side_encryption.as_value_dict()
+            kwargs['sourceServerSideEncryption'] = source_server_side_encryption.as_value_dict()
         return self._post_json(
             api_url,
             'b2_copy_part',

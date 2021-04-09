@@ -120,7 +120,11 @@ class DownloadManager(metaclass=B2TraceMetaAbstract):
                 for strategy in self.strategies:
                     if strategy.is_suitable(metadata, progress_listener):
                         bytes_read, actual_sha1 = strategy.download(
-                            file, response, metadata, self.services.session, encryption=encryption,
+                            file,
+                            response,
+                            metadata,
+                            self.services.session,
+                            encryption=encryption,
                         )
                         break
                 else:

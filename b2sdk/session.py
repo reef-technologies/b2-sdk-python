@@ -176,9 +176,15 @@ class B2Session(object):
     def delete_file_version(self, file_id, file_name):
         return self._wrap_default_token(self.raw_api.delete_file_version, file_id, file_name)
 
-    def download_file_from_url(self, url, range_=None, encryption: Optional[EncryptionSetting] = None):
+    def download_file_from_url(
+        self, url, range_=None, encryption: Optional[EncryptionSetting] = None
+    ):
         return self._wrap_token(
-            self.raw_api.download_file_from_url, TokenType.API_TOKEN_ONLY, url, range_=range_, encryption=encryption
+            self.raw_api.download_file_from_url,
+            TokenType.API_TOKEN_ONLY,
+            url,
+            range_=range_,
+            encryption=encryption
         )
 
     def finish_large_file(self, file_id, part_sha1_array):
@@ -513,7 +519,9 @@ class B2Session(object):
         self.account_info.put_large_file_upload_url(file_id, upload_url, upload_auth_token)
         return response
 
-    def _add_key_id_to_file_info(self, file_info: Optional[dict], encryption: Optional[EncryptionSetting]):
+    def _add_key_id_to_file_info(
+        self, file_info: Optional[dict], encryption: Optional[EncryptionSetting]
+    ):
         if encryption is None:
             return file_info
         return encryption.add_key_id_to_file_info(file_info)

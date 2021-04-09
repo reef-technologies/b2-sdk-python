@@ -62,12 +62,7 @@ class ParallelDownloader(AbstractDownloader):
         return min(self.max_streams, content_length // self.min_part_size) or 1
 
     def download(
-        self,
-        file,
-        response,
-        metadata,
-        session,
-        encryption: Optional[EncryptionSetting] = None
+        self, file, response, metadata, session, encryption: Optional[EncryptionSetting] = None
     ):
         """
         Download a file from given url using parallel download sessions and stores it in the given download_destination.

@@ -64,12 +64,7 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
 
     @abstractmethod
     def download(
-        self,
-        file,
-        response,
-        metadata,
-        session,
-        encryption: Optional[EncryptionSetting] = None
+        self, file, response, metadata, session, encryption: Optional[EncryptionSetting] = None
     ):
         """
         @returns (bytes_read, actual_sha1)

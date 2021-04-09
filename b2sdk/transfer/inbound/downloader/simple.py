@@ -15,7 +15,6 @@ import logging
 from .abstract import AbstractDownloader
 from b2sdk.encryption.setting import EncryptionSetting
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +25,9 @@ class SimpleDownloader(AbstractDownloader):
     def is_suitable(self, metadata, progress_listener):
         return True
 
-    def download(self, file, response, metadata, session, encryption: Optional[EncryptionSetting] = None):
+    def download(
+        self, file, response, metadata, session, encryption: Optional[EncryptionSetting] = None
+    ):
         actual_size = self._get_remote_range(response, metadata).size()
         chunk_size = self._get_chunk_size(actual_size)
 

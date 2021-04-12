@@ -58,7 +58,7 @@ def local_file(name, mod_times, size=10):
     each modification time given in mod_times.
     """
     versions = [
-        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size) for mod_time in mod_times
+        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size, None) for mod_time in mod_times
     ]
     return File(name, versions)
 
@@ -91,6 +91,7 @@ def b2_file(name, mod_times, size=10):
             abs(mod_time),
             'upload' if 0 < mod_time else 'hide',
             size,
+            None,
         ) for mod_time in mod_times
     ]  # yapf disable
     return File(name, versions)

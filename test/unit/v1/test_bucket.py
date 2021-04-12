@@ -52,27 +52,27 @@ SSE_B2_AES = EncryptionSetting(
 SSE_C_AES = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=EncryptionKey(secret=b'some_key', id='some-id'),
+    key=EncryptionKey(secret=b'some_key', key_id='some-id'),
 )
 SSE_C_AES_NO_SECRET = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=EncryptionKey(secret=None, id='some-id'),
+    key=EncryptionKey(secret=None, key_id='some-id'),
 )
 SSE_C_AES_2 = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=EncryptionKey(secret=b'some_other_key', id='some-id-2'),
+    key=EncryptionKey(secret=b'some_other_key', key_id='some-id-2'),
 )
 SSE_C_AES_2_NO_SECRET = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=EncryptionKey(secret=None, id='some-id-2'),
+    key=EncryptionKey(secret=None, key_id='some-id-2'),
 )
 SSE_C_AES_FROM_SERVER = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
-    key=EncryptionKey(id=None, secret=None),
+    key=EncryptionKey(key_id=None, secret=None),
 )
 
 

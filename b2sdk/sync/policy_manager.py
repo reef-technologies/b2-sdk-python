@@ -13,6 +13,7 @@ from .policy import CopyAndDeletePolicy, CopyAndKeepDaysPolicy, CopyPolicy, \
     UpAndKeepDaysPolicy, UpPolicy
 from .file import File
 
+
 class SyncPolicyManager(object):
     """
     Policy manager; implement a logic to get a correct policy class

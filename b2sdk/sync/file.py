@@ -74,5 +74,6 @@ class FileVersion(object):
 
     def __repr__(self):
         return 'FileVersion(%s, %s, %s, %s, %s)' % (
-            repr(self.id_), repr(self.name), repr(self.mod_time), repr(self.action), repr(self.file_info)
+            repr(self.id_), repr(self.name), repr(self.mod_time), repr(self.action
+                                                                      ), repr(self.file_info)
         )

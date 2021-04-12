@@ -64,6 +64,7 @@ Synchronization
                 dest_folder=destination,
                 now_millis=int(round(time.time() * 1000)),
                 reporter=reporter,
+                encryption_settings_provider=encryption_settings_provider,
             )
     upload some.pdf
     upload som2.pdf

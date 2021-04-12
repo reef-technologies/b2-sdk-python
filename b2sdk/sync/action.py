@@ -14,6 +14,7 @@ import logging
 import os
 from ..download_dest import DownloadDestLocalFile
 from ..encryption.provider import AbstractEncryptionSettingsProvider
+from ..bucket import Bucket
 
 from ..raw_api import SRC_LAST_MODIFIED_MILLIS
 from ..transfer.outbound.upload_source import UploadSourceLocalFile
@@ -131,9 +132,10 @@ class B2UploadAction(AbstractAction):
             progress_listener = None
         file_info = {SRC_LAST_MODIFIED_MILLIS: str(self.mod_time_millis)}
         encryption = self.encryption_settings_provider.get_setting_for_upload(
-            bucket,
-            self.b2_file_name,
-            file_info,
+            bucket=bucket,
+            b2_file_name=self.b2_file_name,
+            file_info=file_info,
+            length=self.size,
         )
         bucket.upload(
             UploadSourceLocalFile(self.local_full_path),
@@ -210,6 +212,7 @@ class B2DownloadAction(AbstractAction):
         relative_name,
         b2_file_name,
         file_id,
+        file_info,
         local_full_path,
         mod_time_millis,
         file_size,
@@ -219,6 +222,7 @@ class B2DownloadAction(AbstractAction):
         :param str relative_name: a relative file name
         :param str b2_file_name: a name of a remote file
         :param str file_id: a file ID
+        :param dict file_info: a fileInfo dict
         :param str local_full_path: a local file path
         :param int mod_time_millis: file modification time in milliseconds
         :param int file_size: a file size
@@ -227,6 +231,7 @@ class B2DownloadAction(AbstractAction):
         self.relative_name = relative_name
         self.b2_file_name = b2_file_name
         self.file_id = file_id
+        self.file_info = file_info
         self.local_full_path = local_full_path
         self.mod_time_millis = mod_time_millis
         self.file_size = file_size
@@ -266,10 +271,20 @@ class B2DownloadAction(AbstractAction):
         download_path = self.local_full_path + '.b2.sync.tmp'
         download_dest = DownloadDestLocalFile(download_path)
 
+        encryption = self.encryption_settings_provider.get_setting_for_download(
+            bucket=bucket,
+            b2_file_id=self.file_id,
+            b2_file_name=self.b2_file_name,
+            file_info=self.file_info,
+            length=self.file_size,
+            mod_time_millis=self.mod_time_millis,
+        )
+
         bucket.download_file_by_id(
             self.file_id,
             download_dest,
             progress_listener,
+            encryption=encryption,
         )
 
         # Move the file into place
@@ -309,6 +324,9 @@ class B2CopyAction(AbstractAction):
         dest_b2_file_name,
         mod_time_millis,
         size,
+        source_bucket: Bucket,
+        destination_bucket: Bucket,
+        source_file_info: Optional[dict],
         encryption_settings_provider: AbstractEncryptionSettingsProvider,
     ):
         """
@@ -318,6 +336,9 @@ class B2CopyAction(AbstractAction):
         :param str dest_b2_file_name: a name of a destination remote file
         :param int mod_time_millis: file modification time in milliseconds
         :param int size: a file size
+        :param Bucket source_bucket: bucket to copy from
+        :param Bucket destination_bucket: bucket to copy to
+        :param dict,None source_file_info: source file's fileInfo dict
         :param b2sdk.v1.AbstractEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
         """
         self.relative_name = relative_name
@@ -327,6 +348,9 @@ class B2CopyAction(AbstractAction):
         self.mod_time_millis = mod_time_millis
         self.size = size
         self.encryption_settings_provider = encryption_settings_provider
+        self.source_bucket = source_bucket
+        self.destination_bucket = destination_bucket
+        self.source_file_info = source_file_info
 
     def get_bytes(self):
         """
@@ -349,18 +373,29 @@ class B2CopyAction(AbstractAction):
         else:
             progress_listener = None
 
+        source_encryption = self.encryption_settings_provider.get_source_setting_for_copy(
+            bucket=self.source_bucket,
+            b2_file_id=self.file_id,
+            b2_file_name=self.b2_file_name,
+            file_info=self.source_file_info,
+            length=self.size,
+            mod_time_millis=self.mod_time_millis,
+        )
+
         destination_encryption = self.encryption_settings_provider.get_destination_setting_for_copy(
-            bucket,
-            self.file_id,
-            self.dest_b2_file_name,
+            bucket=self.destination_bucket,
+            b2_file_name=self.dest_b2_file_name,
+            file_info=None,
             length=self.size,
         )
+
         bucket.copy(
             self.file_id,
             self.dest_b2_file_name,
             length=self.size,
             progress_listener=progress_listener,
             destination_encryption=destination_encryption,
+            source_encryption=source_encryption,
         )
 
     def do_report(self, bucket, reporter):

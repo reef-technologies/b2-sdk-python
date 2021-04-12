@@ -8,8 +8,6 @@
 #
 ######################################################################
 
-import base64
-import hashlib
 import logging
 from typing import Optional
 
@@ -25,20 +23,34 @@ class EncryptionKey:
     Hold information about encryption key: the key itself, and its id. The id may be None, if it's not set
     in encrypted file's fileInfo. The secret may be None, if encryption metadata is read from the server.
     """
-    secret_repr = '******'
+    SECRET_REPR = '******'
 
-    def __init__(self, secret: Optional[bytes], id: Optional[str]):
+    def __init__(self, secret: Optional[bytes], key_id: Optional[str]):
         self.secret = secret
-        self.id = id
+        self.key_id = key_id
 
     def __eq__(self, other):
-        return self.secret == other.secret and self.id == other.id
+        return self.secret == other.secret and self.key_id == other.key_id
 
     def __repr__(self):
-        key_repr = self.secret_repr
+        key_repr = self.SECRET_REPR
         if self.secret is None:
             key_repr = None
-        return '<%s(%s, %s)>' % (self.__class__.__name__, key_repr, self.id)
+        return '<%s(%s, %s)>' % (self.__class__.__name__, key_repr, self.key_id)
+
+    def as_dict(self):
+        """
+        Dump EncryptionKey as dict for serializing a to json for requests.
+        """
+        if self.secret is not None:
+            return {
+                'customerKey': self.key_b64(),
+                'customerKeyMd5': self.key_md5(),
+            }
+        return {
+            'customerKey': self.SECRET_REPR,
+            'customerKeyMd5': self.SECRET_REPR,
+        }
 
     def key_b64(self):
         return b64_of_bytes(self.secret)
@@ -98,12 +110,7 @@ class EncryptionSetting:
         if self.algorithm is not None:
             result['algorithm'] = self.algorithm.value
         if self.mode == EncryptionMode.SSE_C:
-            if self.key.secret is None:
-                result['customerKey'] = EncryptionKey.secret_repr
-                result['customerKeyMd5'] = EncryptionKey.secret_repr
-            else:
-                result['customerKey'] = self.key.key_b64()
-                result['customerKeyMd5'] = self.key.key_md5()
+            result.update(self.key.as_dict())
         return result
 
     def add_to_upload_headers(self, headers):
@@ -111,14 +118,11 @@ class EncryptionSetting:
             # as of 2021-03-16, server always fails it
             headers['X-Bz-Server-Side-Encryption'] = self.mode.name
         elif self.mode == EncryptionMode.SSE_B2:
-            headers['X-Bz-Server-Side-Encryption'] = self.algorithm.name
+            self._add_sse_b2_headers(headers)
         elif self.mode == EncryptionMode.SSE_C:
-            if self.key.secret is None:
-                raise ValueError('Cannot use an unknown key in upload headers')
-            headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
-            headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self.key.key_b64()
-            headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = self.key.key_md5()
-            headers['X-Bz-Info-sse_c_key_id'] = self.key.id
+            self._add_sse_c_headers(headers)
+            if self.key.key_id is not None:
+                headers['X-Bz-Info-sse_c_key_id'] = self.key.key_id
         else:
             raise NotImplementedError('unsupported encryption setting: %s' % (self,))
 
@@ -126,22 +130,28 @@ class EncryptionSetting:
         if self.mode == EncryptionMode.NONE:
             return
         elif self.mode == EncryptionMode.SSE_B2:
-            headers['X-Bz-Server-Side-Encryption'] = self.algorithm.name
+            self._add_sse_b2_headers(headers)
         elif self.mode == EncryptionMode.SSE_C:
-            if self.key.secret is None:
-                raise ValueError('Cannot use an unknown key in download headers')
-            headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
-            headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self.key.key_b64()
-            headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = self.key.key_md5()
+            self._add_sse_c_headers(headers)
         else:
             raise NotImplementedError('unsupported encryption setting: %s' % (self,))
 
+    def _add_sse_b2_headers(self, headers):
+        headers['X-Bz-Server-Side-Encryption'] = self.algorithm.name
+
+    def _add_sse_c_headers(self, headers):
+        if self.key.secret is None:
+            raise ValueError('Cannot use an unknown key in http headers')
+        headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = self.algorithm.name
+        headers['X-Bz-Server-Side-Encryption-Customer-Key'] = self.key.key_b64()
+        headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = self.key.key_md5()
+
     def add_key_id_to_file_info(self, file_info: Optional[dict]):
-        if self.key is None or self.key.id is None:
+        if self.key is None or self.key.key_id is None:
             return file_info
         if file_info is None:
             file_info = {}
-        file_info['sse_c_key_id'] = self.key.id
+        file_info['sse_c_key_id'] = self.key.key_id
         return file_info
 
     def __repr__(self):
@@ -254,7 +264,7 @@ class EncryptionSettingFactory:
                 kwargs['algorithm'] = EncryptionAlgorithm(algorithm)
 
             if mode == EncryptionMode.SSE_C:
-                kwargs['key'] = EncryptionKey(id=key_id, secret=None)
+                kwargs['key'] = EncryptionKey(key_id=key_id, secret=None)
 
         return EncryptionSetting(**kwargs)
 
@@ -266,7 +276,7 @@ class EncryptionSettingFactory:
             'mode': mode,
         }
         if mode == EncryptionMode.SSE_C:
-            kwargs['key'] = EncryptionKey(secret=None, id=None)
+            kwargs['key'] = EncryptionKey(secret=None, key_id=None)
         algorithm = headers.get('X-Bz-Server-Side-Encryption-Customer-Algorithm')
         if algorithm is not None:
             kwargs['algorithm'] = EncryptionAlgorithm(algorithm)

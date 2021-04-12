@@ -17,6 +17,7 @@ from ..exception import DestFileNewer
 from ..encryption.provider import AbstractEncryptionSettingsProvider, SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER
 from .action import LocalDeleteAction, B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction
 from .exception import InvalidArgument
+from .folder import B2Folder
 
 ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 
@@ -228,6 +229,7 @@ class DownPolicy(AbstractFileSyncPolicy):
             self._source_file.name,
             self._source_folder.make_full_path(self._source_file.name),
             self._source_file.latest_version().id_,
+            self._source_file.latest_version().file_info,
             self._dest_folder.make_full_path(self._source_file.name),
             self._get_source_mod_time(),
             self._source_file.latest_version().size,
@@ -319,7 +321,11 @@ class CopyPolicy(AbstractFileSyncPolicy):
     DESTINATION_PREFIX = 'b2://'
     SOURCE_PREFIX = 'b2://'
 
+    _source_folder: B2Folder
+    _dest_folder: B2Folder
+
     def _make_transfer_action(self):
+
         return B2CopyAction(
             self._source_file.name,
             self._source_folder.make_full_path(self._source_file.name),
@@ -327,6 +333,9 @@ class CopyPolicy(AbstractFileSyncPolicy):
             self._dest_folder.make_full_path(self._source_file.name),
             self._get_source_mod_time(),
             self._source_file.latest_version().size,
+            self._source_folder.bucket,
+            self._dest_folder.bucket,
+            self._source_file.latest_version().file_info,
             self._encryption_settings_provider,
         )
 

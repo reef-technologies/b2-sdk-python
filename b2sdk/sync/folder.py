@@ -264,7 +264,7 @@ class LocalFolder(AbstractFolder):
                     #  workaround while setting mtime
                     file_mod_time = get_file_mtime(local_path, rounded=False)
                     file_size = os.path.getsize(local_path)
-                    version = FileVersion(local_path, b2_path, file_mod_time, 'upload', file_size)
+                    version = FileVersion(local_path, b2_path, file_mod_time, 'upload', file_size, None)
 
                     if policies_manager.should_exclude_file_version(version):
                         continue
@@ -359,7 +359,7 @@ class B2Folder(AbstractFolder):
             current_name = file_name
             file_version = FileVersion(
                 file_version_info.id_, file_version_info.file_name, mod_time_millis,
-                file_version_info.action, file_version_info.size
+                file_version_info.action, file_version_info.size, file_info
             )
 
             if policies_manager.should_exclude_file_version(file_version):

@@ -11,7 +11,7 @@
 from .policy import CopyAndDeletePolicy, CopyAndKeepDaysPolicy, CopyPolicy, \
     DownAndDeletePolicy, DownAndKeepDaysPolicy, DownPolicy, UpAndDeletePolicy, \
     UpAndKeepDaysPolicy, UpPolicy
-
+from .file import File
 
 class SyncPolicyManager(object):
     """
@@ -25,9 +25,9 @@ class SyncPolicyManager(object):
     def get_policy(
         self,
         sync_type,
-        source_file,
+        source_file: File,
         source_folder,
-        dest_file,
+        dest_file: File,
         dest_folder,
         now_millis,
         delete,
@@ -41,9 +41,9 @@ class SyncPolicyManager(object):
         Return a policy object.
 
         :param str sync_type: synchronization type
-        :param str source_file: source file name
+        :param b2sdk.v1.File source_file: source file name
         :param str source_folder: a source folder path
-        :param str dest_file: destination file name
+        :param b2sdk.v1.File dest_file: destination file name
         :param str dest_folder: a destination folder path
         :param int now_millis: current time in milliseconds
         :param bool delete: delete policy

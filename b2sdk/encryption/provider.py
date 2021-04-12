@@ -12,6 +12,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Optional
 
 from .setting import EncryptionSetting
+from ..bucket import Bucket
 
 
 class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
@@ -24,12 +25,13 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
     @abstractmethod
     def get_setting_for_upload(
         self,
-        bucket,
+        bucket: Bucket,
         b2_file_name: str,
-        file_info: dict,
+        file_info: Optional[dict],
+        length: int,
     ) -> Optional[EncryptionSetting]:
         """
-        Return an EncryptionSetting for uploading an object or None if server should decide
+        Return an EncryptionSetting for uploading an object or None if server should decide.
 
         WARNING: the signature of this method is not final yet and not part of the public interface
         """
@@ -37,10 +39,12 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
     @abstractmethod
     def get_source_setting_for_copy(
         self,
-        bucket,
-        file_id: str,
-        dest_b2_file_name: str,
+        bucket: Bucket,
+        b2_file_id: str,
+        b2_file_name: str,
+        file_info: Optional[dict],
         length: int,
+        mod_time_millis: int,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for a source of copying an object or None if not required
@@ -51,9 +55,8 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
     @abstractmethod
     def get_destination_setting_for_copy(
         self,
-        bucket,
-        file_id: str,
-        dest_b2_file_name: str,
+        bucket: Bucket,
+        b2_file_name: str,
         length: int,
     ) -> Optional[EncryptionSetting]:
         """
@@ -65,11 +68,12 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
     @abstractmethod
     def get_setting_for_download(
         self,
-        bucket,
-        b2_file_name,
-        file_id,
-        mod_time_millis,
-        file_size,
+        bucket: Bucket,
+        b2_file_id: str,
+        b2_file_name: str,
+        file_info: Optional[dict],
+        length: int,
+        mod_time_millis: int,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for downloading an object from, or None if not required
@@ -116,17 +120,15 @@ class BasicEncryptionSettingsProvider(AbstractEncryptionSettingsProvider):
     def get_setting_for_upload(self, bucket, *args, **kwargs) -> Optional[EncryptionSetting]:
         return self.bucket_settings[bucket.name]
 
-    def get_source_setting_for_copy(self, *args, **kwargs) -> None:
-        """ signature and code TBD """
-        raise NotImplementedError('no SSE-C support yet')
+    def get_source_setting_for_copy(self, bucket, *args, **kwargs) -> None:
+        return self.bucket_settings[bucket.name]
 
     def get_destination_setting_for_copy(self, bucket, *args,
                                          **kwargs) -> Optional[EncryptionSetting]:
         return self.bucket_settings[bucket.name]
 
-    def get_setting_for_download(self, *args, **kwargs) -> None:
-        """ signature and code TBD """
-        raise NotImplementedError('no SSE-C support yet')
+    def get_setting_for_download(self, bucket, *args, **kwargs) -> None:
+        return self.bucket_settings[bucket.name]
 
     def __repr__(self):
         return '<%s:%s>' % (self.__class__.__name__, self.bucket_settings)

@@ -32,7 +32,7 @@ class File(object):
         self.name = name
         self.versions = versions
 
-    def latest_version(self):
+    def latest_version(self) -> 'FileVersion':
         """
         Return the latest file version.
         """
@@ -47,9 +47,9 @@ class FileVersion(object):
     Hold information about one version of a file.
     """
 
-    __slots__ = ['id_', 'name', 'mod_time', 'action', 'size']
+    __slots__ = ['id_', 'name', 'mod_time', 'action', 'size', 'file_info']
 
-    def __init__(self, id_, file_name, mod_time, action, size):
+    def __init__(self, id_, file_name, mod_time, action, size, file_info):
         """
         :param id_: the B2 file id, or the local full path name
         :type id_: str
@@ -62,14 +62,17 @@ class FileVersion(object):
         :type action: str
         :param size: a file size
         :type size: int
+        :param file_info: a fileInfo dict, or None for local files
+        :type file_info: dict, None
         """
         self.id_ = id_
         self.name = file_name
         self.mod_time = mod_time
         self.action = action
         self.size = size
+        self.file_info = file_info
 
     def __repr__(self):
-        return 'FileVersion(%s, %s, %s, %s)' % (
-            repr(self.id_), repr(self.name), repr(self.mod_time), repr(self.action)
+        return 'FileVersion(%s, %s, %s, %s, %s)' % (
+            repr(self.id_), repr(self.name), repr(self.mod_time), repr(self.action), repr(self.file_info)
         )

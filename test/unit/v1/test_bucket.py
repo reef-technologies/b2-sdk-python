@@ -14,6 +14,7 @@ import platform
 import unittest.mock as mock
 
 import pytest
+from b2sdk.encryption.setting import SSE_NONE, SSE_B2_AES
 
 from .test_base import TestBase
 
@@ -44,11 +45,6 @@ from .deps import hex_sha1_of_bytes, TempDir
 from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, EncryptionKey
 from .deps import CopySource, UploadSourceLocalFile, WriteIntent
 
-SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
-SSE_B2_AES = EncryptionSetting(
-    mode=EncryptionMode.SSE_B2,
-    algorithm=EncryptionAlgorithm.AES256,
-)
 SSE_C_AES = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
     algorithm=EncryptionAlgorithm.AES256,
@@ -906,7 +902,7 @@ class TestConcatenate(TestCaseWithBucket):
         with TempDir() as d:
             path = os.path.join(d, 'file')
             write_file(path, data)
-            self._create_remote(
+            created_file = self._create_remote(
                 [
                     CopySource(f1_id, length=len(data), offset=0),
                     UploadSourceLocalFile(path),
@@ -914,6 +910,7 @@ class TestConcatenate(TestCaseWithBucket):
                 ],
                 file_name='created_file'
             )
+            self.assertEqual(None, created_file)
 
     def test_create_remote_encryption(self):
         data = b'hello world'
@@ -923,7 +920,7 @@ class TestConcatenate(TestCaseWithBucket):
         with TempDir() as d:
             path = os.path.join(d, 'file')
             write_file(path, data)
-            self._create_remote(
+            created_file = self._create_remote(
                 [
                     CopySource(f1_id, length=len(data), offset=0, encryption=SSE_C_AES),
                     UploadSourceLocalFile(path),
@@ -932,6 +929,7 @@ class TestConcatenate(TestCaseWithBucket):
                 file_name='created_file',
                 encryption=SSE_C_AES
             )
+            self.assertEqual(None, created_file)
 
 
 class TestCreateFile(TestConcatenate):

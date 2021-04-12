@@ -18,21 +18,11 @@ API
 Methods and classes that require encryption settings all accept an `EncryptionSetting` object, which holds information
 about present or desired encryption (mode, algorithm, key, key_id). Some, like copy operations, accept two sets of settings (for
 source and for destination). Sync, however, accepts an `EncryptionSettingsProvider` object, which is an
-`EncryptionSetting` factory, yielding them based on:
+`EncryptionSetting` factory, yielding them based on file metadata. For details, see
 
-* a :class:`b2sdk.v1.Bucket` object
-* file id
-* file name
-* file info - for files already existing in B2 cloud
-* file size
-
-.. autoclass:: b2sdk.v1.EncryptionSetting()
-   :special-members: __init__
-   :members:
-
-.. autoclass:: b2sdk.v1.AbstractEncryptionSettingsProvider()
-   :special-members: __init__
-   :members:
+* :ref:`encryption_setting`
+* :ref:`encryption_provider`
+* :ref:`encryption_types`
 
 ******************************
 High security: use unique keys
@@ -57,6 +47,7 @@ is required before downloading.
 *********************************************
 Moderate security: a single key with many ids
 *********************************************
-Should the application's infrastructure require a single key (or a set of keys) to be used in a bucket, authors of this
+Should the application's infrastructure require a single key (or a limited set of keys) to be used in a bucket, authors of this
 library recommend generating a unique key identifier for each file anyway (even though these unique identifiers all
-point to the same key value). This obfuscates confidential metadata from malicious users.
+point to the same key value). This obfuscates confidential metadata from malicious users, like which files are encrypted with
+the same key, the total number of different keys, etc.

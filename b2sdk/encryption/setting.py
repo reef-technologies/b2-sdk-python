@@ -282,3 +282,18 @@ class EncryptionSettingFactory:
             kwargs['algorithm'] = EncryptionAlgorithm(algorithm)
 
         return EncryptionSetting(**kwargs)
+
+
+
+SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
+"""
+Commonly used "no encryption" setting
+"""  # pylint: disable=W0105
+
+SSE_B2_AES = EncryptionSetting(
+    mode=EncryptionMode.SSE_B2,
+    algorithm=EncryptionAlgorithm.AES256,
+)
+"""
+Commonly used SSE-B2 setting
+"""  # pylint: disable=W0105

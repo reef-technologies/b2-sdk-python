@@ -14,7 +14,7 @@ from typing import Optional
 import logging
 import os
 from ..download_dest import DownloadDestLocalFile
-from .encryption_provider import AbstractEncryptionSettingsProvider
+from .encryption_provider import AbstractSyncEncryptionSettingsProvider
 from ..bucket import Bucket
 
 from ..raw_api import SRC_LAST_MODIFIED_MILLIS
@@ -95,7 +95,7 @@ class B2UploadAction(AbstractAction):
         b2_file_name,
         mod_time_millis,
         size,
-        encryption_settings_provider: AbstractEncryptionSettingsProvider,
+        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
     ):
         """
         :param str local_full_path: a local file path
@@ -103,7 +103,7 @@ class B2UploadAction(AbstractAction):
         :param str b2_file_name: a name of a new remote file
         :param int mod_time_millis: file modification time in milliseconds
         :param int size: a file size
-        :param b2sdk.v1.AbstractEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
+        :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
         """
         self.local_full_path = local_full_path
         self.relative_name = relative_name
@@ -217,7 +217,7 @@ class B2DownloadAction(AbstractAction):
         local_full_path,
         mod_time_millis,
         file_size,
-        encryption_settings_provider: AbstractEncryptionSettingsProvider,
+        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
     ):
         """
         :param str relative_name: a relative file name
@@ -227,7 +227,7 @@ class B2DownloadAction(AbstractAction):
         :param str local_full_path: a local file path
         :param int mod_time_millis: file modification time in milliseconds
         :param int file_size: a file size
-        :param b2sdk.v1.AbstractEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
+        :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
         """
         self.relative_name = relative_name
         self.b2_file_name = b2_file_name
@@ -328,7 +328,7 @@ class B2CopyAction(AbstractAction):
         source_bucket: Bucket,
         destination_bucket: Bucket,
         source_file_info: Optional[dict],
-        encryption_settings_provider: AbstractEncryptionSettingsProvider,
+        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
     ):
         """
         :param str relative_name: a relative file name
@@ -340,7 +340,7 @@ class B2CopyAction(AbstractAction):
         :param Bucket source_bucket: bucket to copy from
         :param Bucket destination_bucket: bucket to copy to
         :param dict,None source_file_info: source file's fileInfo dict
-        :param b2sdk.v1.AbstractEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
+        :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
         """
         self.relative_name = relative_name
         self.b2_file_name = b2_file_name
@@ -386,7 +386,7 @@ class B2CopyAction(AbstractAction):
         destination_encryption = self.encryption_settings_provider.get_destination_setting_for_copy(
             bucket=self.destination_bucket,
             b2_file_name=self.dest_b2_file_name,
-            file_info=None,
+            source_file_info=self.source_file_info,
             length=self.size,
         )
 

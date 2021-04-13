@@ -14,7 +14,7 @@ from enum import Enum, unique
 import logging
 
 from ..exception import DestFileNewer
-from .encryption_provider import AbstractEncryptionSettingsProvider, SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER
+from .encryption_provider import AbstractSyncEncryptionSettingsProvider, SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
 from .action import LocalDeleteAction, B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction
 from .exception import InvalidArgument
 from .folder import B2Folder
@@ -59,7 +59,7 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         compare_threshold,
         compare_version_mode=CompareVersionMode.MODTIME,
         encryption_settings_provider:
-        AbstractEncryptionSettingsProvider = SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER,
+        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         """
         :param b2sdk.v1.File source_file: source file object
@@ -71,7 +71,7 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         :param b2sdk.v1.NEWER_FILE_MODES newer_file_mode: setting which determines handling for destination files newer than on the source
         :param int compare_threshold: when comparing with size or time for sync
         :param b2sdk.v1.COMPARE_VERSION_MODES compare_version_mode: how to compare source and destination files
-        :param b2sdk.v1.AbstractEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
+        :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
         """
         self._source_file = source_file
         self._source_folder = source_folder

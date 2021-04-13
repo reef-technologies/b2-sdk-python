@@ -15,11 +15,10 @@ from ..encryption.setting import EncryptionSetting
 from ..bucket import Bucket
 
 
-class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
+class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
     """
     Object which provides an appropriate EncryptionSetting object
-    for complex operations with multiple sources and destinations such
-    as sync and create_file
+    for sync, i.e. complex operations with multiple sources and destinations
     """
 
     @abstractmethod
@@ -58,6 +57,7 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
         bucket: Bucket,
         b2_file_name: str,
         length: int,
+        source_file_info: Optional[dict],
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for a destination for copying an object or None if server should decide
@@ -82,7 +82,7 @@ class AbstractEncryptionSettingsProvider(metaclass=ABCMeta):
         """
 
 
-class ServerDefaultEncryptionSettingsProvider(AbstractEncryptionSettingsProvider):
+class ServerDefaultSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider):
     """
     Encryption settings provider which assumes setting-less reads
     and a bucket default for writes.
@@ -101,10 +101,10 @@ class ServerDefaultEncryptionSettingsProvider(AbstractEncryptionSettingsProvider
         return None
 
 
-SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER = ServerDefaultEncryptionSettingsProvider()
+SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER = ServerDefaultSyncEncryptionSettingsProvider()
 
 
-class BasicEncryptionSettingsProvider(AbstractEncryptionSettingsProvider):
+class BasicSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider):
     """
     Basic encryption setting provider that supports exactly one encryption setting per bucket
 

@@ -50,7 +50,7 @@ Synchronization
         )
 
     >>> no_progress = False
-    >>> encryption_settings_provider = BasicEncryptionSettingsProvider({
+    >>> encryption_settings_provider = BasicSyncEncryptionSettingsProvider({
             'bucket1': EncryptionSettings(mode=EncryptionMode.SSE_B2),
             'bucket2': EncryptionSettings(
                            mode=EncryptionMode.SSE_C,
@@ -81,7 +81,7 @@ unique keys, or key identifiers, across files. This is covered in greater detail
 
 In the example above, Sync will assume `SSE-B2` for all files in `bucket1`, `SSE-C` with the key provided for `bucket2`
 and rely on bucket default for `bucket3`. Should developers need to provide keys per file (and not per bucket), they
-need to implement their own :class:`b2sdk.v1.AbstractEncryptionSettingsProvider`.
+need to implement their own :class:`b2sdk.v1.AbstractSyncEncryptionSettingsProvider`.
 
 **************
 Bucket actions

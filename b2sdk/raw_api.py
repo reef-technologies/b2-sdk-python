@@ -754,10 +754,10 @@ class B2RawApi(AbstractRawApi):
             'Content-Type': content_type,
             'X-Bz-Content-Sha1': content_sha1,
         }
-        if server_side_encryption is not None:
-            server_side_encryption.add_to_upload_headers(headers)
         for k, v in file_infos.items():
             headers['X-Bz-Info-' + k] = b2_url_encode(v)
+        if server_side_encryption is not None:
+            server_side_encryption.add_to_upload_headers(headers)
 
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 

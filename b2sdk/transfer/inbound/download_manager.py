@@ -84,7 +84,6 @@ class DownloadManager(metaclass=B2TraceMetaAbstract):
         :param range_: 2-element tuple containing data of http Range header
         :param b2sdk.v1.EncryptionSetting encryption: encryption setting (``None`` if unknown)
         """
-        assert encryption is None or encryption.mode != EncryptionMode.UNKNOWN
         progress_listener = progress_listener or DoNothingProgressListener()
         download_dest = DownloadDestProgressWrapper(download_dest, progress_listener)
         with self.services.session.download_file_from_url(

@@ -205,7 +205,7 @@ class WriterThread(threading.Thread):
 
 
 class AbstractDownloaderThread(threading.Thread):
-    def __init__(self, session, writer, part_to_download, chunk_size):
+    def __init__(self, session, writer, part_to_download, chunk_size, encryption:EncryptionSetting=None):
         """
         :param session: raw_api wrapper
         :param writer: where to write data
@@ -216,6 +216,7 @@ class AbstractDownloaderThread(threading.Thread):
         self.writer = writer
         self.part_to_download = part_to_download
         self.chunk_size = chunk_size
+        self.encryption = encryption
         super(AbstractDownloaderThread, self).__init__()
 
     @abstractmethod
@@ -229,6 +230,7 @@ class FirstPartDownloaderThread(AbstractDownloaderThread):
         :param response: response of the original GET call
         :param hasher: hasher object to feed to as the stream is written
         """
+        print('leoleoleo')
         self.response = response
         self.hasher = hasher
         super(FirstPartDownloaderThread, self).__init__(*args, **kwargs)
@@ -272,6 +274,7 @@ class FirstPartDownloaderThread(AbstractDownloaderThread):
             with self.session.download_file_from_url(
                 url,
                 cloud_range.as_tuple(),
+                encryption=self.encryption,
             ) as response:
                 for to_write in response.iter_content(chunk_size=self.chunk_size):
                     writer_queue_put((False, first_offset + bytes_read, to_write))
@@ -306,6 +309,7 @@ class NonHashingDownloaderThread(AbstractDownloaderThread):
             with self.session.download_file_from_url(
                 self.url,
                 cloud_range.as_tuple(),
+                encryption=self.encryption,
             ) as response:
                 for to_write in response.iter_content(chunk_size=self.chunk_size):
                     writer_queue_put((False, start_range + bytes_read, to_write))

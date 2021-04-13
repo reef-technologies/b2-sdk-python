@@ -134,8 +134,6 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
         :param b2sdk.v1.EncryptionSetting source_encryption: encryption settings for the source
                         (``None`` if unknown)
         """
-        assert destination_encryption is None or destination_encryption.mode != EncryptionMode.UNKNOWN
-
         # b2_copy_part doesn't need SSE-B2. Large file encryption is decided on b2_start_large_file.
         if destination_encryption is not None and destination_encryption.mode == EncryptionMode.SSE_B2:
             destination_encryption = None

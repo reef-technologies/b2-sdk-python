@@ -122,7 +122,11 @@ class EncryptionSetting:
         elif self.mode == EncryptionMode.SSE_C:
             self._add_sse_c_headers(headers)
             if self.key.key_id is not None:
-                headers['X-Bz-Info-sse_c_key_id'] = self.key.key_id
+                header = 'X-Bz-Info-sse_c_key_id'
+                if headers.get(header) is not None and headers[header] != self.key.key_id:
+                    raise ValueError('Ambiguous key id set: "%s" in headers and "%s" in %s' % (
+                        headers[header], self.key.key_id, self.__class__.__name__))
+                headers[header] = self.key.key_id
         else:
             raise NotImplementedError('unsupported encryption setting: %s' % (self,))
 
@@ -151,7 +155,11 @@ class EncryptionSetting:
             return file_info
         if file_info is None:
             file_info = {}
-        file_info['sse_c_key_id'] = self.key.key_id
+        key_id_key = 'sse_c_key_id'
+        if file_info.get(key_id_key) is not None and file_info[key_id_key] != self.key.key_id:
+            raise ValueError('Ambiguous key id set: "%s" in file_info and "%s" in %s' % (
+                file_info[key_id_key], self.key.key_id, self.__class__.__name__))
+        file_info[key_id_key] = self.key.key_id
         return file_info
 
     def __repr__(self):

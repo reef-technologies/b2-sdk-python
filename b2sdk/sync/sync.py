@@ -13,7 +13,7 @@ import concurrent.futures as futures
 from enum import Enum, unique
 
 from ..bounded_queue_executor import BoundedQueueExecutor
-from ..encryption.provider import AbstractEncryptionSettingsProvider, SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER
+from .provider import AbstractEncryptionSettingsProvider, SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER
 from .exception import InvalidArgument, IncompleteSync
 from .policy import CompareVersionMode, NewerFileSyncMode
 from .policy_manager import POLICY_MANAGER

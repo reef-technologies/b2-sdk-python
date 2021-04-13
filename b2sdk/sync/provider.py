@@ -11,7 +11,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Optional
 
-from .setting import EncryptionSetting
+from ..encryption.setting import EncryptionSetting
 from ..bucket import Bucket
 
 

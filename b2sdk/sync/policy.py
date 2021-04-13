@@ -14,7 +14,7 @@ from enum import Enum, unique
 import logging
 
 from ..exception import DestFileNewer
-from ..encryption.provider import AbstractEncryptionSettingsProvider, SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER
+from .provider import AbstractEncryptionSettingsProvider, SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER
 from .action import LocalDeleteAction, B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction
 from .exception import InvalidArgument
 from .folder import B2Folder

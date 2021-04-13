@@ -14,7 +14,7 @@ from typing import Optional
 import logging
 import os
 from ..download_dest import DownloadDestLocalFile
-from .provider import AbstractEncryptionSettingsProvider
+from .encryption_provider import AbstractEncryptionSettingsProvider
 from ..bucket import Bucket
 
 from ..raw_api import SRC_LAST_MODIFIED_MILLIS

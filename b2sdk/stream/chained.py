@@ -107,6 +107,8 @@ class ChainedStream(ReadOnlyStreamMixin, io.IOBase):
                     break
             else:
                 remaining -= len(buff)
+                if remaining <= 0:
+                    break
 
         if not byte_arrays:
             data = byte_arrays[0]

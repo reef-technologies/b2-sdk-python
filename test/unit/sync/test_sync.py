@@ -667,6 +667,9 @@ class TestSynchronizer:
         dst = self.folder_factory(dst_type, ('a.txt', [100], 10))
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
 
+    # FIXME: rewrite this test to not use mock.call checks when all of Synchronizers tests are rewritten to test_bucket
+    # style - i.e. with simulated api and fake files returned from methods. Then, checking EncryptionSetting used for
+    # transmission will be done by the underlying simulator.
     def test_encryption_b2_to_local(self, synchronizer_factory):
         local = self.local_folder_factory()
         remote = self.b2_folder_factory(('directory/b.txt', [100]))
@@ -703,6 +706,9 @@ class TestSynchronizer:
             )
         ]
 
+    # FIXME: rewrite this test to not use mock.call checks when all of Synchronizers tests are rewritten to test_bucket
+    # style - i.e. with simulated api and fake files returned from methods. Then, checking EncryptionSetting used for
+    # transmission will be done by the underlying simulator.
     def test_encryption_local_to_b2(self, synchronizer_factory):
         local = self.local_folder_factory(('directory/a.txt', [100]))
         remote = self.b2_folder_factory()
@@ -743,6 +749,9 @@ class TestSynchronizer:
             )
         ]
 
+    # FIXME: rewrite this test to not use mock.call checks when all of Synchronizers tests are rewritten to test_bucket
+    # style - i.e. with simulated api and fake files returned from methods. Then, checking EncryptionSetting used for
+    # transmission will be done by the underlying simulator.
     def test_encryption_b2_to_b2(self, synchronizer_factory):
         src = self.b2_folder_factory(('directory/a.txt', [100]))
         dst = self.b2_folder_factory()

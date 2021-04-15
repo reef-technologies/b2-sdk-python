@@ -321,9 +321,6 @@ class CopyPolicy(AbstractFileSyncPolicy):
     DESTINATION_PREFIX = 'b2://'
     SOURCE_PREFIX = 'b2://'
 
-    _source_folder: B2Folder
-    _dest_folder: B2Folder
-
     def _make_transfer_action(self):
 
         return B2CopyAction(

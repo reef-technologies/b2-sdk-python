@@ -198,6 +198,8 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
                 destination_bucket_id=destination_bucket_id,
                 destination_server_side_encryption=destination_encryption,
                 source_server_side_encryption=source_encryption,
+                source_file_info=copy_source.source_file_info,
+                source_content_type=copy_source.source_content_type,
             )
             file_info = FileVersionInfoFactory.from_api_response(response)
             if progress_listener is not None:

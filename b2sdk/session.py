@@ -19,7 +19,8 @@ from b2sdk.b2http import B2Http
 from b2sdk.cache import AuthInfoCache, DummyCache
 from b2sdk.encryption.setting import EncryptionSetting, EncryptionMode
 from b2sdk.exception import (InvalidAuthToken, Unauthorized)
-from b2sdk.raw_api import ALL_CAPABILITIES, B2RawApi
+from b2sdk.raw_api import ALL_CAPABILITIES, B2RawApi, MetadataDirectiveMode
+from b2sdk.file_version import FileVersionInfoFactory
 
 logger = logging.getLogger(__name__)
 
@@ -384,8 +385,19 @@ class B2Session(object):
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
         source_server_side_encryption: Optional[EncryptionSetting] = None,
+        source_file_info: Optional[dict] = None,
+        source_content_type: Optional[dict] = None,
     ):
-        file_info = self._add_key_id_to_file_info(file_info, destination_server_side_encryption)
+        metadata_directive, file_info, content_type = self._establish_sse_c_file_metadata(
+            source_file_id,
+            metadata_directive,
+            file_info,
+            content_type,
+            destination_server_side_encryption,
+            source_server_side_encryption,
+            source_file_info,
+            source_content_type,
+        )
         return self._wrap_default_token(
             self.raw_api.copy_file,
             source_file_id,
@@ -398,6 +410,42 @@ class B2Session(object):
             destination_server_side_encryption=destination_server_side_encryption,
             source_server_side_encryption=source_server_side_encryption,
         )
+    
+    def _establish_sse_c_file_metadata(
+            self,
+            file_id,
+            metadata_directive,
+            file_info,
+            content_type,
+            destination_server_side_encryption: Optional[EncryptionSetting],
+            source_server_side_encryption: Optional[EncryptionSetting],
+            source_file_info: Optional[dict],
+            source_content_type: Optional[str],
+    ):
+        if metadata_directive == MetadataDirectiveMode.REPLACE:
+            return metadata_directive, file_info, content_type
+        destination_key_id = None
+        source_key_id = None
+        if destination_server_side_encryption is not None and destination_server_side_encryption.key is not None and \
+                destination_server_side_encryption.key.key_id is not None:
+            destination_key_id = destination_server_side_encryption.key.key_id
+        if source_server_side_encryption is not None and source_server_side_encryption.key is not None and \
+                source_server_side_encryption.key.key_id is not None:
+            source_key_id = source_server_side_encryption.key.key_id
+        if source_key_id == destination_key_id:
+            return metadata_directive, file_info, content_type
+
+        if source_file_info is None or source_content_type is None:
+            source_file_version = FileVersionInfoFactory.from_api_response(self.get_file_info_by_id(file_id))
+            source_file_info = source_file_version.file_info
+            source_content_type = source_file_version.content_type
+
+        target_file_info = source_file_info.copy()
+        target_file_info.pop('sse_c_key_id', None)
+        destination_server_side_encryption.add_key_id_to_file_info(target_file_info)
+        target_content_type = source_content_type
+
+        return MetadataDirectiveMode.REPLACE, target_file_info, target_content_type
 
     def copy_part(
         self,

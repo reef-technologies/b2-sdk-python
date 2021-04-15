@@ -751,6 +751,8 @@ class Bucket(metaclass=B2TraceMeta):
         progress_listener=None,
         destination_encryption: Optional[EncryptionSetting] = None,
         source_encryption: Optional[EncryptionSetting] = None,
+        source_file_info: Optional[dict] = None,
+        source_content_type: Optional[str] = None,
     ):
         """
         Creates a new file in this bucket by (server-side) copying from an existing file.
@@ -772,10 +774,13 @@ class Bucket(metaclass=B2TraceMeta):
                         (``None`` if unknown)
         :param b2sdk.v1.EncryptionSetting source_encryption: encryption settings for the source
                         (``None`` if unknown)
+        :param dict,None source_file_info: source file's file_info dict, useful when copying files with SSE-C
+        :param str,None source_content_type: source file's content type, useful when copying files with SSE-C
         """
 
         copy_source = CopySource(
-            file_id, offset=offset, length=length, encryption=source_encryption
+            file_id, offset=offset, length=length, encryption=source_encryption, source_file_info=source_file_info,
+            source_content_type=source_content_type,
         )
         if not length:
             # TODO: it feels like this should be checked on lower level - eg. RawApi

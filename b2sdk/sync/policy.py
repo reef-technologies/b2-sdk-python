@@ -337,6 +337,7 @@ class CopyPolicy(AbstractFileSyncPolicy):
             self._dest_folder.bucket,
             self._source_file.latest_version().file_info,
             self._encryption_settings_provider,
+            self._source_file.latest_version().content_type,
         )
 
 

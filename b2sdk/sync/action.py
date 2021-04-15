@@ -329,6 +329,7 @@ class B2CopyAction(AbstractAction):
         destination_bucket: Bucket,
         source_file_info: Optional[dict],
         encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
+        source_content_type: Optional[str],
     ):
         """
         :param str relative_name: a relative file name
@@ -341,6 +342,7 @@ class B2CopyAction(AbstractAction):
         :param Bucket destination_bucket: bucket to copy to
         :param dict,None source_file_info: source file's fileInfo dict
         :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
+        :param str,None source_content_type: source file's content type
         """
         self.relative_name = relative_name
         self.b2_file_name = b2_file_name
@@ -352,6 +354,7 @@ class B2CopyAction(AbstractAction):
         self.source_bucket = source_bucket
         self.destination_bucket = destination_bucket
         self.source_file_info = source_file_info
+        self.source_content_type = source_content_type
 
     def get_bytes(self):
         """
@@ -397,6 +400,7 @@ class B2CopyAction(AbstractAction):
             progress_listener=progress_listener,
             destination_encryption=destination_encryption,
             source_encryption=source_encryption,
+            source_content_type=self.source_content_type
         )
 
     def do_report(self, bucket, reporter):

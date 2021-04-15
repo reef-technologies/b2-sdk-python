@@ -16,7 +16,8 @@ from b2sdk.transfer.outbound.outbound_source import OutboundTransferSource
 
 class CopySource(OutboundTransferSource):
     def __init__(
-        self, file_id, offset=0, length=None, encryption: Optional[EncryptionSetting] = None
+        self, file_id, offset=0, length=None, encryption: Optional[EncryptionSetting] = None, source_file_info=None,
+        source_content_type=None,
     ):
         if not length and offset > 0:
             raise ValueError('Cannot copy with non zero offset and unknown or zero length')
@@ -24,15 +25,20 @@ class CopySource(OutboundTransferSource):
         self.length = length
         self.offset = offset
         self.encryption = encryption
+        self.source_file_info = source_file_info
+        self.source_content_type = source_content_type
 
     def __repr__(self):
-        return '<{classname} file_id={file_id} offset={offset} length={length} id={id}, encryption={encryption}>'.format(
+        return ('<{classname} file_id={file_id} offset={offset} length={length} id={id}, encryption={encryption},'
+                'source_content_type={source_content_type}>, source_file_info={source_file_info}').format(
             classname=self.__class__.__name__,
             file_id=self.file_id,
             offset=self.offset,
             length=self.length,
             id=id(self),
             encryption=self.encryption,
+            source_content_type=self.source_content_type,
+            source_file_info=self.source_file_info,
         )
 
     def get_content_length(self):

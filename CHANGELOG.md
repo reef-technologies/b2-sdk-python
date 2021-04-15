@@ -6,8 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+* Add support for SSE-C server-side encryption mode
+
 ### Fixed
 * Fix clearing cache during `authorize_account`
+* Fix `ChainedStream`
+* Fix emerger examples in docs
 
 ## [1.6.0] - 2021-04-08
 

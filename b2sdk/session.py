@@ -17,7 +17,7 @@ from b2sdk.account_info.sqlite_account_info import SqliteAccountInfo
 from b2sdk.account_info.exception import MissingAccountData
 from b2sdk.b2http import B2Http
 from b2sdk.cache import AuthInfoCache, DummyCache
-from b2sdk.encryption.setting import EncryptionSetting, EncryptionMode
+from b2sdk.encryption.setting import EncryptionSetting
 from b2sdk.exception import (InvalidAuthToken, Unauthorized)
 from b2sdk.raw_api import ALL_CAPABILITIES, B2RawApi, MetadataDirectiveMode
 from b2sdk.file_version import FileVersionInfoFactory

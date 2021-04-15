@@ -12,7 +12,7 @@ import logging
 from typing import Optional
 
 from b2sdk.download_dest import DownloadDestProgressWrapper
-from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
+from b2sdk.encryption.setting import EncryptionSetting
 from b2sdk.progress import DoNothingProgressListener
 
 from b2sdk.exception import (

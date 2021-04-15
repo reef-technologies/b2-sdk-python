@@ -34,7 +34,6 @@ from .exception import (
     PartSha1Mismatch,
     Unauthorized,
     UnsatisfiableRange,
-    SSE_C_Key_Error,
 )
 from .raw_api import AbstractRawApi, HEX_DIGITS_AT_END, MetadataDirectiveMode, ALL_CAPABILITIES
 from .utils import (

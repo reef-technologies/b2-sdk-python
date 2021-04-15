@@ -246,14 +246,7 @@ class B2DownloadAction(AbstractAction):
         """
         return self.file_size
 
-    def do_action(self, bucket, reporter):
-        """
-        Perform the downloading action, returning only after the action is completed.
-
-        :param b2sdk.v1.Bucket bucket: a Bucket object
-        :param reporter: a place to report errors
-        """
-        # Make sure the directory exists
+    def _ensure_directory_existence(self):
         parent_dir = os.path.dirname(self.local_full_path)
         if not os.path.isdir(parent_dir):
             try:
@@ -262,6 +255,15 @@ class B2DownloadAction(AbstractAction):
                 pass
         if not os.path.isdir(parent_dir):
             raise Exception('could not create directory %s' % (parent_dir,))
+
+    def do_action(self, bucket, reporter):
+        """
+        Perform the downloading action, returning only after the action is completed.
+
+        :param b2sdk.v1.Bucket bucket: a Bucket object
+        :param reporter: a place to report errors
+        """
+        self._ensure_directory_existence()
 
         if reporter:
             progress_listener = SyncFileReporter(reporter)

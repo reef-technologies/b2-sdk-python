@@ -8,10 +8,13 @@
 #
 ######################################################################
 
+from unittest import mock
 from enum import Enum
 from functools import partial
 
+from apiver_deps import B2DownloadAction, B2UploadAction, B2CopyAction, AbstractSyncEncryptionSettingsProvider, UploadSourceLocalFile
 from apiver_deps_exception import CommandError, DestFileNewer, InvalidArgument
+from b2sdk.utils import TempDir
 
 from .fixtures import *
 
@@ -666,3 +669,111 @@ class TestSynchronizer:
         src = self.folder_factory(src_type, ('a.txt', [200], 11))
         dst = self.folder_factory(dst_type, ('a.txt', [100], 10))
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
+
+    def test_encryption_b2_to_local(self, synchronizer_factory):
+        local = self.local_folder_factory()
+        remote = self.b2_folder_factory(('directory/b.txt', [100]))
+        synchronizer = synchronizer_factory()
+
+        encryption = object()
+        bucket = mock.MagicMock()
+        provider = TstEncryptionSettingsProvider(encryption, encryption)
+        download_action = next(iter(synchronizer.make_folder_sync_actions(
+            remote,
+            local,
+            TODAY,
+            self.reporter,
+            encryption_settings_provider=provider
+        )))
+        with mock.patch.object(B2DownloadAction, '_ensure_directory_existence'):
+            try:
+                download_action.do_action(bucket, self.reporter)
+            except:
+                pass
+
+        assert bucket.mock_calls ==[mock.call.download_file_by_id('id_d_100', mock.ANY, mock.ANY, encryption=encryption)]
+
+        assert provider.get_setting_for_download.mock_calls == [
+            mock.call(bucket=bucket, b2_file_id='id_d_100', b2_file_name='folder/directory/b.txt',
+                      file_info={'in_b2': 'yes'},
+                      length=10, mod_time_millis=100)]
+
+    def test_encryption_local_to_b2(self, synchronizer_factory):
+        local = self.local_folder_factory(('directory/a.txt', [100]))
+        remote = self.b2_folder_factory()
+        synchronizer = synchronizer_factory()
+
+        encryption = object()
+        bucket = mock.MagicMock()
+        provider = TstEncryptionSettingsProvider(encryption, encryption)
+        upload_action = next(iter(synchronizer.make_folder_sync_actions(
+            local,
+            remote,
+            TODAY,
+            self.reporter,
+            encryption_settings_provider=provider
+        )))
+        with mock.patch.object(UploadSourceLocalFile, 'check_path_and_get_size'):
+            try:
+                upload_action.do_action(bucket, self.reporter)
+            except:
+                pass
+
+        assert bucket.mock_calls == [mock.call.upload(mock.ANY, 'folder/directory/a.txt',
+                                                      file_info={'src_last_modified_millis': '100'},
+                                                      progress_listener=mock.ANY, encryption=encryption)]
+
+        assert provider.get_setting_for_upload.mock_calls == [
+            mock.call(bucket=bucket, b2_file_name='folder/directory/a.txt',
+                      file_info={'src_last_modified_millis': '100'}, length=10)]
+
+    def test_encryption_b2_to_b2(self, synchronizer_factory):
+        src = self.b2_folder_factory(('directory/a.txt', [100]))
+        dst = self.b2_folder_factory()
+        synchronizer = synchronizer_factory()
+
+        source_encryption = object()
+        destination_encryption = object()
+        bucket = mock.MagicMock()
+        provider = TstEncryptionSettingsProvider(source_encryption, destination_encryption)
+        copy_action = next(iter(synchronizer.make_folder_sync_actions(
+            src,
+            dst,
+            TODAY,
+            self.reporter,
+            encryption_settings_provider=provider
+        )))
+        copy_action.do_action(bucket, self.reporter)
+
+        assert bucket.mock_calls == [mock.call.copy('id_d_100', 'folder/directory/a.txt', length=10,
+                                                    source_content_type=mock.ANY, progress_listener=mock.ANY,
+                                                    source_encryption=source_encryption,
+                                                    destination_encryption=destination_encryption)]
+
+        assert provider.get_source_setting_for_copy.mock_calls == [
+            mock.call(bucket='fake_bucket', b2_file_id='id_d_100', b2_file_name='folder/directory/a.txt',
+                      file_info={'in_b2': 'yes'}, length=10, mod_time_millis=100)]
+
+        assert provider.get_destination_setting_for_copy.mock_calls == [
+            mock.call(bucket='fake_bucket', b2_file_name='folder/directory/a.txt', source_file_info={'in_b2': 'yes'},
+                      length=10)]
+
+
+class TstEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider):
+    def __init__(self, source_encryption_setting, destination_encryption_setting):
+        self.get_setting_for_upload = mock.MagicMock(side_effect=lambda *a, **kw: destination_encryption_setting)
+        self.get_source_setting_for_copy = mock.MagicMock(side_effect=lambda *a, **kw: source_encryption_setting)
+        self.get_destination_setting_for_copy = mock.MagicMock(side_effect=lambda *a, **kw: destination_encryption_setting)
+        self.get_setting_for_download = mock.MagicMock(side_effect=lambda *a, **kw: source_encryption_setting)
+
+    def get_setting_for_upload(self, *a, **kw):
+        """overwritten in __init__"""
+
+    def get_source_setting_for_copy(self, *a, **kw):
+        """overwritten in __init__"""
+
+    def get_destination_setting_for_copy(self, *a, **kw):
+        """overwritten in __init__"""
+
+    def get_setting_for_download(self, *a, **kw):
+        """overwritten in __init__"""

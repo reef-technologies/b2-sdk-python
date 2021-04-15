@@ -98,7 +98,7 @@ def b2_file(name, mod_times, size=10):
             abs(mod_time),
             'upload' if 0 < mod_time else 'hide',
             size,
-            None,
+            {'in_b2': 'yes'},
             None
         ) for mod_time in mod_times
     ]  # yapf disable

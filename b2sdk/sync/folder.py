@@ -360,8 +360,13 @@ class B2Folder(AbstractFolder):
 
             current_name = file_name
             file_version = FileVersion(
-                file_version_info.id_, file_version_info.file_name, mod_time_millis,
-                file_version_info.action, file_version_info.size, file_info, file_version_info.content_type,
+                file_version_info.id_,
+                file_version_info.file_name,
+                mod_time_millis,
+                file_version_info.action,
+                file_version_info.size,
+                file_info,
+                file_version_info.content_type,
             )
 
             if policies_manager.should_exclude_file_version(file_version):

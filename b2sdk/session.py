@@ -410,17 +410,17 @@ class B2Session(object):
             destination_server_side_encryption=destination_server_side_encryption,
             source_server_side_encryption=source_server_side_encryption,
         )
-    
+
     def _establish_sse_c_file_metadata(
-            self,
-            file_id,
-            metadata_directive,
-            file_info,
-            content_type,
-            destination_server_side_encryption: Optional[EncryptionSetting],
-            source_server_side_encryption: Optional[EncryptionSetting],
-            source_file_info: Optional[dict],
-            source_content_type: Optional[str],
+        self,
+        file_id,
+        metadata_directive,
+        file_info,
+        content_type,
+        destination_server_side_encryption: Optional[EncryptionSetting],
+        source_server_side_encryption: Optional[EncryptionSetting],
+        source_file_info: Optional[dict],
+        source_content_type: Optional[str],
     ):
         if metadata_directive == MetadataDirectiveMode.REPLACE:
             return metadata_directive, file_info, content_type
@@ -436,7 +436,9 @@ class B2Session(object):
             return metadata_directive, file_info, content_type
 
         if source_file_info is None or source_content_type is None:
-            source_file_version = FileVersionInfoFactory.from_api_response(self.get_file_info_by_id(file_id))
+            source_file_version = FileVersionInfoFactory.from_api_response(
+                self.get_file_info_by_id(file_id)
+            )
             source_file_info = source_file_version.file_info
             source_content_type = source_file_version.content_type
 

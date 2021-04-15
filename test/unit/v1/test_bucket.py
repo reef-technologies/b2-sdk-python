@@ -619,9 +619,9 @@ class TestCopyFile(TestCaseWithBucket):
         self.assertEqual(file_info.server_side_encryption, SSE_C_AES_NO_SECRET)
 
         file_info = self.bucket.copy(
-           file_id,
-           'hello_new.txt',
-           destination_encryption=SSE_NONE,
+            file_id,
+            'hello_new.txt',
+            destination_encryption=SSE_NONE,
         )
         self.assertTrue(isinstance(file_info, FileVersionInfo))
         self.assertEqual(file_info.server_side_encryption, SSE_NONE)
@@ -952,7 +952,6 @@ class TestUpload(TestCaseWithBucket):
 #             file_name=file_name,
 #             encryption=encryption
 #         )
-
 
 # Downloads
 

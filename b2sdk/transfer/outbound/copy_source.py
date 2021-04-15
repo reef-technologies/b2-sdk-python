@@ -16,7 +16,12 @@ from b2sdk.transfer.outbound.outbound_source import OutboundTransferSource
 
 class CopySource(OutboundTransferSource):
     def __init__(
-        self, file_id, offset=0, length=None, encryption: Optional[EncryptionSetting] = None, source_file_info=None,
+        self,
+        file_id,
+        offset=0,
+        length=None,
+        encryption: Optional[EncryptionSetting] = None,
+        source_file_info=None,
         source_content_type=None,
     ):
         if not length and offset > 0:
@@ -29,8 +34,10 @@ class CopySource(OutboundTransferSource):
         self.source_content_type = source_content_type
 
     def __repr__(self):
-        return ('<{classname} file_id={file_id} offset={offset} length={length} id={id}, encryption={encryption},'
-                'source_content_type={source_content_type}>, source_file_info={source_file_info}').format(
+        return (
+            '<{classname} file_id={file_id} offset={offset} length={length} id={id}, encryption={encryption},'
+            'source_content_type={source_content_type}>, source_file_info={source_file_info}'
+        ).format(
             classname=self.__class__.__name__,
             file_id=self.file_id,
             offset=self.offset,

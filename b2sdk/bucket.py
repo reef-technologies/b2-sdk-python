@@ -779,7 +779,11 @@ class Bucket(metaclass=B2TraceMeta):
         """
 
         copy_source = CopySource(
-            file_id, offset=offset, length=length, encryption=source_encryption, source_file_info=source_file_info,
+            file_id,
+            offset=offset,
+            length=length,
+            encryption=source_encryption,
+            source_file_info=source_file_info,
             source_content_type=source_content_type,
         )
         if not length:

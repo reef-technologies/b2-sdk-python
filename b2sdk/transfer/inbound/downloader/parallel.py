@@ -205,7 +205,9 @@ class WriterThread(threading.Thread):
 
 
 class AbstractDownloaderThread(threading.Thread):
-    def __init__(self, session, writer, part_to_download, chunk_size, encryption:EncryptionSetting=None):
+    def __init__(
+        self, session, writer, part_to_download, chunk_size, encryption: EncryptionSetting = None
+    ):
         """
         :param session: raw_api wrapper
         :param writer: where to write data

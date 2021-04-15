@@ -1,6 +1,6 @@
 ######################################################################
 #
-# File: b2sdk/encryption/provider.py
+# File: b2sdk/sync/encryption_provider.py
 #
 # Copyright 2021 Backblaze Inc. All Rights Reserved.
 #

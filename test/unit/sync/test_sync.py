@@ -689,7 +689,7 @@ class TestSynchronizer:
                 pass
 
         assert bucket.mock_calls == [
-            mock.call.download_file_by_id('id_d_100', mock.ANY, mock.ANY, encryption=encryption)
+            mock.call.download_file_by_id('id_d_100', mock.ANY, mock.ANY, encryption=encryption),
         ]
 
         assert provider.get_setting_for_download.mock_calls == [

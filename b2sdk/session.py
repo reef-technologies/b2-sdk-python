@@ -25,6 +25,7 @@ from b2sdk.file_version import FileVersionInfoFactory
 logger = logging.getLogger(__name__)
 
 
+
 @unique
 class TokenType(Enum):
     API = 'api'
@@ -411,14 +412,15 @@ class B2Session(object):
     def _establish_sse_c_file_metadata(
         self,
         file_id,
-        metadata_directive,
-        file_info,
-        content_type,
+        metadata_directive: MetadataDirectiveMode,
+        file_info: Optional[dict],
+        content_type: Optional[str],
         destination_server_side_encryption: Optional[EncryptionSetting],
         source_server_side_encryption: Optional[EncryptionSetting],
         source_file_info: Optional[dict],
         source_content_type: Optional[str],
     ):
+        assert metadata_directive in (MetadataDirectiveMode.REPLACE, MetadataDirectiveMode.COPY)
         if metadata_directive == MetadataDirectiveMode.REPLACE:
             return metadata_directive, file_info, content_type
         destination_key_id = None

@@ -58,6 +58,7 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
         b2_file_name: str,
         length: int,
         source_file_info: Optional[dict],
+        target_file_info: Optional[dict] = None,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for a destination for copying an object or None if server should decide
@@ -118,17 +119,17 @@ class BasicSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider
         self.bucket_settings = bucket_settings
 
     def get_setting_for_upload(self, bucket, *args, **kwargs) -> Optional[EncryptionSetting]:
-        return self.bucket_settings[bucket.name]
+        return self.bucket_settings.get(bucket.name)
 
     def get_source_setting_for_copy(self, bucket, *args, **kwargs) -> None:
-        return self.bucket_settings[bucket.name]
+        return self.bucket_settings.get(bucket.name)
 
     def get_destination_setting_for_copy(self, bucket, *args,
                                          **kwargs) -> Optional[EncryptionSetting]:
-        return self.bucket_settings[bucket.name]
+        return self.bucket_settings.get(bucket.name)
 
     def get_setting_for_download(self, bucket, *args, **kwargs) -> None:
-        return self.bucket_settings[bucket.name]
+        return self.bucket_settings.get(bucket.name)
 
     def __repr__(self):
         return '<%s:%s>' % (self.__class__.__name__, self.bucket_settings)

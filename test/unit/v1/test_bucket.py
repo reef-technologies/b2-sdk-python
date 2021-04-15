@@ -911,7 +911,8 @@ class TestConcatenate(TestCaseWithBucket):
             )
             self.assertIsInstance(created_file, FileVersionInfo)
             actual = (
-                created_file.id_, created_file.file_name, created_file.size, created_file.server_side_encryption
+                created_file.id_, created_file.file_name, created_file.size,
+                created_file.server_side_encryption
             )
             expected = ('9997', 'created_file', 33, SSE_NONE)
             self.assertEqual(expected, actual)
@@ -935,7 +936,8 @@ class TestConcatenate(TestCaseWithBucket):
             )
             self.assertIsInstance(created_file, FileVersionInfo)
             actual = (
-                created_file.id_, created_file.file_name, created_file.size, created_file.server_side_encryption
+                created_file.id_, created_file.file_name, created_file.size,
+                created_file.server_side_encryption
             )
             expected = ('9997', 'created_file', 33, SSE_C_AES_NO_SECRET)
             self.assertEqual(expected, actual)
@@ -962,6 +964,7 @@ class TestCreateFileStream(TestConcatenate):
             file_name=file_name,
             encryption=encryption
         )
+
 
 # Downloads
 

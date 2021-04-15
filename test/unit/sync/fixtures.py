@@ -29,6 +29,12 @@ class FakeFolder(AbstractFolder):
             raise ValueError('FakeFolder with type!=b2 does not have a bucket name')
         return 'fake_bucket_name'
 
+    @property
+    def bucket(self):
+        if self.f_type != 'b2':
+            raise ValueError('FakeFolder with type!=b2 does not have a bucket')
+        return 'fake_bucket'  # WARNING: this is supposed to be a Bucket object, not a string
+
     def all_files(self, reporter, policies_manager=DEFAULT_SCAN_MANAGER):
         for single_file in self.files:
             if single_file.name.endswith('/'):
@@ -58,7 +64,7 @@ def local_file(name, mod_times, size=10):
     each modification time given in mod_times.
     """
     versions = [
-        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size, None)
+        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size, None, None)
         for mod_time in mod_times
     ]
     return File(name, versions)
@@ -93,6 +99,7 @@ def b2_file(name, mod_times, size=10):
             'upload' if 0 < mod_time else 'hide',
             size,
             None,
+            None
         ) for mod_time in mod_times
     ]  # yapf disable
     return File(name, versions)

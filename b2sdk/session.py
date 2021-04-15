@@ -442,7 +442,8 @@ class B2Session(object):
 
         target_file_info = source_file_info.copy()
         target_file_info.pop('sse_c_key_id', None)
-        destination_server_side_encryption.add_key_id_to_file_info(target_file_info)
+        if destination_server_side_encryption:
+            destination_server_side_encryption.add_key_id_to_file_info(target_file_info)
         target_content_type = source_content_type
 
         return MetadataDirectiveMode.REPLACE, target_file_info, target_content_type

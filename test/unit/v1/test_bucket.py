@@ -14,7 +14,6 @@ import platform
 import unittest.mock as mock
 
 import pytest
-from b2sdk.encryption.setting import SSE_NONE, SSE_B2_AES
 
 from .test_base import TestBase
 
@@ -42,7 +41,7 @@ from .deps import ParallelDownloader
 from .deps import SimpleDownloader
 from .deps import UploadSourceBytes
 from .deps import hex_sha1_of_bytes, TempDir
-from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, EncryptionKey
+from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, EncryptionKey, SSE_NONE, SSE_B2_AES
 from .deps import CopySource, UploadSourceLocalFile, WriteIntent
 
 SSE_C_AES = EncryptionSetting(

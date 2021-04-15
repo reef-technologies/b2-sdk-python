@@ -24,13 +24,10 @@ from b2sdk.raw_api import ALL_CAPABILITIES
 
 from b2sdk.encryption.setting import EncryptionSetting
 from b2sdk.encryption.setting import EncryptionSettingFactory
+from b2sdk.encryption.setting import EncryptionKey
+from b2sdk.encryption.setting import SSE_NONE, SSE_B2_AES
 from b2sdk.encryption.types import EncryptionAlgorithm
-from b2sdk.encryption.types import EncryptionKey
 from b2sdk.encryption.types import EncryptionMode
-from b2sdk.encryption.provider import AbstractEncryptionSettingsProvider
-from b2sdk.encryption.provider import BasicEncryptionSettingsProvider
-from b2sdk.encryption.provider import ServerDefaultEncryptionSettingsProvider
-from b2sdk.encryption.provider import SERVER_DEFAULT_ENCRYPTION_SETTINGS_PROVIDER
 
 # account info
 
@@ -178,6 +175,10 @@ from b2sdk.sync.scan_policies import ScanPoliciesManager
 from b2sdk.sync.sync import KeepOrDeleteMode
 from b2sdk.sync.sync import Synchronizer
 from b2sdk.sync.sync import zip_folders
+from b2sdk.sync.encryption_provider import AbstractSyncEncryptionSettingsProvider
+from b2sdk.sync.encryption_provider import BasicSyncEncryptionSettingsProvider
+from b2sdk.sync.encryption_provider import ServerDefaultSyncEncryptionSettingsProvider
+from b2sdk.sync.encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
 
 # other
 

@@ -42,7 +42,9 @@ class File(object):
         return self.versions[0]
 
     def __repr__(self):
-        return '%s(%s, [%s])' % (self.__class__.__name__, self.name, ', '.join(repr(v) for v in self.versions))
+        return '%s(%s, [%s])' % (
+            self.__class__.__name__, self.name, ', '.join(repr(v) for v in self.versions)
+        )
 
 
 class B2File(File):
@@ -101,7 +103,10 @@ class FileVersion(object):
 
 
 class B2FileVersion(FileVersion):
-    __slots__ = ['file_version_info']  # in a typical use case there is a lot of these object in memory, hence __slots__
+    __slots__ = [
+        'file_version_info'
+    ]  # in a typical use case there is a lot of these object in memory, hence __slots__
+
     # and properties
 
     def __init__(self, file_version_info: FileVersionInfo):

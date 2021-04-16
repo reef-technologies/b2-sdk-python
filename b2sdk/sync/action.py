@@ -294,9 +294,10 @@ class B2DownloadAction(AbstractAction):
 
     def __str__(self):
         return (
-            'b2_download(%s, %s, %s, %d)' %
-            (self.b2_file_name, self.source_file.latest_version().id_,
-             self.local_full_path, self.source_file.latest_version().mod_time)
+            'b2_download(%s, %s, %s, %d)' % (
+                self.b2_file_name, self.source_file.latest_version().id_, self.local_full_path,
+                self.source_file.latest_version().mod_time
+            )
         )
 
 
@@ -383,9 +384,10 @@ class B2CopyAction(AbstractAction):
 
     def __str__(self):
         return (
-            'b2_copy(%s, %s, %s, %d)' %
-            (self.b2_file_name, self.source_file.latest_version().id_,
-             self.dest_b2_file_name, self.source_file.latest_version().mod_time)
+            'b2_copy(%s, %s, %s, %d)' % (
+                self.b2_file_name, self.source_file.latest_version().id_, self.dest_b2_file_name,
+                self.source_file.latest_version().mod_time
+            )
         )
 
 

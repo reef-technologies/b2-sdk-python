@@ -58,9 +58,8 @@ class TestMakeB2KeepDaysActions(TestBase):
     def check_one_answer(self, has_source, id_relative_date_action_list, expected_actions):
         source_file = File('a', []) if has_source else None
         dest_file_versions = [
-            FileVersion(
-                id_, 'a', self.today + relative_date * self.one_day_millis, action, 100
-            ) for (id_, relative_date, action) in id_relative_date_action_list
+            FileVersion(id_, 'a', self.today + relative_date * self.one_day_millis, action, 100)
+            for (id_, relative_date, action) in id_relative_date_action_list
         ]
         dest_file = File('a', dest_file_versions)
         bucket = MagicMock()

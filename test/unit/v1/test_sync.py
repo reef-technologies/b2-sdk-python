@@ -758,8 +758,7 @@ def local_file(name, mod_times, size=10):
     each modification time given in mod_times.
     """
     versions = [
-        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size)
-        for mod_time in mod_times
+        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size) for mod_time in mod_times
     ]
     return File(name, versions)
 

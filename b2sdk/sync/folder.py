@@ -262,9 +262,7 @@ class LocalFolder(AbstractFolder):
                 if is_file_readable(local_path, reporter):
                     file_mod_time = get_file_mtime(local_path)
                     file_size = os.path.getsize(local_path)
-                    version = FileVersion(
-                        local_path, b2_path, file_mod_time, 'upload', file_size
-                    )
+                    version = FileVersion(local_path, b2_path, file_mod_time, 'upload', file_size)
 
                     if policies_manager.should_exclude_file_version(version):
                         continue

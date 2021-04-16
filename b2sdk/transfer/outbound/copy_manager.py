@@ -228,7 +228,9 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
 
         if metadata_directive == MetadataDirectiveMode.REPLACE:
             if destination_server_side_encryption:
-                destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(destination_file_info)
+                destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(
+                    destination_file_info
+                )
             return metadata_directive, destination_file_info, destination_content_type
 
         source_key_id = None
@@ -246,14 +248,19 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
             return metadata_directive, destination_file_info, destination_content_type
 
         if source_file_info is None or source_content_type is None:
-            raise SSECKeyIdMismatchInCopy('attempting to copy file using %s without providing source_file_info '
-                                          'and source_content_type for differing sse_c_key_ids: source="%s", '
-                                          'destination="%s"' % (MetadataDirectiveMode.COPY, source_key_id, destination_key_id))
+            raise SSECKeyIdMismatchInCopy(
+                'attempting to copy file using %s without providing source_file_info '
+                'and source_content_type for differing sse_c_key_ids: source="%s", '
+                'destination="%s"' %
+                (MetadataDirectiveMode.COPY, source_key_id, destination_key_id)
+            )
 
         destination_file_info = source_file_info.copy()
         destination_file_info.pop('sse_c_key_id', None)
         if destination_server_side_encryption:
-            destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(destination_file_info)
+            destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(
+                destination_file_info
+            )
         destination_content_type = source_content_type
 
         return MetadataDirectiveMode.REPLACE, destination_file_info, destination_content_type

@@ -137,6 +137,7 @@ class FileSimulator(object):
     """
 
     CHECK_ENCRYPTION = True
+
     def __init__(
         self,
         account_id,

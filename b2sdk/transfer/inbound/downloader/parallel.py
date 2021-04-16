@@ -128,7 +128,8 @@ class ParallelDownloader(AbstractDownloader):
                 break
 
     def _get_parts(
-        self, response, session, writer, hasher, first_part, parts_to_download, chunk_size, encryption
+        self, response, session, writer, hasher, first_part, parts_to_download, chunk_size,
+        encryption
     ):
         stream = FirstPartDownloaderThread(
             response,

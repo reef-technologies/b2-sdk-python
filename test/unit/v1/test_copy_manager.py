@@ -1,3 +1,13 @@
+######################################################################
+#
+# File: test/unit/v1/test_copy_manager.py
+#
+# Copyright 2021 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
+
 from .test_base import TestBase
 
 from .deps_exception import InvalidAuthToken, Unauthorized, SSECKeyIdMismatchInCopy
@@ -18,7 +28,6 @@ SSE_C_AES_2 = EncryptionSetting(
 
 
 class TestCopyManager(TestBase):
-
     def test_establish_sse_c_replace(self):
         file_info = {'some_key': 'some_value'}
         content_type = 'text/plain'
@@ -32,8 +41,12 @@ class TestCopyManager(TestBase):
             source_content_type=None,
         )
         self.assertEqual(
-            (MetadataDirectiveMode.REPLACE, {'some_key': 'some_value', 'sse_c_key_id': 'some-id'}, content_type),
-            (metadata_directive, new_file_info, new_content_type)
+            (
+                MetadataDirectiveMode.REPLACE, {
+                    'some_key': 'some_value',
+                    'sse_c_key_id': 'some-id'
+                }, content_type
+            ), (metadata_directive, new_file_info, new_content_type)
         )
 
     def test_establish_sse_c_copy_no_enc(self):
@@ -112,16 +125,18 @@ class TestCopyManager(TestBase):
     def test_establish_sse_c_copy_sources_unknown(self):
         for source_file_info, source_content_type in [
             (None, None),
-            ({'a': 'b'}, None),
+            ({
+                'a': 'b'
+            }, None),
             (None, 'text/plain'),
         ]:
             with self.subTest(
                 source_file_info=source_file_info, source_content_type=source_content_type
             ):
                 with self.assertRaises(
-                        SSECKeyIdMismatchInCopy,
-                        'attempting to copy file using MetadataDirectiveMode.COPY without providing source_file_info '
-                        'and source_content_type for differing sse_c_key_ids: source="some-id-2", destination="some-id"'
+                    SSECKeyIdMismatchInCopy,
+                    'attempting to copy file using MetadataDirectiveMode.COPY without providing source_file_info '
+                    'and source_content_type for differing sse_c_key_ids: source="some-id-2", destination="some-id"'
                 ):
                     CopyManager.establish_sse_c_file_metadata(
                         MetadataDirectiveMode.COPY,

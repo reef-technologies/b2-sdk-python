@@ -1054,6 +1054,58 @@ class TestCreateFileStream(TestConcatenate):
         )
 
 
+class TestConcatenate(TestCaseWithBucket):
+    def _create_remote(self, sources, file_name, encryption=None):
+        return self.bucket.concatenate(sources, file_name=file_name, encryption=encryption)
+
+    def test_create_remote(self):
+        data = b'hello world'
+
+        f1_id = self.bucket.upload_bytes(data, 'f1').id_
+        f2_id = self.bucket.upload_bytes(data, 'f1').id_
+        with TempDir() as d:
+            path = os.path.join(d, 'file')
+            write_file(path, data)
+            created_file = self._create_remote(
+                [
+                    CopySource(f1_id, length=len(data), offset=0),
+                    UploadSourceLocalFile(path),
+                    CopySource(f2_id, length=len(data), offset=0),
+                ],
+                file_name='created_file'
+            )
+            self.assertIsInstance(created_file, FileVersionInfo)
+            actual = (
+                created_file.id_, created_file.file_name, created_file.size,
+                created_file.server_side_encryption
+            )
+            expected = ('9997', 'created_file', 33, SSE_NONE)
+            self.assertEqual(expected, actual)
+
+
+class TestCreateFile(TestConcatenate):
+    def _create_remote(self, sources, file_name, encryption=None):
+        return self.bucket.create_file(
+            [wi for wi in WriteIntent.wrap_sources_iterator(sources)],
+            file_name=file_name,
+            encryption=encryption
+        )
+
+
+class TestConcatenateStream(TestConcatenate):
+    def _create_remote(self, sources, file_name, encryption=None):
+        return self.bucket.concatenate_stream(sources, file_name=file_name, encryption=encryption)
+
+
+class TestCreateFileStream(TestConcatenate):
+    def _create_remote(self, sources, file_name, encryption=None):
+        return self.bucket.create_file_stream(
+            [wi for wi in WriteIntent.wrap_sources_iterator(sources)],
+            file_name=file_name,
+            encryption=encryption
+        )
+
+
 # Downloads
 
 

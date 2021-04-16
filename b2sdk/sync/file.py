@@ -8,6 +8,11 @@
 #
 ######################################################################
 
+from typing import List
+
+from ..file_version import FileVersionInfo
+from ..raw_api import SRC_LAST_MODIFIED_MILLIS
+
 
 class File(object):
     """
@@ -22,12 +27,10 @@ class File(object):
 
     __slots__ = ['name', 'versions']
 
-    def __init__(self, name, versions):
+    def __init__(self, name, versions: List['FileVersion']):
         """
-        :param name: a relative file name
-        :type name: str
-        :param versions: a list of file versions
-        :type versions: list
+        :param str name: a relative file name
+        :param List[FileVersion] versions: a list of file versions
         """
         self.name = name
         self.versions = versions
@@ -39,7 +42,25 @@ class File(object):
         return self.versions[0]
 
     def __repr__(self):
-        return 'File(%s, [%s])' % (self.name, ', '.join(repr(v) for v in self.versions))
+        return '%s(%s, [%s])' % (self.__class__.__name__, self.name, ', '.join(repr(v) for v in self.versions))
+
+
+class B2File(File):
+    """
+    Hold information about one file in a folder in B2 cloud.
+    """
+
+    __slots__ = ['name', 'versions']
+
+    def __init__(self, name, versions: List['B2FileVersion']):
+        """
+        :param str name: a relative file name
+        :param List[B2FileVersion] versions: a list of file versions
+        """
+        super().__init__(name, versions)
+
+    def latest_version(self) -> 'B2FileVersion':
+        return super().latest_version()
 
 
 class FileVersion(object):
@@ -47,9 +68,9 @@ class FileVersion(object):
     Hold information about one version of a file.
     """
 
-    __slots__ = ['id_', 'name', 'mod_time', 'action', 'size', 'file_info', 'content_type']
+    __slots__ = ['id_', 'name', 'mod_time', 'action', 'size']
 
-    def __init__(self, id_, file_name, mod_time, action, size, file_info, content_type):
+    def __init__(self, id_, file_name, mod_time, action, size):
         """
         :param id_: the B2 file id, or the local full path name
         :type id_: str
@@ -62,25 +83,48 @@ class FileVersion(object):
         :type action: str
         :param size: a file size
         :type size: int
-        :param file_info: a fileInfo dict, or None for local files
-        :type file_info: dict, None
-        :param content_type: a b2 Content-Type, or None for local files
-        :type content_type: str, None
         """
         self.id_ = id_
         self.name = file_name
         self.mod_time = mod_time
         self.action = action
         self.size = size
-        self.file_info = file_info
-        self.content_type = content_type
 
     def __repr__(self):
-        return 'FileVersion(%s, %s, %s, %s, %s, %s)' % (
+        return '%s(%s, %s, %s, %s)' % (
+            self.__class__.__name__,
             repr(self.id_),
             repr(self.name),
             repr(self.mod_time),
             repr(self.action),
-            repr(self.file_info),
-            repr(self.content_type),
         )
+
+
+class B2FileVersion(FileVersion):
+    __slots__ = ['file_version_info']  # in a typical use case there is a lot of these object in memory, hence __slots__
+    # and properties
+
+    def __init__(self, file_version_info: FileVersionInfo):
+        self.file_version_info = file_version_info
+
+    @property
+    def id_(self):
+        return self.file_version_info.id_
+
+    @property
+    def name(self):
+        return self.file_version_info.file_name
+
+    @property
+    def mod_time(self):
+        if SRC_LAST_MODIFIED_MILLIS in self.file_version_info.file_info:
+            return int(self.file_version_info.file_info[SRC_LAST_MODIFIED_MILLIS])
+        return self.file_version_info.upload_timestamp
+
+    @property
+    def action(self):
+        return self.file_version_info.action
+
+    @property
+    def size(self):
+        return self.file_version_info.size

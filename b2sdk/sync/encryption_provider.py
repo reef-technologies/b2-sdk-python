@@ -13,6 +13,7 @@ from typing import Dict, Optional
 
 from ..encryption.setting import EncryptionSetting
 from ..bucket import Bucket
+from ..file_version import FileVersionInfo
 
 
 class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
@@ -39,11 +40,7 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
     def get_source_setting_for_copy(
         self,
         bucket: Bucket,
-        b2_file_id: str,
-        b2_file_name: str,
-        file_info: Optional[dict],
-        length: int,
-        mod_time_millis: int,
+        source_file_version_info: FileVersionInfo,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for a source of copying an object or None if not required
@@ -55,9 +52,7 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
     def get_destination_setting_for_copy(
         self,
         bucket: Bucket,
-        b2_file_name: str,
-        length: int,
-        source_file_info: Optional[dict],
+        source_file_version_info: FileVersionInfo,
         target_file_info: Optional[dict] = None,
     ) -> Optional[EncryptionSetting]:
         """
@@ -70,11 +65,7 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
     def get_setting_for_download(
         self,
         bucket: Bucket,
-        b2_file_id: str,
-        b2_file_name: str,
-        file_info: Optional[dict],
-        length: int,
-        mod_time_millis: int,
+        file_version_info: FileVersionInfo,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for downloading an object from, or None if not required

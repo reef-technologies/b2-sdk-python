@@ -10,7 +10,7 @@
 
 import pytest
 
-from apiver_deps import AbstractFolder, File, FileVersion
+from apiver_deps import AbstractFolder, File, B2File, FileVersion, B2FileVersion, FileVersionInfo
 from apiver_deps import CompareVersionMode, NewerFileSyncMode, KeepOrDeleteMode
 from apiver_deps import DEFAULT_SCAN_MANAGER, Synchronizer
 
@@ -60,11 +60,11 @@ class FakeFolder(AbstractFolder):
 
 def local_file(name, mod_times, size=10):
     """
-    Makes a File object for a b2 file, with one FileVersion for
+    Makes a File object for a local file, with one FileVersion for
     each modification time given in mod_times.
     """
     versions = [
-        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size, None, None)
+        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size)
         for mod_time in mod_times
     ]
     return File(name, versions)
@@ -92,12 +92,20 @@ def b2_file(name, mod_times, size=10):
         )
     """
     versions = [
-        FileVersion(
-            'id_%s_%d' % (name[0], abs(mod_time)), 'folder/' + name, abs(mod_time),
-            'upload' if 0 < mod_time else 'hide', size, {'in_b2': 'yes'}, None
+        B2FileVersion(
+            FileVersionInfo(
+                id_='id_%s_%d' % (name[0], abs(mod_time)),
+                file_name='folder/' + name,
+                upload_timestamp=abs(mod_time),
+                action='upload' if 0 < mod_time else 'hide',
+                size=size,
+                file_info={'in_b2': 'yes'},
+                content_type='text/plain',
+                content_sha1='content_sha1',
+            )
         ) for mod_time in mod_times
     ]  # yapf disable
-    return File(name, versions)
+    return B2File(name, versions)
 
 
 @pytest.fixture(scope='session')

@@ -444,13 +444,13 @@ class TestB2Folder(TestFolder):
     def test_multiple_versions(self):
         # Test two files, to cover the yield within the loop, and the yield without.
         folder = self.prepare_folder(use_file_versions_info=True)
-        self.maxDiff = None
+
         self.assertEqual(
             [
-                "File(inner/a.txt, [FileVersion('a2', 'inner/a.txt', 2000, 'upload', {}, 'text/plain'), "
-                "FileVersion('a1', 'inner/a.txt', 1000, 'upload', {}, 'text/plain')])",
-                "File(inner/b.txt, [FileVersion('b2', 'inner/b.txt', 1999, 'upload', {}, 'text/plain'), "
-                "FileVersion('b1', 'inner/b.txt', 1001, 'upload', {'src_last_modified_millis': 1001}, 'text/plain')])",
+                "B2File(inner/a.txt, [B2FileVersion('a2', 'inner/a.txt', 2000, 'upload'), "
+                "B2FileVersion('a1', 'inner/a.txt', 1000, 'upload')])",
+                "B2File(inner/b.txt, [B2FileVersion('b2', 'inner/b.txt', 1999, 'upload'), "
+                "B2FileVersion('b1', 'inner/b.txt', 1001, 'upload')])",
             ], [
                 str(f) for f in folder.all_files(self.reporter)
                 if f.name in ('inner/a.txt', 'inner/b.txt')
@@ -464,8 +464,8 @@ class TestB2Folder(TestFolder):
         folder = self.prepare_folder(use_file_versions_info=True)
         self.assertEqual(
             [
-                "File(inner/b.txt, [FileVersion('b2', 'inner/b.txt', 1999, 'upload', {}, 'text/plain'), "
-                "FileVersion('b1', 'inner/b.txt', 1001, 'upload', {'src_last_modified_millis': 1001}, 'text/plain')])",
+                "B2File(inner/b.txt, [B2FileVersion('b2', 'inner/b.txt', 1999, 'upload'), "
+                "B2FileVersion('b1', 'inner/b.txt', 1001, 'upload')])",
             ], [
                 str(f) for f in folder.all_files(self.reporter, policies_manager=polices_manager)
                 if f.name in ('inner/a.txt', 'inner/b.txt')
@@ -664,18 +664,18 @@ class TestZipFolders(TestSync):
         self.assertEqual([], list(zip_folders(folder_a, folder_b, self.reporter)))
 
     def test_one_empty(self):
-        file_a1 = File("a.txt", [FileVersion("a", "a", 100, "upload", 10, None, None)])
+        file_a1 = File("a.txt", [FileVersion("a", "a", 100, "upload", 10)])
         folder_a = FakeFolder('b2', [file_a1])
         folder_b = FakeFolder('b2', [])
         self.assertEqual([(file_a1, None)], list(zip_folders(folder_a, folder_b, self.reporter)))
 
     def test_two(self):
-        file_a1 = File("a.txt", [FileVersion("a", "a", 100, "upload", 10, None, None)])
-        file_a2 = File("b.txt", [FileVersion("b", "b", 100, "upload", 10, None, None)])
-        file_a3 = File("d.txt", [FileVersion("c", "c", 100, "upload", 10, None, None)])
-        file_a4 = File("f.txt", [FileVersion("f", "f", 100, "upload", 10, None, None)])
-        file_b1 = File("b.txt", [FileVersion("b", "b", 200, "upload", 10, None, None)])
-        file_b2 = File("e.txt", [FileVersion("e", "e", 200, "upload", 10, None, None)])
+        file_a1 = File("a.txt", [FileVersion("a", "a", 100, "upload", 10)])
+        file_a2 = File("b.txt", [FileVersion("b", "b", 100, "upload", 10)])
+        file_a3 = File("d.txt", [FileVersion("c", "c", 100, "upload", 10)])
+        file_a4 = File("f.txt", [FileVersion("f", "f", 100, "upload", 10)])
+        file_b1 = File("b.txt", [FileVersion("b", "b", 200, "upload", 10)])
+        file_b2 = File("e.txt", [FileVersion("e", "e", 200, "upload", 10)])
         folder_a = FakeFolder('b2', [file_a1, file_a2, file_a3, file_a4])
         folder_b = FakeFolder('b2', [file_b1, file_b2])
         self.assertEqual(
@@ -758,7 +758,7 @@ def local_file(name, mod_times, size=10):
     each modification time given in mod_times.
     """
     versions = [
-        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size, None, None)
+        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size)
         for mod_time in mod_times
     ]
     return File(name, versions)

@@ -225,13 +225,9 @@ class DownPolicy(AbstractFileSyncPolicy):
 
     def _make_transfer_action(self):
         return B2DownloadAction(
-            self._source_file.name,
+            self._source_file,
             self._source_folder.make_full_path(self._source_file.name),
-            self._source_file.latest_version().id_,
-            self._source_file.latest_version().file_info,
             self._dest_folder.make_full_path(self._source_file.name),
-            self._get_source_mod_time(),
-            self._source_file.latest_version().size,
             self._encryption_settings_provider,
         )
 
@@ -323,17 +319,12 @@ class CopyPolicy(AbstractFileSyncPolicy):
     def _make_transfer_action(self):
 
         return B2CopyAction(
-            self._source_file.name,
             self._source_folder.make_full_path(self._source_file.name),
-            self._source_file.latest_version().id_,
+            self._source_file,
             self._dest_folder.make_full_path(self._source_file.name),
-            self._get_source_mod_time(),
-            self._source_file.latest_version().size,
             self._source_folder.bucket,
             self._dest_folder.bucket,
-            self._source_file.latest_version().file_info,
             self._encryption_settings_provider,
-            self._source_file.latest_version().content_type,
         )
 
 

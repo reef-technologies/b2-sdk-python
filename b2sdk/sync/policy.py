@@ -17,7 +17,6 @@ from ..exception import DestFileNewer
 from .encryption_provider import AbstractSyncEncryptionSettingsProvider, SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
 from .action import LocalDeleteAction, B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction
 from .exception import InvalidArgument
-from .folder import B2Folder
 
 ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 

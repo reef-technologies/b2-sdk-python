@@ -19,7 +19,6 @@ from b2sdk.exception import CommandError
 from .exception import EnvironmentEncodingError, UnSyncableFilename
 from .file import File, B2File, FileVersion, B2FileVersion
 from .scan_policies import DEFAULT_SCAN_MANAGER
-from ..raw_api import SRC_LAST_MODIFIED_MILLIS
 from ..utils import fix_windows_path_limit, get_file_mtime, is_file_readable
 
 DRIVE_MATCHER = re.compile(r"^([A-Za-z]):([/\\])")

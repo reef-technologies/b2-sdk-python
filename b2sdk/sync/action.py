@@ -9,7 +9,6 @@
 ######################################################################
 
 from abc import ABCMeta, abstractmethod
-from typing import Optional
 
 import logging
 import os
@@ -19,7 +18,7 @@ from ..bucket import Bucket
 
 from ..raw_api import SRC_LAST_MODIFIED_MILLIS
 from ..transfer.outbound.upload_source import UploadSourceLocalFile
-from .file import File, B2File
+from .file import B2File
 from .report import SyncFileReporter
 
 logger = logging.getLogger(__name__)

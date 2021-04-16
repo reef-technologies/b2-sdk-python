@@ -455,6 +455,7 @@ class CopyFileExecutionStep(BaseExecutionStep):
             destination_bucket_id=execution.bucket_id,
             progress_listener=execution.progress_listener,
             destination_encryption=execution.encryption,
+            source_encryption=self.copy_source_range.encryption,
         )
 
 

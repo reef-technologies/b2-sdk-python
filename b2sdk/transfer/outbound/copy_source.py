@@ -72,4 +72,5 @@ class CopySource(OutboundTransferSource):
         if self.length is not None and range_length + relative_offset > self.length:
             raise ValueError('Range length overflow source length')
         range_offset = self.offset + relative_offset
-        return self.__class__(self.file_id, range_offset, range_length, encryption=self.encryption)
+        return self.__class__(self.file_id, range_offset, range_length, encryption=self.encryption,
+                              source_file_info=self.source_file_info, source_content_type=self.source_content_type)

@@ -95,6 +95,7 @@ class ParallelDownloader(AbstractDownloader):
                 first_part,
                 parts_to_download[1:],
                 self._get_chunk_size(actual_size),
+                encryption=encryption,
             )
         bytes_written = writer.total
 
@@ -127,7 +128,7 @@ class ParallelDownloader(AbstractDownloader):
                 break
 
     def _get_parts(
-        self, response, session, writer, hasher, first_part, parts_to_download, chunk_size
+        self, response, session, writer, hasher, first_part, parts_to_download, chunk_size, encryption
     ):
         stream = FirstPartDownloaderThread(
             response,
@@ -136,6 +137,7 @@ class ParallelDownloader(AbstractDownloader):
             writer,
             first_part,
             chunk_size,
+            encryption=encryption,
         )
         stream.start()
         streams = [stream]
@@ -147,6 +149,7 @@ class ParallelDownloader(AbstractDownloader):
                 writer,
                 part,
                 chunk_size,
+                encryption=encryption,
             )
             stream.start()
             streams.append(stream)
@@ -232,7 +235,6 @@ class FirstPartDownloaderThread(AbstractDownloaderThread):
         :param response: response of the original GET call
         :param hasher: hasher object to feed to as the stream is written
         """
-        print('leoleoleo')
         self.response = response
         self.hasher = hasher
         super(FirstPartDownloaderThread, self).__init__(*args, **kwargs)

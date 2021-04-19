@@ -181,7 +181,7 @@ class B2Session(object):
             TokenType.API_TOKEN_ONLY,
             url,
             range_=range_,
-            encryption=encryption
+            encryption=encryption,
         )
 
     def finish_large_file(self, file_id, part_sha1_array):

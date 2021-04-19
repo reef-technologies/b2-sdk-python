@@ -9,8 +9,8 @@ Cloud
 ***********************
 B2 cloud supports `Server-Side Encryption <https://www.backblaze.com/b2/docs/server_side_encryption.html>`_. All read
 and write operations provided by **b2sdk** accept encryption settings as an optional argument. Not supplying this
-argument means relying on bucket defaults - for **SSE-B2** and for no encryption. In case of **SSE-C**, providing an
-encryption key is crucial for successful downloading and copying.
+argument means relying on bucket defaults - for **SSE-B2** and for no encryption. In case of **SSE-C**, providing a
+decryption key is required for successful downloading and copying.
 
 ***
 API

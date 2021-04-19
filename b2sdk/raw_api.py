@@ -22,7 +22,7 @@ from logging import getLogger
 from typing import Any, Dict, Optional
 
 from .b2http import B2Http
-from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective
+from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault
 from .encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
 from .utils import b2_url_encode, hex_sha1_of_stream
 
@@ -134,7 +134,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         account_auth_token_or_none,
         url,
         range_=None,
-        encryption: Optional[EncryptionSetting] = None
+        encryption: Optional[EncryptionSetting] = None,
     ):
         pass
 
@@ -378,7 +378,8 @@ class B2RawApi(AbstractRawApi):
         if lifecycle_rules is not None:
             kwargs['lifecycleRules'] = lifecycle_rules
         if default_server_side_encryption is not None:
-            assert default_server_side_encryption.mode != EncryptionMode.SSE_C
+            if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
+                raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs['defaultServerSideEncryption'] = default_server_side_encryption.as_value_dict()
         return self._post_json(
             api_url,
@@ -434,12 +435,12 @@ class B2RawApi(AbstractRawApi):
         account_auth_token_or_none,
         url,
         range_=None,
-        encryption: Optional[EncryptionSetting] = None
+        encryption: Optional[EncryptionSetting] = None,
     ):
         """
         Issue a streaming request for download of a file, potentially authorized.
 
-        :param str  account_auth_token_or_none: an optional account auth token to pass in
+        :param str account_auth_token_or_none: an optional account auth token to pass in
         :param str url: the full URL to download from
         :param tuple range: two-element tuple for http Range header
         :param b2sdk.v1.EncryptionSetting encryption: encryption settings for downloading
@@ -661,8 +662,11 @@ class B2RawApi(AbstractRawApi):
         if lifecycle_rules is not None:
             kwargs['lifecycleRules'] = lifecycle_rules
         if default_server_side_encryption is not None:
-            assert default_server_side_encryption.mode != EncryptionMode.SSE_C
-            kwargs['defaultServerSideEncryption'] = default_server_side_encryption.as_value_dict()
+            if default_server_side_encryption is not None:
+                if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
+                    raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
+                kwargs['defaultServerSideEncryption'
+                      ] = default_server_side_encryption.as_value_dict()
 
         return self._post_json(
             api_url,

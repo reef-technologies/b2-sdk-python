@@ -150,6 +150,13 @@ def hex_sha1_of_bytes(data: bytes) -> str:
     return hashlib.sha1(data).hexdigest()
 
 
+def hex_md5_of_bytes(data: bytes) -> str:
+    """
+    Return the 32-character hex MD5 checksum of the data.
+    """
+    return hashlib.md5(data).hexdigest()
+
+
 def md5_of_bytes(data: bytes) -> bytes:
     """
     Return the 16-byte MD5 checksum of the data.

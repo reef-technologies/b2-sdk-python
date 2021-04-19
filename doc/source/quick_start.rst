@@ -54,7 +54,7 @@ Synchronization
             'bucket1': EncryptionSettings(mode=EncryptionMode.SSE_B2),
             'bucket2': EncryptionSettings(
                            mode=EncryptionMode.SSE_C,
-                           key=EncryptionKey(secret=b'aes_key', id='user-generated-id')
+                           key=EncryptionKey(secret=b'VkYp3s6v9y$B&E)H@McQfTjWmZq4t7w!', id='user-generated-key-id')
                        ),
             'bucket3': None,
         })
@@ -74,7 +74,7 @@ Synchronization
 
     To learn more about sync, see :ref:`sync`.
 
-Sync uses an encryption provider. In principle, it's a mapping between file metadata (bucket_name, file_info, etc.) and
+Sync uses an encryption provider. In principle, it's a mapping between file metadata (bucket_name, file_info, etc) and
 `EncryptionSetting`. The reason for employing such a mapping, rather than a single `EncryptionSetting`, is the fact that
 users of Sync do not necessarily know up front what files it's going to upload and download. This approach enables using
 unique keys, or key identifiers, across files. This is covered in greater detail in :ref:`server_side_encryption`.
@@ -168,9 +168,30 @@ Upload file
     >>> local_file_path = '/home/user1/b2_example/new.pdf'
     >>> b2_file_name = 'dummy_new.pdf'
     >>> file_info = {'how': 'good-file'}
+
+    >>> bucket = b2_api.get_bucket_by_name(bucket_name)
+    >>> bucket.upload_local_file(
+            local_file=local_file_path,
+            file_name=b2_file_name,
+            file_infos=file_info,
+        )
+    <b2sdk.file_version.FileVersionInfo at 0x7fc8cd560550>
+
+This will work regardless of the size of the file - ``upload_local_file`` automatically uses large file upload API when necessary.
+
+For more information see :meth:`b2sdk.v1.Bucket.upload_local_file`.
+
+Upload file encrypted with SSE-C
+--------------------------------
+
+.. code-block:: python
+
+    >>> local_file_path = '/home/user1/b2_example/new.pdf'
+    >>> b2_file_name = 'dummy_new.pdf'
+    >>> file_info = {'how': 'good-file'}
     >>> encryption_setting = EncryptionSetting(
             mode=EncryptionMode.SSE_C,
-            key=EncryptionKey(secret=b'aes_key', id='user-generated-id'),
+            key=EncryptionKey(secret=b'VkYp3s6v9y$B&E)H@McQfTjWmZq4t7w!', id='user-generated-key-id'),
         )
 
     >>> bucket = b2_api.get_bucket_by_name(bucket_name)
@@ -180,11 +201,6 @@ Upload file
             file_infos=file_info,
             encryption=encryption_setting,
         )
-    <b2sdk.file_version.FileVersionInfo at 0x7fc8cd560550>
-
-This will work regardless of the size of the file - ``upload_local_file`` automatically uses large file upload API when necessary.
-
-For more information see :meth:`b2sdk.v1.Bucket.upload_local_file`.
 
 Download file
 =============
@@ -308,7 +324,7 @@ Get file metadata
      'contentSha1': 'd821849a70922e87c2b0786c0be7266b89d87df0',
      'contentType': 'application/pdf',
      'fileId': '4_z5485a1682662eb3e60980d10_f113f963288e711a6_d20190404_m065910_c002_v0001095_t0044',
-     'fileInfo': {'how': 'good-file', 'sse_c_key_id': 'user-generated-key'},
+     'fileInfo': {'how': 'good-file', 'sse_c_key_id': 'user-generated-key-id'},
      'fileName': 'dummy_new.pdf',
      'uploadTimestamp': 1554361150000,
      "serverSideEncryption": {"algorithm": "AES256",

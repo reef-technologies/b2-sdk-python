@@ -480,6 +480,15 @@ class SSECKeyError(B2Error):
         return "Wrong or no SSE-C key provided when reading a file."
 
 
+class WrongEncryptionModeForBucketDefault(B2Error):
+    def __init__(self, encryption_mode):
+        super().__init__()
+        self.encryption_mode = encryption_mode
+
+    def __str__(self):
+        return "%s cannot be used as default for a bucket." % (self.encryption_mode,)
+
+
 def interpret_b2_error(
     status: int,
     code: Optional[str],

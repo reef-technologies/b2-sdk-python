@@ -12,7 +12,7 @@ import concurrent.futures as futures
 import logging
 from typing import Optional
 
-from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
+from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting, SSE_C_KEY_ID
 from b2sdk.exception import AlreadyFailed, SSECKeyIdMismatchInCopy
 from b2sdk.file_version import FileVersionInfoFactory
 from b2sdk.raw_api import MetadataDirectiveMode
@@ -256,7 +256,7 @@ class CopyManager(metaclass=B2TraceMetaAbstract):
             )
 
         destination_file_info = source_file_info.copy()
-        destination_file_info.pop('sse_c_key_id', None)
+        destination_file_info.pop(SSE_C_KEY_ID, None)
         if destination_server_side_encryption:
             destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(
                 destination_file_info

@@ -15,6 +15,8 @@ from ..utils import b64_of_bytes, md5_of_bytes
 from .types import ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM, ENCRYPTION_MODES_WITH_MANDATORY_KEY
 from .types import EncryptionAlgorithm, EncryptionMode
 
+SSE_C_KEY_ID = 'sse_c_key_id'
+
 logger = logging.getLogger(__name__)
 
 
@@ -122,7 +124,7 @@ class EncryptionSetting:
         elif self.mode == EncryptionMode.SSE_C:
             self._add_sse_c_headers(headers)
             if self.key.key_id is not None:
-                header = 'X-Bz-Info-sse_c_key_id'
+                header = 'X-Bz-Info-%s' % (SSE_C_KEY_ID,)
                 if headers.get(header) is not None and headers[header] != self.key.key_id:
                     raise ValueError(
                         'Ambiguous key id set: "%s" in headers and "%s" in %s' %
@@ -157,13 +159,12 @@ class EncryptionSetting:
             return file_info
         if file_info is None:
             file_info = {}
-        key_id_key = 'sse_c_key_id'
-        if file_info.get(key_id_key) is not None and file_info[key_id_key] != self.key.key_id:
+        if file_info.get(SSE_C_KEY_ID) is not None and file_info[SSE_C_KEY_ID] != self.key.key_id:
             raise ValueError(
                 'Ambiguous key id set: "%s" in file_info and "%s" in %s' %
-                (file_info[key_id_key], self.key.key_id, self.__class__.__name__)
+                (file_info[SSE_C_KEY_ID], self.key.key_id, self.__class__.__name__)
             )
-        file_info[key_id_key] = self.key.key_id
+        file_info[SSE_C_KEY_ID] = self.key.key_id
         return file_info
 
     def __repr__(self):
@@ -204,7 +205,7 @@ class EncryptionSettingFactory:
         key_id = None
         file_info = file_version_dict.get('fileInfo')
         if file_info is not None:
-            key_id = file_info.get('sse_c_key_id')
+            key_id = file_info.get(SSE_C_KEY_ID)
 
         return cls._from_value_dict(sse, key_id=key_id)
 

@@ -1391,6 +1391,9 @@ class RawSimulator(AbstractRawApi):
                 raise self.upload_errors.pop(0)
             bucket_id, upload_id = url_match.groups()
             bucket = self._get_bucket_by_id(bucket_id)
+            if server_side_encryption is not None:
+                assert server_side_encryption.mode in (EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C)
+                file_infos = server_side_encryption.add_key_id_to_file_info(file_infos)
             response = bucket.upload_file(
                 upload_id,
                 upload_auth_token,

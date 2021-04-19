@@ -358,6 +358,7 @@ class B2CopyAction(AbstractAction):
         destination_encryption = self.encryption_settings_provider.get_destination_setting_for_copy(
             bucket=self.destination_bucket,
             source_file_version_info=self.source_file.latest_version().file_version_info,
+            dest_b2_file_name=self.dest_b2_file_name,
         )
 
         bucket.copy(

@@ -208,8 +208,6 @@ class UploadManager(metaclass=B2TraceMetaAbstract):
         content_length = upload_source.get_content_length()
         exception_info_list = []
         progress_listener.set_total_bytes(content_length)
-        if encryption is not None:
-            file_info = encryption.add_key_id_to_file_info(file_info)
         with progress_listener:
             for _ in range(self.MAX_UPLOAD_ATTEMPTS):
                 try:

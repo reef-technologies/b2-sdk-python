@@ -695,13 +695,12 @@ class TestSynchronizer:
             mock.call.download_file_by_id('id_d_100', mock.ANY, mock.ANY, encryption=encryption),
         ]
 
-        # TODO: check for the call
-        # assert provider.get_setting_for_download.mock_calls == [
-        #     mock.call(
-        #         bucket=bucket,
-        #         file_version_info='id_d_100',
-        #     )
-        # ]
+        assert provider.get_setting_for_download.mock_calls == [
+            mock.call(
+                bucket=bucket,
+                file_version_info=mock.ANY,
+            )
+        ]
 
     # FIXME: rewrite this test to not use mock.call checks when all of Synchronizers tests are rewritten to test_bucket
     # style - i.e. with simulated api and fake files returned from methods. Then, checking EncryptionSetting used for
@@ -779,27 +778,20 @@ class TestSynchronizer:
                 destination_encryption=destination_encryption
             )
         ]
-        # TODO: check for the call
-        # assert provider.get_source_setting_for_copy.mock_calls == [
-        #     mock.call(
-        #         bucket='fake_bucket',
-        #         b2_file_id='id_d_100',
-        #         b2_file_name='folder/directory/a.txt',
-        #         file_info={'in_b2': 'yes'},
-        #         length=10,
-        #         mod_time_millis=100
-        #     )
-        # ]
+        assert provider.get_source_setting_for_copy.mock_calls == [
+            mock.call(
+                bucket='fake_bucket',
+                source_file_version_info=mock.ANY,
+            )
+        ]
 
-        # TODO: check for the call
-        # assert provider.get_destination_setting_for_copy.mock_calls == [
-        #     mock.call(
-        #         bucket='fake_bucket',
-        #         b2_file_name='folder/directory/a.txt',
-        #         source_file_info={'in_b2': 'yes'},
-        #         length=10
-        #     )
-        # ]
+        assert provider.get_destination_setting_for_copy.mock_calls == [
+            mock.call(
+                bucket='fake_bucket',
+                source_file_version_info=mock.ANY,
+                dest_b2_file_name='folder/directory/a.txt',
+            )
+        ]
 
 
 class TstEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider):

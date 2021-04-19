@@ -52,6 +52,7 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
     def get_destination_setting_for_copy(
         self,
         bucket: Bucket,
+        dest_b2_file_name: str,
         source_file_version_info: FileVersionInfo,
         target_file_info: Optional[dict] = None,
     ) -> Optional[EncryptionSetting]:

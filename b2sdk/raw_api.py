@@ -380,7 +380,8 @@ class B2RawApi(AbstractRawApi):
         if default_server_side_encryption is not None:
             if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
                 raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
-            kwargs['defaultServerSideEncryption'] = default_server_side_encryption.as_value_dict()
+            kwargs['defaultServerSideEncryption'
+                  ] = default_server_side_encryption.serialize_to_json_for_request()
         return self._post_json(
             api_url,
             'b2_create_bucket',
@@ -629,7 +630,7 @@ class B2RawApi(AbstractRawApi):
             assert server_side_encryption.mode in (
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
-            kwargs['serverSideEncryption'] = server_side_encryption.as_value_dict()
+            kwargs['serverSideEncryption'] = server_side_encryption.serialize_to_json_for_request()
         return self._post_json(
             api_url,
             'b2_start_large_file',
@@ -672,7 +673,7 @@ class B2RawApi(AbstractRawApi):
                 if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
                     raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
                 kwargs['defaultServerSideEncryption'
-                      ] = default_server_side_encryption.as_value_dict()
+                      ] = default_server_side_encryption.serialize_to_json_for_request()
 
         return self._post_json(
             api_url,
@@ -843,10 +844,11 @@ class B2RawApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['destinationServerSideEncryption'
-                  ] = destination_server_side_encryption.as_value_dict()
+                  ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode == EncryptionMode.SSE_C
-            kwargs['sourceServerSideEncryption'] = source_server_side_encryption.as_value_dict()
+            kwargs['sourceServerSideEncryption'
+                  ] = source_server_side_encryption.serialize_to_json_for_request()
 
         return self._post_json(
             api_url,
@@ -878,12 +880,13 @@ class B2RawApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['destinationServerSideEncryption'
-                  ] = destination_server_side_encryption.as_value_dict()
+                  ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode in (
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
-            kwargs['sourceServerSideEncryption'] = source_server_side_encryption.as_value_dict()
+            kwargs['sourceServerSideEncryption'
+                  ] = source_server_side_encryption.serialize_to_json_for_request()
         return self._post_json(
             api_url,
             'b2_copy_part',

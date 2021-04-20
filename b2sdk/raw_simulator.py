@@ -232,7 +232,8 @@ class FileSimulator(object):
             uploadTimestamp=self.upload_timestamp,
         )  # yapf: disable
         if self.server_side_encryption is not None:
-            result['serverSideEncryption'] = self.server_side_encryption.as_value_dict()
+            result['serverSideEncryption'
+                  ] = self.server_side_encryption.serialize_to_json_for_request()
         return result
 
     def as_list_files_dict(self):
@@ -247,7 +248,8 @@ class FileSimulator(object):
             uploadTimestamp=self.upload_timestamp,
         )  # yapf: disable
         if self.server_side_encryption is not None:
-            result['serverSideEncryption'] = self.server_side_encryption.as_value_dict()
+            result['serverSideEncryption'
+                  ] = self.server_side_encryption.serialize_to_json_for_request()
         return result
 
     def as_start_large_file_result(self):
@@ -261,7 +263,8 @@ class FileSimulator(object):
             uploadTimestamp=self.upload_timestamp,
         )  # yapf: disable
         if self.server_side_encryption is not None:
-            result['serverSideEncryption'] = self.server_side_encryption.as_value_dict()
+            result['serverSideEncryption'
+                  ] = self.server_side_encryption.serialize_to_json_for_request()
         return result
 
     def add_part(self, part_number, part):
@@ -776,7 +779,7 @@ class BucketSimulator(object):
             contentSha1=sha1_sum,
         )  # yapf: disable
         if server_side_encryption is not None:
-            result['serverSideEncryption'] = server_side_encryption.as_value_dict()
+            result['serverSideEncryption'] = server_side_encryption.serialize_to_json_for_request()
         return result
 
     def _simulate_chunked_post(

@@ -10,12 +10,14 @@
 
 import logging
 from typing import Optional
+import urllib
+import urllib.parse
 
 from ..utils import b64_of_bytes, md5_of_bytes
 from .types import ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM, ENCRYPTION_MODES_WITH_MANDATORY_KEY
 from .types import EncryptionAlgorithm, EncryptionMode
 
-SSE_C_KEY_ID = 'sse_c_key_id'
+SSE_C_KEY_ID_FILE_INFO_KEY_NAME = 'sse_c_key_id'
 
 logger = logging.getLogger(__name__)
 
@@ -96,17 +98,31 @@ class EncryptionSetting:
             raise ValueError('cannot compare a known encryption setting to an unknown one')
         return self.mode == other.mode and self.algorithm == other.algorithm and self.key == other.key
 
-    def as_value_dict(self):
-        """
-        Dump EncryptionSetting as dict for serializing a to json for requests.
-        """
+    def serialize_to_json_for_request(self):
         if self.key and self.key.secret is None:
-            raise ValueError('cannot use an unknown key in transmission')
-        return self.repr_as_dict()
+            raise ValueError('cannot use an unknown key in requests')
+        return self.as_dict()
 
-    def repr_as_dict(self):
+    def as_dict(self):
         """
-        Dump EncryptionSetting as dict for representing.
+        Represent the setting as a dict, for example:
+        {
+            'mode': 'SSE-C',
+            'algorithm': 'AES256',
+            'customerKey': 'U3hWbVlxM3Q2djl5JEImRSlIQE1jUWZUalduWnI0dTc=',
+            'customerKeyMd5': 'SWx9GFv5BTT1jdwf48Bx+Q=='
+        }
+
+        {
+            'mode': 'SSE-B2',
+            'algorithm': 'AES256'
+        }
+
+        or
+
+        {
+            'mode': 'none'
+        }
         """
         result = {'mode': self.mode.value}
         if self.algorithm is not None:
@@ -124,13 +140,13 @@ class EncryptionSetting:
         elif self.mode == EncryptionMode.SSE_C:
             self._add_sse_c_headers(headers)
             if self.key.key_id is not None:
-                header = 'X-Bz-Info-%s' % (SSE_C_KEY_ID,)
+                header = 'X-Bz-Info-%s' % (SSE_C_KEY_ID_FILE_INFO_KEY_NAME,)
                 if headers.get(header) is not None and headers[header] != self.key.key_id:
                     raise ValueError(
                         'Ambiguous key id set: "%s" in headers and "%s" in %s' %
                         (headers[header], self.key.key_id, self.__class__.__name__)
                     )
-                headers[header] = self.key.key_id
+                headers[header] = urllib.parse.quote(str(self.key.key_id))
         else:
             raise NotImplementedError('unsupported encryption setting: %s' % (self,))
 
@@ -159,12 +175,15 @@ class EncryptionSetting:
             return file_info
         if file_info is None:
             file_info = {}
-        if file_info.get(SSE_C_KEY_ID) is not None and file_info[SSE_C_KEY_ID] != self.key.key_id:
+        if file_info.get(SSE_C_KEY_ID_FILE_INFO_KEY_NAME) is not None and file_info[
+            SSE_C_KEY_ID_FILE_INFO_KEY_NAME] != self.key.key_id:
             raise ValueError(
-                'Ambiguous key id set: "%s" in file_info and "%s" in %s' %
-                (file_info[SSE_C_KEY_ID], self.key.key_id, self.__class__.__name__)
+                'Ambiguous key id set: "%s" in file_info and "%s" in %s' % (
+                    file_info[SSE_C_KEY_ID_FILE_INFO_KEY_NAME], self.key.key_id,
+                    self.__class__.__name__
+                )
             )
-        file_info[SSE_C_KEY_ID] = self.key.key_id
+        file_info[SSE_C_KEY_ID_FILE_INFO_KEY_NAME] = self.key.key_id
         return file_info
 
     def __repr__(self):
@@ -204,8 +223,8 @@ class EncryptionSettingFactory:
             return EncryptionSetting(EncryptionMode.NONE)
         key_id = None
         file_info = file_version_dict.get('fileInfo')
-        if file_info is not None:
-            key_id = file_info.get(SSE_C_KEY_ID)
+        if file_info is not None and SSE_C_KEY_ID_FILE_INFO_KEY_NAME in file_info:
+            key_id = urllib.parse.unquote(file_info[SSE_C_KEY_ID_FILE_INFO_KEY_NAME])
 
         return cls._from_value_dict(sse, key_id=key_id)
 

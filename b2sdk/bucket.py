@@ -878,7 +878,7 @@ class Bucket(metaclass=B2TraceMeta):
         result['lifecycleRules'] = self.lifecycle_rules
         result['revision'] = self.revision
         result['options'] = self.options_set
-        result['defaultServerSideEncryption'] = self.default_server_side_encryption.repr_as_dict()
+        result['defaultServerSideEncryption'] = self.default_server_side_encryption.as_dict()
         return result
 
     def __repr__(self):

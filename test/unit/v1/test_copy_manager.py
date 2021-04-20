@@ -14,7 +14,7 @@ from .deps_exception import InvalidAuthToken, Unauthorized, SSECKeyIdMismatchInC
 from .deps import MetadataDirectiveMode
 from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, EncryptionKey, SSE_NONE, SSE_B2_AES
 from b2sdk.transfer.outbound.copy_manager import CopyManager
-from b2sdk.encryption.setting import SSE_C_KEY_ID
+from b2sdk.encryption.setting import SSE_C_KEY_ID_FILE_INFO_KEY_NAME
 
 SSE_C_AES = EncryptionSetting(
     mode=EncryptionMode.SSE_C,
@@ -45,7 +45,7 @@ class TestCopyManager(TestBase):
             (
                 MetadataDirectiveMode.REPLACE, {
                     'some_key': 'some_value',
-                    SSE_C_KEY_ID: 'some-id'
+                    SSE_C_KEY_ID_FILE_INFO_KEY_NAME: 'some-id'
                 }, content_type
             ), (metadata_directive, new_file_info, new_content_type)
         )
@@ -110,7 +110,7 @@ class TestCopyManager(TestBase):
             source_server_side_encryption=SSE_C_AES_2,
             source_file_info={
                 'some_key': 'some_value',
-                SSE_C_KEY_ID: 'some-id-2'
+                SSE_C_KEY_ID_FILE_INFO_KEY_NAME: 'some-id-2'
             },
             source_content_type='text/plain',
         )
@@ -118,7 +118,7 @@ class TestCopyManager(TestBase):
             (
                 MetadataDirectiveMode.REPLACE, {
                     'some_key': 'some_value',
-                    SSE_C_KEY_ID: 'some-id'
+                    SSE_C_KEY_ID_FILE_INFO_KEY_NAME: 'some-id'
                 }, 'text/plain'
             ), (metadata_directive, new_file_info, new_content_type)
         )

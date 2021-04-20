@@ -210,7 +210,12 @@ class WriterThread(threading.Thread):
 
 class AbstractDownloaderThread(threading.Thread):
     def __init__(
-        self, session, writer, part_to_download, chunk_size, encryption: EncryptionSetting = None
+        self,
+        session,
+        writer,
+        part_to_download,
+        chunk_size,
+        encryption: Optional[EncryptionSetting] = None,
     ):
         """
         :param session: raw_api wrapper

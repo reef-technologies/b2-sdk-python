@@ -672,6 +672,8 @@ class BucketSimulator(object):
     ):
         file_id = self._next_file_id()
         sse = server_side_encryption or self.default_server_side_encryption
+        if sse:  # FIXME: remove this part when RawApi<->Encryption adapters are implemented properly
+            file_info = sse.add_key_id_to_file_info(file_info)
         logger.debug('setting encryption to %s', sse)
         file_sim = self.FILE_SIMULATOR_CLASS(
             self.account_id, self.bucket_id, file_id, 'start', file_name, content_type, 'none',
@@ -732,6 +734,8 @@ class BucketSimulator(object):
         file_id = self._next_file_id()
 
         encryption = server_side_encryption or self.default_server_side_encryption
+        if encryption:  # FIXME: remove this part when RawApi<->Encryption adapters are implemented properly
+            file_infos = encryption.add_key_id_to_file_info(file_infos)
         logger.debug('setting encryption to %s', encryption)
 
         file_sim = self.FILE_SIMULATOR_CLASS(

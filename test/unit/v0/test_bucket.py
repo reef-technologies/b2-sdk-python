@@ -382,7 +382,6 @@ class TestLs(TestCaseWithBucket):
 
 
 class TestListVersions(TestCaseWithBucket):
-
     def test_encryption(self):
         data = b'hello world'
         a = self.bucket.upload_bytes(data, 'a')
@@ -396,7 +395,6 @@ class TestListVersions(TestCaseWithBucket):
         self.bucket.copy(
             b_id, 'e', destination_encryption=SSE_C_AES, file_info={}, content_type='text/plain'
         )
-
 
         actual = [info for info in self.bucket.list_file_versions('a')['files']][0]
         actual = EncryptionSettingFactory.from_file_version_dict(actual)
@@ -904,7 +902,6 @@ class TestConcatenate(TestCaseWithBucket):
                 SSE_C_AES_NO_SECRET
             )
             self.assertEqual(expected, actual)
-
 
 
 class TestCreateFile(TestConcatenate):

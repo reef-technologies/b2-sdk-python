@@ -106,23 +106,30 @@ class EncryptionSetting:
     def as_dict(self):
         """
         Represent the setting as a dict, for example:
-        {
-            'mode': 'SSE-C',
-            'algorithm': 'AES256',
-            'customerKey': 'U3hWbVlxM3Q2djl5JEImRSlIQE1jUWZUalduWnI0dTc=',
-            'customerKeyMd5': 'SWx9GFv5BTT1jdwf48Bx+Q=='
-        }
 
-        {
-            'mode': 'SSE-B2',
-            'algorithm': 'AES256'
-        }
+        .. code-block:: python
+
+            {
+                'mode': 'SSE-C',
+                'algorithm': 'AES256',
+                'customerKey': 'U3hWbVlxM3Q2djl5JEImRSlIQE1jUWZUalduWnI0dTc=',
+                'customerKeyMd5': 'SWx9GFv5BTT1jdwf48Bx+Q=='
+            }
+
+        .. code-block:: python
+
+            {
+                'mode': 'SSE-B2',
+                'algorithm': 'AES256'
+            }
 
         or
 
-        {
-            'mode': 'none'
-        }
+        .. code-block:: python
+
+            {
+                'mode': 'none'
+            }
         """
         result = {'mode': self.mode.value}
         if self.algorithm is not None:

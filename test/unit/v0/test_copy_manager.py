@@ -1,6 +1,6 @@
 ######################################################################
 #
-# File: test/unit/v1/test_copy_manager.py
+# File: test/unit/v0/test_copy_manager.py
 #
 # Copyright 2021 Backblaze Inc. All Rights Reserved.
 #

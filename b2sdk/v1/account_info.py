@@ -11,6 +11,7 @@ import inspect
 from typing import Optional
 
 from b2sdk import _v2 as v2
+from b2sdk.account_info.sqlite_account_info import DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE
 
 
 class OldAccountInfoMethods:
@@ -51,7 +52,31 @@ class OldAccountInfoMethods:
             )
 
 
-class AbstractAccountInfo(OldAccountInfoMethods, v2.AbstractAccountInfo):
+# Retain legacy get_minimum_part_size and translate legacy "minimum_part_size" to new style "recommended_part_size"
+class LegacyMinimumPartSize:
+    def _set_auth_data(
+            self, account_id, auth_token, api_url, download_url, minimum_part_size,
+            application_key, realm, s3_api_url=None, allowed=None, application_key_id=None
+    ):
+        return super()._set_auth_data(
+            account_id=account_id,
+            auth_token=auth_token,
+            api_url=api_url,
+            download_url=download_url,
+            recommended_part_size=minimum_part_size,
+            absolute_minimum_part_size=DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE,
+            application_key=application_key,
+            realm=realm,
+            s3_api_url=s3_api_url,
+            allowed=allowed,
+            application_key_id=application_key_id,
+        )
+
+    def get_minimum_part_size(self):
+        return self.get_recommended_part_size()
+
+
+class AbstractAccountInfo(LegacyMinimumPartSize, OldAccountInfoMethods, v2.AbstractAccountInfo):
     def get_s3_api_url(self):
         """
         Return s3_api_url or raises MissingAccountData exception.
@@ -67,17 +92,17 @@ class AbstractAccountInfo(OldAccountInfoMethods, v2.AbstractAccountInfo):
         # Removed @abstractmethod decorator
 
 
-class InMemoryAccountInfo(v2.InMemoryAccountInfo, AbstractAccountInfo):
+class InMemoryAccountInfo(LegacyMinimumPartSize, v2.InMemoryAccountInfo, AbstractAccountInfo):
     pass
 
 
-class UrlPoolAccountInfo(v2.UrlPoolAccountInfo, AbstractAccountInfo):
+class UrlPoolAccountInfo(LegacyMinimumPartSize, v2.UrlPoolAccountInfo, AbstractAccountInfo):
     pass
 
 
-class SqliteAccountInfo(v2.SqliteAccountInfo, AbstractAccountInfo):
+class SqliteAccountInfo(LegacyMinimumPartSize, v2.SqliteAccountInfo, AbstractAccountInfo):
     pass
 
 
-class StubAccountInfo(v2.StubAccountInfo, AbstractAccountInfo):
+class StubAccountInfo(LegacyMinimumPartSize, v2.StubAccountInfo, AbstractAccountInfo):
     pass

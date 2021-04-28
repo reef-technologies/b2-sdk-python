@@ -63,31 +63,31 @@ def b2_url_decode(s):
     return unquote_plus(s)
 
 
-def choose_part_ranges(content_length, minimum_part_size):
+def choose_part_ranges(content_length, recommended_part_size):
     """
     Return a list of (offset, length) for the parts of a large file.
 
     :param content_length: content length value
     :type content_length: int
-    :param minimum_part_size: a minimum file part size
-    :type minimum_part_size: int
+    :param recommended_part_size: a minimum file part size
+    :type recommended_part_size: int
     :rtype: list
     """
 
     # If the file is at least twice the minimum part size, we are guaranteed
     # to be able to break it into multiple parts that are all at least
     # the minimum part size.
-    assert minimum_part_size * 2 <= content_length
+    assert recommended_part_size * 2 <= content_length
 
     # How many parts can we make?
-    part_count = min(content_length // minimum_part_size, 10000)
+    part_count = min(content_length // recommended_part_size, 10000)
     assert 2 <= part_count
 
     # All of the parts, except the last, are the same size.  The
     # last one may be bigger.
     part_size = content_length // part_count
     last_part_size = content_length - (part_size * (part_count - 1))
-    assert minimum_part_size <= last_part_size
+    assert recommended_part_size <= last_part_size
 
     # Make all of the parts except the last
     parts = [(i * part_size, part_size) for i in range(part_count - 1)]

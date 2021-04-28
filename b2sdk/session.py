@@ -119,7 +119,7 @@ class B2Session(object):
             auth_token=response['authorizationToken'],
             api_url=response['apiUrl'],
             download_url=response['downloadUrl'],
-            minimum_part_size=response['recommendedPartSize'],
+            recommended_part_size=response['recommendedPartSize'],
             application_key=application_key,
             realm=realm,
             s3_api_url=response['s3ApiUrl'],

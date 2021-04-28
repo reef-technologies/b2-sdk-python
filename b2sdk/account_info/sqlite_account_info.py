@@ -13,7 +13,7 @@ import logging
 import os
 import stat
 import threading
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from .exception import (CorruptAccountInfo, MissingAccountData)
 from .upload_url_pool import UrlPoolAccountInfo
@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 
 B2_ACCOUNT_INFO_ENV_VAR = 'B2_ACCOUNT_INFO'
 B2_ACCOUNT_INFO_DEFAULT_FILE = '~/.b2_account_info'
+
+
+DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE = 5000000  # this value is used ONLY in migrating db, and in v1 wrapper, it is not
+# meant to be a default for other applications
 
 
 class SqliteAccountInfo(UrlPoolAccountInfo):
@@ -48,7 +52,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         )
         self.filename = file_name or os.path.expanduser(user_account_info_path)
         logger.debug('%s file path to use: %s', self.__class__.__name__, self.filename)
-        self._validate_database()
+        self._validate_database(last_upgrade_to_run)
         with self._get_connection() as conn:
             self._create_tables(conn, last_upgrade_to_run)
         super(SqliteAccountInfo, self).__init__()
@@ -90,11 +94,14 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                     self._create_tables(conn, last_upgrade_to_run)
                     insert_statement = """
                         INSERT INTO account
-                        (account_id, application_key, account_auth_token, api_url, download_url, minimum_part_size, realm)
-                        values (?, ?, ?, ?, ?, ?, ?);
+                        (account_id, application_key, account_auth_token, api_url, download_url, 
+                         recommended_part_size, realm, absolute_minimum_part_size)
+                        values (?, ?, ?, ?, ?, ?, ?, ?);
                     """
-
-                    conn.execute(insert_statement, tuple(data[k] for k in keys))
+                    # Migrating from old schema is a little confusing, but the values change as:
+                    # minimum_part_size -> recommended_part_size
+                    # new column absolute_minimum_part_size = DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE
+                    conn.execute(insert_statement, (*(data[k] for k in keys), DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE))
                 # all is happy now
                 return
         except ValueError:  # includes json.decoder.JSONDecodeError
@@ -178,18 +185,30 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         """
         )
         # By default, we run all the upgrades
-        last_upgrade_to_run = 3 if last_upgrade_to_run is None else last_upgrade_to_run
+        last_upgrade_to_run = 4 if last_upgrade_to_run is None else last_upgrade_to_run
+        if last_upgrade_to_run == 4:
+            raise Exception
         # Add the 'allowed' column if it hasn't been yet.
         if 1 <= last_upgrade_to_run:
-            self._ensure_update(1, 'ALTER TABLE account ADD COLUMN allowed TEXT;')
+            self._ensure_update(1, [('ALTER TABLE account ADD COLUMN allowed TEXT;', ())])
         # Add the 'account_id_or_app_key_id' column if it hasn't been yet
         if 2 <= last_upgrade_to_run:
-            self._ensure_update(2, 'ALTER TABLE account ADD COLUMN account_id_or_app_key_id TEXT;')
+            self._ensure_update(2, [('ALTER TABLE account ADD COLUMN account_id_or_app_key_id TEXT;', ())])
         # Add the 's3_api_url' column if it hasn't been yet
         if 3 <= last_upgrade_to_run:
-            self._ensure_update(3, 'ALTER TABLE account ADD COLUMN s3_api_url TEXT;')
+            self._ensure_update(3, [('ALTER TABLE account ADD COLUMN s3_api_url TEXT;', ())])
+        if 4 <= last_upgrade_to_run:
+            self._ensure_update(
+                4,
+                [
+                    ('ALTER TABLE account RENAME COLUMN minimum_part_size TO recommended_part_size;',()),
+                    ('ALTER TABLE account ADD COLUMN absolute_minimum_part_size INT NULL;', ()),
+                    ('UPDATE account set absolute_minimum_part_size = ?;', (DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE,)),
+                    # TODO: alter the table by copying data to a temporary table etc.
+                ]
+            )
 
-    def _ensure_update(self, update_number, update_command):
+    def _ensure_update(self, update_number, commands_and_parameters: List[Tuple[str, tuple]]):
         """
         Run the update with the given number if it hasn't been done yet.
 
@@ -203,9 +222,10 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                 (update_number,)
             )
             update_count = cursor.fetchone()[0]
-            assert update_count in [0, 1, 2]
+            assert update_count in [0, 1, 2, 3]
             if update_count == 0:
-                conn.execute(update_command)
+                for update_command, update_params in commands_and_parameters:
+                    conn.execute(update_command, update_params)
                 conn.execute(
                     'INSERT INTO update_done (update_number) VALUES (?);', (update_number,)
                 )
@@ -220,8 +240,8 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             conn.execute('DELETE FROM bucket_upload_url;')
 
     def _set_auth_data(
-        self, account_id, auth_token, api_url, download_url, minimum_part_size, application_key,
-        realm, s3_api_url, allowed, application_key_id
+        self, account_id, auth_token, api_url, download_url, recommended_part_size, absolute_minimum_part_size,
+        application_key, realm, s3_api_url, allowed, application_key_id,
     ):
         assert self.allowed_is_valid(allowed)
         with self._get_connection() as conn:
@@ -230,8 +250,9 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             conn.execute('DELETE FROM bucket_upload_url;')
             insert_statement = """
                 INSERT INTO account
-                (account_id, account_id_or_app_key_id, application_key, account_auth_token, api_url, download_url, minimum_part_size, realm, allowed, s3_api_url)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                (account_id, account_id_or_app_key_id, application_key, account_auth_token, api_url, download_url, 
+                 recommended_part_size, absolute_minimum_part_size, realm, allowed, s3_api_url)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """
 
             conn.execute(
@@ -242,7 +263,8 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                     auth_token,
                     api_url,
                     download_url,
-                    minimum_part_size,
+                    recommended_part_size,
+                    absolute_minimum_part_size,
                     realm,
                     json.dumps(allowed),
                     s3_api_url,
@@ -328,8 +350,8 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
     def get_realm(self):
         return self._get_account_info_or_raise('realm')
 
-    def get_minimum_part_size(self):
-        return self._get_account_info_or_raise('minimum_part_size')
+    def get_recommended_part_size(self):
+        return self._get_account_info_or_raise('recommended_part_size')
 
     def get_allowed(self):
         """

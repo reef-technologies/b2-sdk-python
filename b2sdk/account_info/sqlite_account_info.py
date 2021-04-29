@@ -186,8 +186,6 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         )
         # By default, we run all the upgrades
         last_upgrade_to_run = 4 if last_upgrade_to_run is None else last_upgrade_to_run
-        if last_upgrade_to_run == 4:
-            raise Exception
         # Add the 'allowed' column if it hasn't been yet.
         if 1 <= last_upgrade_to_run:
             self._ensure_update(1, [('ALTER TABLE account ADD COLUMN allowed TEXT;', ())])

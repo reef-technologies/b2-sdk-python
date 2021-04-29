@@ -14,6 +14,7 @@ from b2sdk import _v2 as v2
 from b2sdk.account_info.sqlite_account_info import DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE
 
 
+# Retain legacy get_minimum_part_size and translate legacy "minimum_part_size" to new style "recommended_part_size"
 class OldAccountInfoMethods:
     def set_auth_data(
         self,
@@ -28,36 +29,37 @@ class OldAccountInfoMethods:
         application_key_id=None,
         s3_api_url=None,
     ):
-        if 's3_api_url' in inspect.getfullargspec(self._set_auth_data).args:
-            super().set_auth_data(
-                account_id,
-                auth_token,
-                api_url,
-                download_url,
-                minimum_part_size,
-                application_key,
-                realm,
-                s3_api_url,
-                allowed=allowed,
-                application_key_id=application_key_id
-            )
+
+        if 's3_api_url' in inspect.getfullargspec(super()._set_auth_data).args:
+            s3_kwargs = dict(s3_api_url=s3_api_url)
         else:
-            if allowed is None:
-                allowed = self.DEFAULT_ALLOWED
-            assert self.allowed_is_valid(allowed)
+            s3_kwargs = {}
 
-            self._set_auth_data(
-                account_id, auth_token, api_url, download_url, minimum_part_size, application_key,
-                realm, allowed, application_key_id
-            )
+        if allowed is None:
+            allowed = self.DEFAULT_ALLOWED
+        assert self.allowed_is_valid(allowed)
 
+        self._set_auth_data(
+            account_id=account_id,
+            auth_token=auth_token,
+            api_url=api_url,
+            download_url=download_url,
+            minimum_part_size=minimum_part_size,
+            application_key=application_key,
+            realm=realm,
+            allowed=allowed,
+            application_key_id=application_key_id,
+            **s3_kwargs,
+        )
 
-# Retain legacy get_minimum_part_size and translate legacy "minimum_part_size" to new style "recommended_part_size"
-class LegacyMinimumPartSize:
     def _set_auth_data(
             self, account_id, auth_token, api_url, download_url, minimum_part_size,
             application_key, realm, s3_api_url=None, allowed=None, application_key_id=None
     ):
+        if 's3_api_url' in inspect.getfullargspec(super()._set_auth_data).args:
+            s3_kwargs = dict(s3_api_url=s3_api_url)
+        else:
+            s3_kwargs = {}
         return super()._set_auth_data(
             account_id=account_id,
             auth_token=auth_token,
@@ -67,16 +69,16 @@ class LegacyMinimumPartSize:
             absolute_minimum_part_size=DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE,
             application_key=application_key,
             realm=realm,
-            s3_api_url=s3_api_url,
             allowed=allowed,
             application_key_id=application_key_id,
+            **s3_kwargs,
         )
 
     def get_minimum_part_size(self):
         return self.get_recommended_part_size()
 
 
-class AbstractAccountInfo(LegacyMinimumPartSize, OldAccountInfoMethods, v2.AbstractAccountInfo):
+class AbstractAccountInfo(OldAccountInfoMethods, v2.AbstractAccountInfo):
     def get_s3_api_url(self):
         """
         Return s3_api_url or raises MissingAccountData exception.
@@ -92,17 +94,17 @@ class AbstractAccountInfo(LegacyMinimumPartSize, OldAccountInfoMethods, v2.Abstr
         # Removed @abstractmethod decorator
 
 
-class InMemoryAccountInfo(LegacyMinimumPartSize, v2.InMemoryAccountInfo, AbstractAccountInfo):
+class InMemoryAccountInfo(OldAccountInfoMethods, v2.InMemoryAccountInfo):
     pass
 
 
-class UrlPoolAccountInfo(LegacyMinimumPartSize, v2.UrlPoolAccountInfo, AbstractAccountInfo):
+class UrlPoolAccountInfo(OldAccountInfoMethods, v2.UrlPoolAccountInfo):
     pass
 
 
-class SqliteAccountInfo(LegacyMinimumPartSize, v2.SqliteAccountInfo, AbstractAccountInfo):
+class SqliteAccountInfo(OldAccountInfoMethods, v2.SqliteAccountInfo):
     pass
 
 
-class StubAccountInfo(LegacyMinimumPartSize, v2.StubAccountInfo, AbstractAccountInfo):
+class StubAccountInfo(OldAccountInfoMethods, v2.StubAccountInfo):
     pass

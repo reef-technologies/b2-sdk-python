@@ -45,8 +45,18 @@ class StubAccountInfo(AbstractAccountInfo):
             del self.buckets[bucket_id]
 
     def _set_auth_data(
-        self, account_id, auth_token, api_url, download_url, recommended_part_size, absolute_minimum_part_size,
-        application_key, realm, s3_api_url, allowed, application_key_id,
+        self,
+        account_id,
+        auth_token,
+        api_url,
+        download_url,
+        recommended_part_size,
+        absolute_minimum_part_size,
+        application_key,
+        realm,
+        s3_api_url,
+        allowed,
+        application_key_id,
     ):
         self.account_id = account_id
         self.auth_token = auth_token
@@ -101,6 +111,9 @@ class StubAccountInfo(AbstractAccountInfo):
 
     def get_recommended_part_size(self):
         return self.recommended_part_size
+
+    def get_absolute_minimum_part_size(self):
+        return self.absolute_minimum_part_size
 
     def get_realm(self):
         return self.realm

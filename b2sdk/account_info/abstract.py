@@ -191,7 +191,16 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
     @abstractmethod
     def get_recommended_part_size(self):
         """
-        Return the minimum number of bytes in a part of a large file.
+        Return the recommended number of bytes in a part of a large file.
+
+        :return: number of bytes
+        :rtype: int
+        """
+
+    @abstractmethod
+    def get_absolute_minimum_part_size(self):
+        """
+        Return the absolute minimum number of bytes in a part of a large file.
 
         :return: number of bytes
         :rtype: int
@@ -216,7 +225,10 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
         """
 
     @limit_trace_arguments(
-        only=['self', 'api_url', 'download_url', 'recommended_part_size', 'absolute_minimum_part_size', 'realm', 's3_api_url']
+        only=[
+            'self', 'api_url', 'download_url', 'recommended_part_size',
+            'absolute_minimum_part_size', 'realm', 's3_api_url'
+        ]
     )
     def set_auth_data(
         self,
@@ -286,8 +298,9 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
         assert self.allowed_is_valid(allowed)
 
         self._set_auth_data(
-            account_id, auth_token, api_url, download_url, recommended_part_size, absolute_minimum_part_size,
-            application_key, realm, s3_api_url, allowed, application_key_id
+            account_id, auth_token, api_url, download_url, recommended_part_size,
+            absolute_minimum_part_size, application_key, realm, s3_api_url, allowed,
+            application_key_id
         )
 
     @classmethod
@@ -311,8 +324,8 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
     # TODO: make a decorator for set_auth_data()
     @abstractmethod
     def _set_auth_data(
-        self, account_id, auth_token, api_url, download_url, recommended_part_size, absolute_minimum_part_size,
-        application_key, realm, s3_api_url, allowed, application_key_id
+        self, account_id, auth_token, api_url, download_url, recommended_part_size,
+        absolute_minimum_part_size, application_key, realm, s3_api_url, allowed, application_key_id
     ):
         """
         Actually store the auth data.  Can assume that 'allowed' is present and valid.

@@ -38,6 +38,7 @@ class B2Session(object):
         to methods of underlying raw_api and reauthorizes if necessary.
     """
     SQLITE_ACCOUNT_INFO_CLASS = staticmethod(SqliteAccountInfo)
+
     def __init__(self, account_info=None, cache=None, raw_api=None):
         """
         Initialize Session using given account info.

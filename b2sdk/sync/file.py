@@ -57,7 +57,7 @@ class LocalFile(AbstractFile):
         return self.versions[0]
 
 
-class B2File(LocalFile):
+class B2File(AbstractFile):
     """
     Hold information about one file in a folder in B2 cloud.
     """
@@ -73,48 +73,9 @@ class B2File(LocalFile):
         return super().latest_version()
 
 
-class AbstractSyncFileVersion(ABC):
-    def __repr__(self):
-        return '%s(%s, %s, %s, %s)' % (
-            self.__class__.__name__,
-            repr(self.id_),
-            repr(self.name),
-            repr(self.mod_time),
-            repr(self.action),
-        )
+class AbstractSyncFileVersion:
 
-    @property
-    @abstractmethod
-    def id_(self):
-        pass
-
-    @property
-    @abstractmethod
-    def name(self):
-        pass
-
-    @property
-    @abstractmethod
-    def mod_time(self):
-        pass
-
-    @property
-    @abstractmethod
-    def action(self):
-        pass
-
-    @property
-    @abstractmethod
-    def size(self):
-        pass
-
-
-class LocalSyncFileVersion(AbstractSyncFileVersion):
-    """
-    Hold information about one version of a file.
-    """
-
-    __slots__ = ['_id', '_name', '_mod_time', '_action', '_size']
+    __slots__ = ['id_', 'name', 'mod_time', 'action', 'size']
 
     def __init__(self, id_, file_name, mod_time, action, size):
         """
@@ -130,34 +91,33 @@ class LocalSyncFileVersion(AbstractSyncFileVersion):
         :param size: a file size
         :type size: int
         """
-        self._id = id_
-        self._name = file_name
-        self._mod_time = mod_time
-        self._action = action
-        self._size = size
+        self.id_ = id_
+        self.name = file_name
+        self.mod_time = mod_time
+        self.action = action
+        self.size = size
 
-    @property
-    def id_(self):
-        return self._id
+    def __repr__(self):
+        return '%s(%s, %s, %s, %s)' % (
+            self.__class__.__name__,
+            repr(self.id_),
+            repr(self.name),
+            repr(self.mod_time),
+            repr(self.action),
+        )
 
-    @property
-    def name(self):
-        return self._name
 
-    @property
-    def mod_time(self):
-        return self._mod_time
-
-    @property
-    def action(self):
-        return self._action
-
-    @property
-    def size(self):
-        return self._size
+class LocalSyncFileVersion(AbstractSyncFileVersion):
+    """
+    Hold information about one version of a local file. Right now there is exactly one version per file,
+    this class is needed for compatibility reasons.
+    """
 
 
 class B2SyncFileVersion(AbstractSyncFileVersion):
+    """
+    Hold information about one version of a b2 file.
+    """
     __slots__ = [
         'file_version'
     ]  # in a typical use case there is a lot of these object in memory, hence __slots__

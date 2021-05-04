@@ -116,7 +116,7 @@ class FileVersion(object):
 
 class FileVersionFactory(object):
     """
-    Construct :py:class:`b2sdk.v1.FileVersionInfo` objects from various structures.
+    Construct :py:class:`b2sdk.v2.FileVersion` objects from various structures.
     """
 
     @classmethod

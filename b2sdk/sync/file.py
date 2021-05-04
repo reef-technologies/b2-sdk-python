@@ -28,6 +28,14 @@ class AbstractFile(ABC):
 
     __slots__ = ['name', 'versions']
 
+    def __init__(self, name, versions: List['AbstractSyncFileVersion']):
+        """
+        :param str name: a relative file name
+        :param List[AbstractSyncFileVersion] versions: a list of file versions
+        """
+        self.name = name
+        self.versions = versions
+
     def __repr__(self):
         return '%s(%s, [%s])' % (
             self.__class__.__name__, self.name, ', '.join(repr(v) for v in self.versions)
@@ -50,8 +58,7 @@ class LocalFile(AbstractFile):
         :param str name: a relative file name
         :param List[LocalSyncFileVersion] versions: a list of file versions
         """
-        self.name = name
-        self.versions = versions
+        super().__init__(name, versions)
 
     def latest_version(self) -> 'LocalSyncFileVersion':
         return self.versions[0]
@@ -70,13 +77,10 @@ class B2File(AbstractFile):
         super().__init__(name, versions)
 
     def latest_version(self) -> 'B2SyncFileVersion':
-        return super().latest_version()
+        return self.versions[0]
 
 
 class AbstractSyncFileVersion:
-
-    __slots__ = ['id_', 'name', 'mod_time', 'action', 'size']
-
     def __init__(self, id_, file_name, mod_time, action, size):
         """
         :param id_: the B2 file id, or the local full path name
@@ -108,6 +112,10 @@ class AbstractSyncFileVersion:
 
 
 class LocalSyncFileVersion(AbstractSyncFileVersion):
+    __slots__ = [
+        'id_', 'name', 'mod_time', 'action', 'size'
+    ]  # in a typical use case there is a lot of these
+    # object in memory, hence __slots__
     """
     Hold information about one version of a local file. Right now there is exactly one version per file,
     this class is needed for compatibility reasons.

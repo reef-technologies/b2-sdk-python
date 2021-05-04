@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `B2Api.cancel_large_file` returns a `FileIdAndName` object instead of a `FileVersion` object in v2
 * `FileVersion` has a mandatory `api` parameter 
 * `B2Folder` holds a handle to B2Api 
+* `Bucket` unit tests for v1 and v2 are now common
 
 ## [1.8.0] - 2021-05-21
 

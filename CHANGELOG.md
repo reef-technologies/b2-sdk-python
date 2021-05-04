@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `FileVersionInfoFactory` renamed to `FileVersionFactory` 
 * `FileVersion` has a mandatory `api` parameter 
 * `B2Folder` holds a handle to B2Api 
+* `Bucket` unit tests for v1 and v2 are now common
 
 ### Removed
 * Remove `Bucket.copy_file` and `Bucket.start_large_file` 

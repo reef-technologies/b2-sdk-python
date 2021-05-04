@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Refactored `sync.file.*File` and `sync.file.*FileVersion` to `sync.path.*SyncPath`
 * Encryption settings, types and providers are now part of the public API
 * Refactored `FileVersionInfo` to `FileVersion`
+* `Bucket` unit tests for v1 and v2 are now common
 
 ### Removed
 * Remove `Bucket.copy_file` and `Bucket.start_large_file` 

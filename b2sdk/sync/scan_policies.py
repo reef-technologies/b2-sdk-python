@@ -12,6 +12,8 @@ import logging
 import re
 
 from .exception import InvalidArgument, check_invalid_argument
+from .path import LocalSyncPath, mod_time_from_fv
+from ..file_version import FileVersion
 
 logger = logging.getLogger(__name__)
 
@@ -168,49 +170,56 @@ class ScanPoliciesManager(object):
                 exclude_modified_before, exclude_modified_after
             )
 
-    def should_exclude_file(self, file_path):
-        """
-        Given the full path of a file, decide if it should be excluded from the scan.
-
-        :param file_path: the path of the file, relative to the root directory
-                          being scanned.
-        :type: str
-        :return: True if excluded.
-        :rtype: bool
-        """
-        # TODO: In v2 this should accept `b2sdk.v1.File`.
-        #  It requires some refactoring to be done first.
-        exclude_because_of_dir = self._exclude_file_because_of_dir_set.matches(file_path)
+    def _should_exclude_path(self, path_: str):
+        exclude_because_of_dir = self._exclude_file_because_of_dir_set.matches(path_)
         exclude_because_of_file = (
-            self._exclude_file_set.matches(file_path) and
-            not self._include_file_set.matches(file_path)
+            self._exclude_file_set.matches(path_) and
+            not self._include_file_set.matches(path_)
         )
         return exclude_because_of_dir or exclude_because_of_file
 
-    def should_exclude_file_version(self, file_version):
-        """
-        Given the modification time of a file version,
-        decide if it should be excluded from the scan.
+    def _should_exclude_mod_time(self, mod_time):
+        return mod_time not in self._include_mod_time_range
 
-        :param file_version: the file version object
-        :type: b2sdk.v1.FileVersion
-        :return: True if excluded.
-        :rtype: bool
+    def should_exclude_local_path(self, path_: LocalSyncPath):
         """
-        return file_version.mod_time not in self._include_mod_time_range
+        Whether a local path should be excluded from the Sync or not.
+        Checks both for mod_time exclusion conditions and relative path conditions.
+        The regex matching priority is:
+        1) the path is always excluded if it's dir matches `exclude_dir_regexes`, if not then
+        2) the path is always included if it matches `include_file_regexes`, if not then
+        3) the path is excluded if it matches `exclude_file_regexes`, if not then
+        4) the file is included
 
-    def should_exclude_directory(self, dir_path):
+        Checking the directory may seem redundant because of `should_exclude_b2_folder` and
+        `should_exclude_local_folder`, but it's necessary to ensure the priority order mentioned above without
+        relying on the caller to respect it.
         """
-        Given the full path of a directory, decide if all of the files in it should be
-        excluded from the scan.
+        exclude_because_of_mod_time = self._should_exclude_mod_time(path_.mod_time)
+        return exclude_because_of_mod_time or self._should_exclude_path(path_.relative_path)
 
-        :param dir_path: the path of the directory, relative to the root directory
-                         being scanned.  The path will never end in '/'.
-        :type dir_path: str
-        :return: True if excluded.
+    def should_exclude_b2_file_version(self, file_version: FileVersion, relative_path: str):
         """
-        # TODO: In v2 this should accept `b2sdk.v1.AbstractFolder`.
-        #  It requires some refactoring to be done first.
+        Whether a b2 file version should be excluded from the Sync or not.
+        Checks both for mod_time exclusion conditions and relative path conditions.
+
+        The regex matching priority is:
+        1) the path is always excluded if it's dir matches `exclude_dir_regexes`, if not then
+        2) the path is always included if it matches `include_file_regexes`, if not then
+        3) the path is excluded if it matches `exclude_file_regexes`, if not then
+        4) the file is included
+
+        Checking the directory may seem redundant because of `should_exclude_b2_folder`,
+        but it's necessary to ensure the priority order mentioned above without
+        relying on the caller to respect it.
+        """
+        exclude_because_of_mod_time = self._should_exclude_mod_time(mod_time_from_fv(file_version))
+        return exclude_because_of_mod_time or self._should_exclude_path(relative_path)
+
+    def should_exclude_b2_directory(self, dir_path):
+        return self._exclude_dir_set.matches(dir_path)
+
+    def should_exclude_local_directory(self, dir_path):
         return self._exclude_dir_set.matches(dir_path)
 
 

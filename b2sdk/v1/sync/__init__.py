@@ -10,5 +10,6 @@
 
 from .folder import *
 from .folder_parser import *
+from .report import *
 from .scan_policies import *
 from .sync import *

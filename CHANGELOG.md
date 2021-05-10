@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 * Remove `Bucket.copy_file` and `Bucket.start_large_file` 
+* Remove deprecated `SyncReport` methods 
 
 ## [1.7.0] - 2021-04-22
 

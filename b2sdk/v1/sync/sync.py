@@ -57,18 +57,20 @@ class Synchronizer(v2.Synchronizer):
         )
 
     def sync_folders(
-            self,
-            source_folder,
-            dest_folder,
-            now_millis,
-            reporter,
-            encryption_settings_provider:
-            AbstractSyncEncryptionSettingsProvider = v2.SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+        self,
+        source_folder,
+        dest_folder,
+        now_millis,
+        reporter,
+        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider = v2.
+        SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         return super().sync_folders(
             source_folder=source_folder,
             dest_folder=dest_folder,
             now_millis=now_millis,
             reporter=reporter,
-            encryption_settings_provider=SyncEncryptionSettingsProviderWrapper(encryption_settings_provider),
+            encryption_settings_provider=SyncEncryptionSettingsProviderWrapper(
+                encryption_settings_provider
+            ),
         )

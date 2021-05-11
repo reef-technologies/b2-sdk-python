@@ -25,10 +25,10 @@ class DestFileNewer(B2Error):
         return 'source file is older than destination: %s%s with a time of %s cannot be synced to %s%s with a time of %s, unless --skipNewer or --replaceNewer is provided' % (
             self.source_prefix,
             self.source_file.relative_path,
-            self.source_file.mod_time,
+            self.source_file.latest_version().mod_time_millis,
             self.dest_prefix,
             self.dest_file.relative_path,
-            self.dest_file.mod_time,
+            self.dest_file.latest_version().mod_time_millis,
         )
 
     def should_retry_http(self):

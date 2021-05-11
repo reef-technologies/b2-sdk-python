@@ -24,7 +24,7 @@ from ..test_base import TestBase
 from .deps import AbstractFolder, B2Folder, LocalFolder
 from .deps import BoundedQueueExecutor, zip_folders
 from .deps import LocalSyncPath, B2SyncPath
-from .deps import FileVersionInfo
+from .deps import FileVersionInfo, LocalFileVersion
 from .deps import KeepOrDeleteMode, NewerFileSyncMode, CompareVersionMode
 from .deps import ScanPoliciesManager, DEFAULT_SCAN_MANAGER
 from .deps import Synchronizer
@@ -451,10 +451,10 @@ class TestB2Folder(TestFolder):
 
         self.assertEqual(
             [
-                "B2SyncPath(inner/a.txt, [('a2', 2000, 'upload'), "
-                "('a1', 1000, 'upload')])",
-                "B2SyncPath(inner/b.txt, [('b2', 1999, 'upload'), "
-                "('b1', 1001, 'upload')])",
+                'B2SyncPath(inner/a.txt, [FileVersionInfo(2000, 200),'
+                ' FileVersionInfo(1000, 100)])',
+                'B2SyncPath(inner/b.txt, [FileVersionInfo(1999, 200),'
+                ' FileVersionInfo(1001, 100)])'
             ], [
                 str(f) for f in folder.all_files(self.reporter)
                 if f.relative_path in ('inner/a.txt', 'inner/b.txt')
@@ -632,9 +632,9 @@ def simple_b2_sync_path_from_local(local_path):
             FileVersionInfo(
                 id_='/dir/' + local_path.relative_path,
                 file_name='folder/' + 'a',
-                upload_timestamp=local_path.mod_time,
+                upload_timestamp=local_path.latest_version().mod_time_millis,
                 action='upload',
-                size=local_path.size,
+                size=local_path.latest_version().size,
                 file_info={},
                 content_type='text/plain',
                 content_sha1='content_sha1',
@@ -756,18 +756,30 @@ class TestZipFolders(TestSync):
         self.assertEqual([], list(zip_folders(folder_a, folder_b, self.reporter)))
 
     def test_one_empty(self):
-        file_a1 = LocalSyncPath("a.txt", 100, 10)
+        file_a1 = LocalSyncPath("a.txt", [LocalFileVersion(100, 10)])
         folder_a = FakeFolder('b2', [file_a1])
         folder_b = FakeFolder('b2', [])
         self.assertEqual([(file_a1, None)], list(zip_folders(folder_a, folder_b, self.reporter)))
 
     def test_two(self):
-        file_a1 = simple_b2_sync_path_from_local(LocalSyncPath("a.txt", 100, 10))
-        file_a2 = simple_b2_sync_path_from_local(LocalSyncPath("b.txt", 100, 10))
-        file_a3 = simple_b2_sync_path_from_local(LocalSyncPath("d.txt", 100, 10))
-        file_a4 = simple_b2_sync_path_from_local(LocalSyncPath("f.txt", 100, 10))
-        file_b1 = simple_b2_sync_path_from_local(LocalSyncPath("b.txt", 200, 10))
-        file_b2 = simple_b2_sync_path_from_local(LocalSyncPath("e.txt", 200, 10))
+        file_a1 = simple_b2_sync_path_from_local(
+            LocalSyncPath("a.txt", [LocalFileVersion(100, 10)])
+        )
+        file_a2 = simple_b2_sync_path_from_local(
+            LocalSyncPath("b.txt", [LocalFileVersion(100, 10)])
+        )
+        file_a3 = simple_b2_sync_path_from_local(
+            LocalSyncPath("d.txt", [LocalFileVersion(100, 10)])
+        )
+        file_a4 = simple_b2_sync_path_from_local(
+            LocalSyncPath("f.txt", [LocalFileVersion(100, 10)])
+        )
+        file_b1 = simple_b2_sync_path_from_local(
+            LocalSyncPath("b.txt", [LocalFileVersion(200, 10)])
+        )
+        file_b2 = simple_b2_sync_path_from_local(
+            LocalSyncPath("e.txt", [LocalFileVersion(200, 10)])
+        )
         folder_a = FakeFolder('b2', [file_a1, file_a2, file_a3, file_a4])
         folder_b = FakeFolder('b2', [file_b1, file_b2])
         self.assertEqual(
@@ -844,27 +856,27 @@ class FakeArgs(object):
         )
 
 
-def local_file(name, mod_time, size=10):
+def local_file(name, mod_times, size=10):
     """
     Makes a LocalSyncPath object for a b2 file.
     """
-    return LocalSyncPath(name, mod_time, size)
+    return LocalSyncPath(name, [LocalFileVersion(mod_time, size) for mod_time in mod_times])
 
 
 class TestExclusions(TestSync):
     def _check_folder_sync(self, expected_actions, fakeargs):
         # only local
-        file_a = local_file('a.txt', 100)
-        file_b = local_file('b.txt', 100)
-        file_d = local_file('d/d.txt', 100)
-        file_e = local_file('e/e.incl', 100)
+        file_a = local_file('a.txt', [100])
+        file_b = local_file('b.txt', [100])
+        file_d = local_file('d/d.txt', [100])
+        file_e = local_file('e/e.incl', [100])
 
         # both local and remote
-        file_bi = local_file('b.txt.incl', 100)
-        file_z = local_file('z.incl', 100)
+        file_bi = local_file('b.txt.incl', [100])
+        file_z = local_file('z.incl', [100])
 
         # only remote
-        file_c = local_file('c.txt', 100)
+        file_c = local_file('c.txt', [100])
 
         local_folder = FakeFolder('local', [file_a, file_b, file_d, file_e, file_bi, file_z])
         b2_folder = FakeFolder(

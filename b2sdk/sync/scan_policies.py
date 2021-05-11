@@ -197,7 +197,7 @@ class ScanPoliciesManager(object):
         :return: True if excluded.
         :rtype: bool
         """
-        return file_version.mod_time not in self._include_mod_time_range
+        return file_version.mod_time_millis not in self._include_mod_time_range
 
     def should_exclude_directory(self, dir_path):
         """

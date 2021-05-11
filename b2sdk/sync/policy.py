@@ -17,7 +17,7 @@ from ..exception import DestFileNewer
 from .encryption_provider import AbstractSyncEncryptionSettingsProvider, SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
 from .action import LocalDeleteAction, B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction
 from .exception import InvalidArgument
-from .path import PathType, mod_time_from_fv
+from .path import PathType
 
 ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 
@@ -91,7 +91,7 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         """
         if self._source_path is None or (
             self._source_path.type_() == PathType.B2 and
-            self._source_path.file_version().action == 'hide'
+            self._source_path.latest_version().action == 'hide'
         ):
             # No source file.  Nothing to transfer.
             return False
@@ -137,8 +137,8 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         # Compare using modification time
         elif compare_version_mode == CompareVersionMode.MODTIME:
             # Get the modification time of the latest versions
-            source_mod_time = source_path.mod_time
-            dest_mod_time = dest_path.mod_time
+            source_mod_time = source_path.latest_version().mod_time_millis
+            dest_mod_time = dest_path.latest_version().mod_time_millis
             diff_mod_time = abs(source_mod_time - dest_mod_time)
             compare_threshold_exceeded = diff_mod_time > compare_threshold
 
@@ -171,8 +171,8 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         # Compare using file size
         elif compare_version_mode == CompareVersionMode.SIZE:
             # Get file size of the latest versions
-            source_size = source_path.size
-            dest_size = dest_path.size
+            source_size = source_path.latest_version().size
+            dest_size = dest_path.latest_version().size
             diff_size = abs(source_size - dest_size)
             compare_threshold_exceeded = diff_size > compare_threshold
 
@@ -211,7 +211,7 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         return []
 
     def _get_source_mod_time(self):
-        return self._source_path.mod_time
+        return self._source_path.latest_version().mod_time_millis
 
     @abstractmethod
     def _make_transfer_action(self):
@@ -249,7 +249,7 @@ class UpPolicy(AbstractFileSyncPolicy):
             self._source_path.relative_path,
             self._dest_folder.make_full_path(self._source_path.relative_path),
             self._get_source_mod_time(),
-            self._source_path.size,
+            self._source_path.latest_version().size,
             self._encryption_settings_provider,
         )
 
@@ -301,7 +301,7 @@ class DownAndDeletePolicy(DownPolicy):
         if self._dest_path is not None and (
             self._source_path is None or (
                 self._source_path.type_() == PathType.B2 and
-                self._source_path.file_version().action == 'hide'
+                self._source_path.latest_version().action == 'hide'
             )
         ):
             # Local files have either 0 or 1 versions.  If the file is there,
@@ -403,7 +403,7 @@ def make_b2_delete_actions(source_path, dest_path, dest_folder, transferred):
         # B2 does not really store folders, so there is no need to hide
         # them or delete them
         return
-    for version_index, version in enumerate(dest_path.file_versions):
+    for version_index, version in enumerate(dest_path.versions):
         keep = (version_index == 0) and (source_path is not None) and not transferred
         if not keep:
             yield B2DeleteAction(
@@ -439,9 +439,9 @@ def make_b2_keep_days_actions(
         # B2 does not really store folders, so there is no need to hide
         # them or delete them
         return
-    for version_index, version in enumerate(dest_path.file_versions):
+    for version_index, version in enumerate(dest_path.versions):
         # How old is this version?
-        age_days = (now_millis - mod_time_from_fv(version)) / ONE_DAY_IN_MS
+        age_days = (now_millis - version.mod_time_millis) / ONE_DAY_IN_MS
 
         # Mostly, the versions are ordered by time, newest first,
         # BUT NOT ALWAYS. The mod time we have is the src_last_modified_millis

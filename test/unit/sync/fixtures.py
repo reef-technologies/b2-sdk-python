@@ -10,7 +10,7 @@
 
 import pytest
 
-from apiver_deps import AbstractFolder, B2SyncPath, LocalSyncPath, FileVersionInfo
+from apiver_deps import AbstractFolder, B2SyncPath, LocalSyncPath, FileVersionInfo, LocalFileVersion
 from apiver_deps import CompareVersionMode, NewerFileSyncMode, KeepOrDeleteMode
 from apiver_deps import DEFAULT_SCAN_MANAGER, Synchronizer
 
@@ -63,7 +63,8 @@ def local_file(name, mod_times, size=10):
     Makes a File object for a local file, with one FileVersion for
     each modification time given in mod_times.
     """
-    return LocalSyncPath(name, mod_times[0], size)
+    versions = [LocalFileVersion(mod_time, size) for mod_time in mod_times]
+    return LocalSyncPath(name, versions)
 
 
 def b2_file(name, mod_times, size=10):

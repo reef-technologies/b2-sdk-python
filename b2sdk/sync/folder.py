@@ -18,6 +18,7 @@ from abc import ABCMeta, abstractmethod
 from .exception import EmptyDirectory, EnvironmentEncodingError, UnSyncableFilename, NotADirectory, UnableToCreateDirectory
 from .path import B2SyncPath, LocalSyncPath
 from .scan_policies import DEFAULT_SCAN_MANAGER
+from ..file_version import LocalFileVersion
 from ..utils import fix_windows_path_limit, get_file_mtime, is_file_readable
 
 DRIVE_MATCHER = re.compile(r"^([A-Za-z]):([/\\])")
@@ -220,7 +221,7 @@ class LocalFolder(AbstractFolder):
                     "%s in dir %s" % (name, local_dir)
                 )
 
-            local_path = os.path.join(local_dir, name)
+            local_path = os.path.join(local_dir, name)  # TODO: work with PurePosixPath
             b2_path = join_b2_path(b2_dir, name)
 
             # Skip broken symlinks or other inaccessible files
@@ -262,9 +263,7 @@ class LocalFolder(AbstractFolder):
                     # if policies_manager.should_exclude_file_version(version):  TODO: fix method name
                     #     continue
 
-                    yield LocalSyncPath(
-                        relative_path=b2_path, mod_time=file_mod_time, size=file_size
-                    )
+                    yield LocalSyncPath(b2_path, [LocalFileVersion(file_mod_time, file_size)])
 
     @classmethod
     def _handle_non_unicode_file_name(cls, name):
@@ -346,10 +345,10 @@ class B2Folder(AbstractFolder):
                 )
 
             if current_name != file_name and current_name is not None and current_versions:
-                yield B2SyncPath(relative_path=current_name, file_versions=current_versions)
+                yield B2SyncPath(relative_path=current_name, versions=current_versions)
                 current_versions = []
 
-            current_name = file_name
+            current_name = file_name  # TODO: work with PurePosixPath
 
             # if policies_manager.should_exclude_file_version(file_version):  TODO: adjust method name
             #     continue
@@ -357,7 +356,7 @@ class B2Folder(AbstractFolder):
             current_versions.append(file_version_info)
 
         if current_name is not None and current_versions:
-            yield B2SyncPath(relative_path=current_name, file_versions=current_versions)
+            yield B2SyncPath(relative_path=current_name, versions=current_versions)
 
     def folder_type(self):
         """

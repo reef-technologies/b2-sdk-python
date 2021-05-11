@@ -12,9 +12,27 @@ from typing import Optional
 import datetime
 
 from .encryption.setting import EncryptionSetting, EncryptionSettingFactory
+from .raw_api import SRC_LAST_MODIFIED_MILLIS
 
 
-class FileVersionInfo(object):
+class AbstractFileVersion:
+    def __init__(self, mod_time_millis: int, size: int):
+        self.size = size
+        self.mod_time_millis = mod_time_millis
+
+    def __repr__(self):
+        return '%s(%s, %s)' % (
+            self.__class__.__name__,
+            repr(self.mod_time_millis),
+            repr(self.size),
+        )
+
+
+class LocalFileVersion(AbstractFileVersion):
+    __slots__ = ['size', 'mod_time_millis']
+
+
+class FileVersionInfo(AbstractFileVersion):  # TODO: this name will be changed in a subsequent PR
     """
     A structure which represents a version of a file (in B2 cloud).
 
@@ -35,8 +53,17 @@ class FileVersionInfo(object):
     LS_ENTRY_TEMPLATE = '%83s  %6s  %10s  %8s  %9d  %s'  # order is file_id, action, date, time, size, name
 
     __slots__ = [
-        'id_', 'file_name', 'size', 'content_type', 'content_sha1', 'content_md5', 'file_info',
-        'upload_timestamp', 'action', 'server_side_encryption'
+        'id_',
+        'file_name',
+        'size',
+        'content_type',
+        'content_sha1',
+        'content_md5',
+        'file_info',
+        'upload_timestamp',
+        'action',
+        'server_side_encryption',
+        'mod_time_millis',
     ]
 
     def __init__(
@@ -54,7 +81,6 @@ class FileVersionInfo(object):
     ):
         self.id_ = id_
         self.file_name = file_name
-        self.size = size
         self.content_type = content_type
         self.content_sha1 = content_sha1
         self.content_md5 = content_md5
@@ -62,6 +88,13 @@ class FileVersionInfo(object):
         self.upload_timestamp = upload_timestamp
         self.action = action
         self.server_side_encryption = server_side_encryption
+
+        if SRC_LAST_MODIFIED_MILLIS in self.file_info:
+            mod_time_millis = int(self.file_info[SRC_LAST_MODIFIED_MILLIS])
+        else:
+            mod_time_millis = self.upload_timestamp
+
+        super().__init__(mod_time_millis, size)
 
     def as_dict(self):
         """ represents the object as a dict which looks almost exactly like the raw api output for upload/list """

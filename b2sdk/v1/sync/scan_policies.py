@@ -12,6 +12,8 @@ from b2sdk import _v2 as v2
 from b2sdk._v2 import exception as v2_exception  # noqa
 
 
+# Override to retain old exceptions in __init__
+# and to provide interface for new should_exclude_* methods
 class ScanPoliciesManager(v2.ScanPoliciesManager):
     """
     Policy object used when scanning folders for syncing, used to decide
@@ -66,5 +68,66 @@ class ScanPoliciesManager(v2.ScanPoliciesManager):
             exclude_modified_before, exclude_modified_after
         )
 
+    def should_exclude_file(self, file_path):
+        """
+        Given the full path of a file, decide if it should be excluded from the scan.
+
+        :param file_path: the path of the file, relative to the root directory
+                          being scanned.
+        :type: str
+        :return: True if excluded.
+        :rtype: bool
+        """
+        # TODO: In v2 this should accept `b2sdk.v1.File`.
+        #  It requires some refactoring to be done first.
+        exclude_because_of_dir = self._exclude_file_because_of_dir_set.matches(file_path)
+        exclude_because_of_file = (
+            self._exclude_file_set.matches(file_path) and
+            not self._include_file_set.matches(file_path)
+        )
+        return exclude_because_of_dir or exclude_because_of_file
+
+    def should_exclude_file_version(self, file_version):
+        """
+        Given the modification time of a file version,
+        decide if it should be excluded from the scan.
+
+        :param file_version: the file version object
+        :type: b2sdk.v1.FileVersion
+        :return: True if excluded.
+        :rtype: bool
+        """
+        return file_version.mod_time not in self._include_mod_time_range
+
+    def should_exclude_directory(self, dir_path):
+        """
+        Given the full path of a directory, decide if all of the files in it should be
+        excluded from the scan.
+
+        :param dir_path: the path of the directory, relative to the root directory
+                         being scanned.  The path will never end in '/'.
+        :type dir_path: str
+        :return: True if excluded.
+        """
+        # TODO: In v2 this should accept `b2sdk.v1.AbstractFolder`.
+        #  It requires some refactoring to be done first.
+        return self._exclude_dir_set.matches(dir_path)
+
+
+class ScanPoliciesManagerWrapper(ScanPoliciesManager):
+
+    def should_exclude_local_path(self, path_: v2.LocalSyncPath):
+        exclude_because_of_mod_time = self._should_exclude_mod_time(path_.mod_time)
+        return exclude_because_of_mod_time or self._should_exclude_path(path_.relative_path)
+
+    def should_exclude_b2_file_version(self, file_version: v2.FileVersion, relative_path: str):
+        exclude_because_of_mod_time = self._should_exclude_mod_time(mod_time_from_fv(file_version))
+        return exclude_because_of_mod_time or self._should_exclude_path(relative_path)
+
+    def should_exclude_b2_directory(self, dir_path):
+        return super().should_exclude_directory(dir_path)
+
+    def should_exclude_local_directory(self, dir_path):
+        return super().should_exclude_directory(dir_path)
 
 DEFAULT_SCAN_MANAGER = ScanPoliciesManager()

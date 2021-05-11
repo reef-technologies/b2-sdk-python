@@ -63,7 +63,7 @@ from b2sdk.utils import trace_call
 # data classes
 
 from b2sdk.file_version import FileIdAndName
-from b2sdk.file_version import FileVersionInfo
+from b2sdk.file_version import FileVersion
 from b2sdk.large_file.part import Part
 from b2sdk.large_file.unfinished_large_file import UnfinishedLargeFile
 
@@ -145,8 +145,7 @@ from b2sdk.sync.action import LocalDeleteAction
 from b2sdk.sync.exception import EnvironmentEncodingError
 from b2sdk.sync.exception import IncompleteSync
 from b2sdk.sync.exception import InvalidArgument
-from b2sdk.sync.file import File, B2File
-from b2sdk.sync.file import FileVersion, B2FileVersion
+from b2sdk.sync.path import B2SyncPath, LocalSyncPath
 from b2sdk.sync.folder import AbstractFolder
 from b2sdk.sync.folder import B2Folder
 from b2sdk.sync.folder import LocalFolder

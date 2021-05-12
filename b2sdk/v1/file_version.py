@@ -1,6 +1,6 @@
 ######################################################################
 #
-# File: b2sdk/v1/sync/__init__.py
+# File: b2sdk/v1/file_version.py
 #
 # Copyright 2021 Backblaze Inc. All Rights Reserved.
 #
@@ -8,8 +8,6 @@
 #
 ######################################################################
 
-from .encryption_provider import *
-from .folder import *
-from .folder_parser import *
-from .scan_policies import *
-from .sync import *
+from b2sdk import _v2 as v2
+
+FileVersionInfo = v2.B2FileVersion

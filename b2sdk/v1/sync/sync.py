@@ -10,6 +10,7 @@
 
 from b2sdk import _v2 as v2
 from .scan_policies import DEFAULT_SCAN_MANAGER
+from .encryption_provider import AbstractSyncEncryptionSettingsProvider, wrap_if_necessary
 
 
 # Override to change "policies_manager" default argument
@@ -18,6 +19,7 @@ def zip_folders(folder_a, folder_b, reporter, policies_manager=DEFAULT_SCAN_MANA
 
 
 # Override to change "policies_manager" default arguments
+# and to wrap encryption_settings_providers in argument name translators
 class Synchronizer(v2.Synchronizer):
     def __init__(
         self,
@@ -46,6 +48,48 @@ class Synchronizer(v2.Synchronizer):
         encryption_settings_provider=v2.SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         return super().make_folder_sync_actions(
-            source_folder, dest_folder, now_millis, reporter, policies_manager,
-            encryption_settings_provider
+            source_folder,
+            dest_folder,
+            now_millis,
+            reporter,
+            policies_manager,
+            wrap_if_necessary(encryption_settings_provider),
+        )
+
+    def make_file_sync_actions(
+        self,
+        sync_type,
+        source_path,
+        dest_path,
+        source_folder,
+        dest_folder,
+        now_millis,
+        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider = v2.
+        SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+    ):
+        return super().make_file_sync_actions(
+            sync_type=sync_type,
+            source_path=source_path,
+            dest_path=dest_path,
+            source_folder=source_folder,
+            dest_folder=dest_folder,
+            now_millis=now_millis,
+            encryption_settings_provider=wrap_if_necessary(encryption_settings_provider),
+        )
+
+    def sync_folders(
+        self,
+        source_folder,
+        dest_folder,
+        now_millis,
+        reporter,
+        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider = v2.
+        SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+    ):
+        return super().sync_folders(
+            source_folder=source_folder,
+            dest_folder=dest_folder,
+            now_millis=now_millis,
+            reporter=reporter,
+            encryption_settings_provider=wrap_if_necessary(encryption_settings_provider),
         )

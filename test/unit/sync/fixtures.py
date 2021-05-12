@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+from pathlib import PurePath
 import pytest
 
 from apiver_deps import AbstractFolder, B2SyncPath, LocalSyncPath, FileVersionInfo, LocalFileVersion
@@ -63,7 +64,7 @@ def local_file(name, mod_times, size=10):
     Makes a File object for a local file, with one FileVersion for
     each modification time given in mod_times.
     """
-    versions = [LocalFileVersion(mod_time, size) for mod_time in mod_times]
+    versions = [LocalFileVersion(PurePath(name), mod_time, size) for mod_time in mod_times]
     return LocalSyncPath(name, versions)
 
 

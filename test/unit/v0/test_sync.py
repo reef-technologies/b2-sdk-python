@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 import unittest
+from pathlib import PurePath
 from unittest.mock import MagicMock
 
 import pytest
@@ -447,10 +448,10 @@ class TestB2Folder(TestFolder):
 
         self.assertEqual(
             [
-                'B2SyncPath(inner/a.txt, [FileVersionInfo(2000, 200), '
-                'FileVersionInfo(1000, 100)])',
-                'B2SyncPath(inner/b.txt, [FileVersionInfo(1999, 200), '
-                'FileVersionInfo(1001, 100)])',
+                'B2SyncPath(inner/a.txt, [FileVersionInfo("inner/a.txt", 2000, 200),'
+                ' FileVersionInfo("inner/a.txt", 1000, 100)])',
+                'B2SyncPath(inner/b.txt, [FileVersionInfo("inner/b.txt", 1999, 200),'
+                ' FileVersionInfo("inner/b.txt", 1001, 100)])'
             ], [
                 str(f) for f in folder.all_files(self.reporter)
                 if f.relative_path in ('inner/a.txt', 'inner/b.txt')
@@ -746,29 +747,29 @@ class TestZipFolders(TestSync):
         self.assertEqual([], list(zip_folders(folder_a, folder_b, self.reporter)))
 
     def test_one_empty(self):
-        file_a1 = LocalSyncPath("a.txt", [LocalFileVersion(100, 10)])
+        file_a1 = LocalSyncPath("a.txt", [LocalFileVersion(PurePath("a.txt"), 100, 10)])
         folder_a = FakeFolder('b2', [file_a1])
         folder_b = FakeFolder('b2', [])
         self.assertEqual([(file_a1, None)], list(zip_folders(folder_a, folder_b, self.reporter)))
 
     def test_two(self):
         file_a1 = simple_b2_sync_path_from_local(
-            LocalSyncPath("a.txt", [LocalFileVersion(100, 10)])
+            LocalSyncPath("a.txt", [LocalFileVersion(PurePath("a.txt"), 100, 10)])
         )
         file_a2 = simple_b2_sync_path_from_local(
-            LocalSyncPath("b.txt", [LocalFileVersion(100, 10)])
+            LocalSyncPath("b.txt", [LocalFileVersion(PurePath("b.txt"), 100, 10)])
         )
         file_a3 = simple_b2_sync_path_from_local(
-            LocalSyncPath("d.txt", [LocalFileVersion(100, 10)])
+            LocalSyncPath("d.txt", [LocalFileVersion(PurePath("d.txt"), 100, 10)])
         )
         file_a4 = simple_b2_sync_path_from_local(
-            LocalSyncPath("f.txt", [LocalFileVersion(100, 10)])
+            LocalSyncPath("f.txt", [LocalFileVersion(PurePath("f.txt"), 100, 10)])
         )
         file_b1 = simple_b2_sync_path_from_local(
-            LocalSyncPath("b.txt", [LocalFileVersion(200, 10)])
+            LocalSyncPath("b.txt", [LocalFileVersion(PurePath("b.txt"), 200, 10)])
         )
         file_b2 = simple_b2_sync_path_from_local(
-            LocalSyncPath("e.txt", [LocalFileVersion(200, 10)])
+            LocalSyncPath("e.txt", [LocalFileVersion(PurePath("e.txt"), 200, 10)])
         )
         folder_a = FakeFolder('b2', [file_a1, file_a2, file_a3, file_a4])
         folder_b = FakeFolder('b2', [file_b1, file_b2])
@@ -840,7 +841,9 @@ def local_file(name, mod_times, size=10):
     Makes a File object for a b2 file, with one FileVersion for
     each modification time given in mod_times.
     """
-    return LocalSyncPath(name, [LocalFileVersion(mod_time, size) for mod_time in mod_times])
+    return LocalSyncPath(
+        name, [LocalFileVersion(PurePath(name), mod_time, size) for mod_time in mod_times]
+    )
 
 
 class TestExclusions(TestSync):

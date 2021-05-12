@@ -9,6 +9,7 @@
 ######################################################################
 
 from unittest.mock import MagicMock
+from pathlib import PurePath
 
 from ..test_base import TestBase
 
@@ -57,7 +58,9 @@ class TestMakeB2KeepDaysActions(TestBase):
         )
 
     def check_one_answer(self, has_source, id_relative_date_action_list, expected_actions):
-        source_file = LocalSyncPath('a', [LocalFileVersion(100, 10)]) if has_source else None
+        source_file = LocalSyncPath(
+            'a', [LocalFileVersion(PurePath('a'), 100, 10)]
+        ) if has_source else None
         dest_file_versions = [
             FileVersionInfo(
                 id_=id_,

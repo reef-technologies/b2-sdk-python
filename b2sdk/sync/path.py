@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from pathlib import PurePosixPath
 from typing import List
 
-from ..file_version import AbstractFileVersion, LocalFileVersion, FileVersionInfo
+from ..file_version import AbstractFileVersion, LocalFileVersion, B2FileVersion
 
 
 class AbstractSyncPath(ABC):
@@ -45,5 +45,5 @@ class LocalSyncPath(AbstractSyncPath):
 class B2SyncPath(AbstractSyncPath):
     __slots__ = ['relative_path', 'versions']
 
-    def __init__(self, relative_path: PurePosixPath, versions: List[FileVersionInfo]):
+    def __init__(self, relative_path: PurePosixPath, versions: List[B2FileVersion]):
         super().__init__(relative_path, versions)

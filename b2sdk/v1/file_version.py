@@ -10,4 +10,4 @@
 
 from b2sdk import _v2 as v2
 
-FileVersionInfo = v2.FileVersion
+FileVersionInfo = v2.B2FileVersion

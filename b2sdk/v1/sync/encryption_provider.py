@@ -45,7 +45,7 @@ class SyncEncryptionSettingsProviderWrapper(v2.AbstractSyncEncryptionSettingsPro
     def get_source_setting_for_copy(
         self,
         bucket: Bucket,
-        source_file_version: v2.FileVersion,
+        source_file_version: v2.B2FileVersion,
     ) -> Optional[v2.EncryptionSetting]:
         return self.provider.get_source_setting_for_copy(
             bucket=bucket, source_file_version_info=source_file_version
@@ -55,7 +55,7 @@ class SyncEncryptionSettingsProviderWrapper(v2.AbstractSyncEncryptionSettingsPro
         self,
         bucket: Bucket,
         dest_b2_file_name: str,
-        source_file_version: v2.FileVersion,
+        source_file_version: v2.B2FileVersion,
         target_file_info: Optional[dict] = None,
     ) -> Optional[v2.EncryptionSetting]:
         return self.provider.get_destination_setting_for_copy(
@@ -68,7 +68,7 @@ class SyncEncryptionSettingsProviderWrapper(v2.AbstractSyncEncryptionSettingsPro
     def get_setting_for_download(
         self,
         bucket: Bucket,
-        file_version: v2.FileVersion,
+        file_version: v2.B2FileVersion,
     ) -> Optional[v2.EncryptionSetting]:
         return self.provider.get_setting_for_download(
             bucket=bucket,

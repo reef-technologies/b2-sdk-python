@@ -16,12 +16,6 @@ from typing import List
 from ..file_version import AbstractFileVersion, LocalFileVersion, FileVersionInfo
 
 
-@enum.unique
-class PathType(enum.Enum):
-    LOCAL = 'local'
-    B2 = 'b2'
-
-
 class AbstractSyncPath(ABC):
     """
     Represent a path in a source or destination folder - be it B2 or local
@@ -31,10 +25,6 @@ class AbstractSyncPath(ABC):
         assert versions
         self.relative_path = relative_path
         self.versions = versions
-
-    @abstractmethod
-    def type_(self) -> PathType:
-        pass
 
     def latest_version(self) -> AbstractFileVersion:
         return self.versions[0]
@@ -48,18 +38,12 @@ class AbstractSyncPath(ABC):
 class LocalSyncPath(AbstractSyncPath):
     __slots__ = ['relative_path', 'versions']
 
-    def type_(self) -> PathType:
-        return PathType.LOCAL
-
     def __init__(self, relative_path: PurePosixPath, versions: List[LocalFileVersion]):
         super().__init__(relative_path, versions)
 
 
 class B2SyncPath(AbstractSyncPath):
     __slots__ = ['relative_path', 'versions']
-
-    def type_(self) -> PathType:
-        return PathType.B2
 
     def __init__(self, relative_path: PurePosixPath, versions: List[FileVersionInfo]):
         super().__init__(relative_path, versions)

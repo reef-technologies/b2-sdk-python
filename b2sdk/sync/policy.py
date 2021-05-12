@@ -17,7 +17,6 @@ from ..exception import DestFileNewer
 from .encryption_provider import AbstractSyncEncryptionSettingsProvider, SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
 from .action import LocalDeleteAction, B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction
 from .exception import InvalidArgument
-from .path import PathType
 
 ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 
@@ -89,10 +88,7 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         """
         Decide whether to transfer the file from the source to the destination.
         """
-        if self._source_path is None or (
-            self._source_path.type_() == PathType.B2 and
-            self._source_path.latest_version().action == 'hide'
-        ):
+        if self._source_path is None or not self._source_path.latest_version().is_visible():
             # No source file.  Nothing to transfer.
             return False
         elif self._dest_path is None:
@@ -299,10 +295,7 @@ class DownAndDeletePolicy(DownPolicy):
         for action in super(DownAndDeletePolicy, self)._get_hide_delete_actions():
             yield action
         if self._dest_path is not None and (
-            self._source_path is None or (
-                self._source_path.type_() == PathType.B2 and
-                self._source_path.latest_version().action == 'hide'
-            )
+            self._source_path is None or not self._source_path.latest_version().is_visible()
         ):
             # Local files have either 0 or 1 versions.  If the file is there,
             # it must have exactly 1 version.

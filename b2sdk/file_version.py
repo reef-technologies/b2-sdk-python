@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+from abc import ABC, abstractmethod
 from typing import Optional
 import datetime
 
@@ -15,7 +16,7 @@ from .encryption.setting import EncryptionSetting, EncryptionSettingFactory
 from .raw_api import SRC_LAST_MODIFIED_MILLIS
 
 
-class AbstractFileVersion:
+class AbstractFileVersion(ABC):
     def __init__(self, mod_time_millis: int, size: int):
         self.size = size
         self.mod_time_millis = mod_time_millis
@@ -27,9 +28,16 @@ class AbstractFileVersion:
             repr(self.size),
         )
 
+    @abstractmethod
+    def is_visible(self):
+        """Is this file version a concrete data point or just a hide marker"""
+
 
 class LocalFileVersion(AbstractFileVersion):
     __slots__ = ['size', 'mod_time_millis']
+
+    def is_visible(self):
+        return True
 
 
 class FileVersionInfo(AbstractFileVersion):  # TODO: this name will be changed in a subsequent PR
@@ -145,6 +153,9 @@ class FileVersionInfo(AbstractFileVersion):  # TODO: this name will be changed i
             if getattr(self, attr) != getattr(other, attr, sentry):
                 return False
         return True
+
+    def is_visible(self):
+        return self.action != 'hide'
 
 
 class FileVersionInfoFactory(object):

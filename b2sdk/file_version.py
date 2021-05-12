@@ -10,6 +10,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Optional
+from pathlib import PurePath, PurePosixPath
 import datetime
 
 from .encryption.setting import EncryptionSetting, EncryptionSettingFactory
@@ -17,13 +18,16 @@ from .raw_api import SRC_LAST_MODIFIED_MILLIS
 
 
 class AbstractFileVersion(ABC):
-    def __init__(self, mod_time_millis: int, size: int):
+    def __init__(self, file_path: PurePath, mod_time_millis: int, size: int):
+        self.file_path = file_path
         self.size = size
         self.mod_time_millis = mod_time_millis
 
     def __repr__(self):
-        return '%s(%s, %s)' % (
+        return '%s("%s", %s, %s)' % (
             self.__class__.__name__,
+            str(self.file_path),  # having a "PurePosixPath" or "PureWindowsPath"
+            # prefix here would obfuscate tests and not serve much purpose, hence str()
             repr(self.mod_time_millis),
             repr(self.size),
         )
@@ -34,7 +38,7 @@ class AbstractFileVersion(ABC):
 
 
 class LocalFileVersion(AbstractFileVersion):
-    __slots__ = ['size', 'mod_time_millis']
+    __slots__ = ['file_path', 'size', 'mod_time_millis']
 
     def is_visible(self):
         return True
@@ -63,6 +67,7 @@ class FileVersionInfo(AbstractFileVersion):  # TODO: this name will be changed i
     __slots__ = [
         'id_',
         'file_name',
+        'file_path',
         'size',
         'content_type',
         'content_sha1',
@@ -88,7 +93,8 @@ class FileVersionInfo(AbstractFileVersion):  # TODO: this name will be changed i
         server_side_encryption: Optional[EncryptionSetting] = None,  # TODO: make it mandatory in v2
     ):
         self.id_ = id_
-        self.file_name = file_name
+        self.file_name = file_name  # here for consistency with B2 nomenclature; in B2 file
+        # names are the same as file paths
         self.content_type = content_type
         self.content_sha1 = content_sha1
         self.content_md5 = content_md5
@@ -102,7 +108,12 @@ class FileVersionInfo(AbstractFileVersion):  # TODO: this name will be changed i
         else:
             mod_time_millis = self.upload_timestamp
 
-        super().__init__(mod_time_millis, size)
+        super().__init__(
+            PurePosixPath(file_name),  # always use PurePosixPath, even when running the
+            # SDK on Windows, because b2 cloud files always follow the posix convention of paths
+            mod_time_millis,
+            size
+        )
 
     def as_dict(self):
         """ represents the object as a dict which looks almost exactly like the raw api output for upload/list """

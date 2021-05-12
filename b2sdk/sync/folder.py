@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+from pathlib import PurePath
 import logging
 import os
 import platform
@@ -263,7 +264,9 @@ class LocalFolder(AbstractFolder):
                     # if policies_manager.should_exclude_file_version(version):  TODO: fix method name
                     #     continue
 
-                    yield LocalSyncPath(b2_path, [LocalFileVersion(file_mod_time, file_size)])
+                    yield LocalSyncPath(
+                        b2_path, [LocalFileVersion(PurePath(local_path), file_mod_time, file_size)]
+                    )
 
     @classmethod
     def _handle_non_unicode_file_name(cls, name):

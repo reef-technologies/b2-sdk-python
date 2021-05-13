@@ -8,7 +8,7 @@
 #
 ######################################################################
 
-from pathlib import PurePosixPath
+from pathlib import PurePosixPath, PurePath
 import logging
 import os
 import platform
@@ -264,7 +264,10 @@ class LocalFolder(AbstractFolder):
                     #     continue
 
                     yield LocalSyncPath(
-                        relative_path=PurePosixPath(b2_path), mod_time=file_mod_time, size=file_size
+                        relative_path=PurePosixPath(b2_path),
+                        native_relative_path=PurePath(b2_path),
+                        mod_time=file_mod_time,
+                        size=file_size
                     )
 
     @classmethod

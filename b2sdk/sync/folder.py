@@ -8,7 +8,7 @@
 #
 ######################################################################
 
-from pathlib import PurePosixPath, PurePath
+from pathlib import PurePosixPath, PurePath, Path
 import logging
 import os
 import platform
@@ -77,13 +77,9 @@ class AbstractFolder(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def make_full_path(self, file_name):
+    def make_full_path(self, file_name: PurePath):
         """
         Return the full path to the file.
-
-        :param file_name: a file name
-        :type file_name: str
-        :rtype: str
         """
 
 
@@ -107,7 +103,7 @@ class LocalFolder(AbstractFolder):
     Folder interface to a directory on the local machine.
     """
 
-    def __init__(self, root):
+    def __init__(self, root: str):
         """
         Initialize a new folder.
 
@@ -116,7 +112,7 @@ class LocalFolder(AbstractFolder):
         """
         if not isinstance(root, str):
             raise ValueError('folder path should be unicode: %s' % repr(root))
-        self.root = fix_windows_path_limit(os.path.abspath(root))
+        self.root = Path(fix_windows_path_limit(os.path.abspath(root))).resolve()
 
     def folder_type(self):
         """
@@ -136,27 +132,16 @@ class LocalFolder(AbstractFolder):
         for file_object in self._walk_relative_paths(self.root, '', reporter, policies_manager):
             yield file_object
 
-    def make_full_path(self, file_name):
+    def make_full_path(self, file_name: PurePath):
         """
         Convert a file name into an absolute path, ensure it is not outside self.root
-
-        :param file_name: a file name
-        :type file_name: str
         """
-        # Fix OS path separators
-        file_name = file_name.replace('/', os.path.sep)
-
-        # Generate the full path to the file
-        full_path = os.path.normpath(os.path.join(self.root, file_name))
-
-        # Get the common prefix between the new full_path and self.root
+        full_path = (self.root / file_name).resolve()
         common_prefix = os.path.commonprefix([full_path, self.root])
-
-        # Ensure the new full_path is inside the self.root directory
-        if common_prefix != self.root:
+        if common_prefix != str(self.root):
             raise UnSyncableFilename("illegal file name", full_path)
 
-        return full_path
+        return str(full_path)
 
     def ensure_present(self):
         """
@@ -293,12 +278,12 @@ class B2Folder(AbstractFolder):
     Folder interface to b2.
     """
 
-    def __init__(self, bucket_name, folder_name, api):
+    def __init__(self, bucket_name, folder_name: PurePosixPath, api):
         """
         :param bucket_name: a name of the bucket
         :type bucket_name: str
         :param folder_name: a folder name
-        :type folder_name: str
+        :type folder_name: PurePosixPath
         :param api: an API object
         :type api: b2sdk.api.B2Api
         """
@@ -318,7 +303,7 @@ class B2Folder(AbstractFolder):
         current_versions = []
         current_file_version_info = None
         for file_version_info, _ in self.bucket.ls(
-            self.folder_name,
+            self.folder_name.as_posix(),
             show_versions=True,
             recursive=True,
         ):
@@ -379,17 +364,11 @@ class B2Folder(AbstractFolder):
         """
         return 'b2'
 
-    def make_full_path(self, file_name):
+    def make_full_path(self, file_name: PurePosixPath):
         """
         Make an absolute path from a file name.
-
-        :param file_name: a file name
-        :type file_name: str
         """
-        if self.folder_name == '':
-            return file_name
-        else:
-            return self.folder_name + '/' + file_name
+        return str(self.folder_name / file_name)
 
     def __str__(self):
         return 'B2Folder(%s, %s)' % (self.bucket_name, self.folder_name)

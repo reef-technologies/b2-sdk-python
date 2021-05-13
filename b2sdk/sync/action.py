@@ -289,7 +289,7 @@ class B2DownloadAction(AbstractAction):
         :type bucket: b2sdk.bucket.Bucket
         :param reporter: a place to report errors
         """
-        reporter.print_completion('dnload ' + self.source_path.relative_path)
+        reporter.print_completion('dnload ' + str(self.source_path.relative_path))
 
     def __str__(self):
         return (
@@ -380,7 +380,7 @@ class B2CopyAction(AbstractAction):
         :type bucket: b2sdk.bucket.Bucket
         :param reporter: a place to report errors
         """
-        reporter.print_completion('copy ' + self.source_path.relative_path)
+        reporter.print_completion('copy ' + str(self.source_path.relative_path))
 
     def __str__(self):
         return (

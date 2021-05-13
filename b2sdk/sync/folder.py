@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+from pathlib import PurePosixPath
 import logging
 import os
 import platform
@@ -263,7 +264,7 @@ class LocalFolder(AbstractFolder):
                     #     continue
 
                     yield LocalSyncPath(
-                        relative_path=b2_path, mod_time=file_mod_time, size=file_size
+                        relative_path=PurePosixPath(b2_path), mod_time=file_mod_time, size=file_size
                     )
 
     @classmethod
@@ -347,7 +348,7 @@ class B2Folder(AbstractFolder):
 
             if current_name != file_name and current_name is not None and current_versions:
                 yield B2SyncPath(
-                    relative_path=current_name,
+                    relative_path=PurePosixPath(current_name),
                     selected_version=current_versions[0],
                     all_versions=current_versions
                 )
@@ -362,7 +363,7 @@ class B2Folder(AbstractFolder):
 
         if current_name is not None and current_versions:
             yield B2SyncPath(
-                relative_path=current_name,
+                relative_path=PurePosixPath(current_name),
                 selected_version=current_versions[0],
                 all_versions=current_versions
             )

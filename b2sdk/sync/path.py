@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+from pathlib import PurePosixPath
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -19,7 +20,7 @@ class AbstractSyncPath(ABC):
     Represent a path in a source or destination folder - be it B2 or local
     """
 
-    def __init__(self, relative_path: str, mod_time: int, size: int):
+    def __init__(self, relative_path: PurePosixPath, mod_time: int, size: int):
         self.relative_path = relative_path
         self.mod_time = mod_time
         self.size = size
@@ -30,7 +31,7 @@ class AbstractSyncPath(ABC):
 
     def __repr__(self):
         return '%s(%s, %s, %s)' % (
-            self.__class__.__name__, repr(self.relative_path), repr(self.mod_time), repr(self.size)
+            self.__class__.__name__, repr(str(self.relative_path)), repr(self.mod_time), repr(self.size)
         )
 
 
@@ -45,7 +46,7 @@ class B2SyncPath(AbstractSyncPath):
     __slots__ = ['relative_path', 'selected_version', 'all_versions']
 
     def __init__(
-        self, relative_path: str, selected_version: FileVersionInfo,
+        self, relative_path: PurePosixPath, selected_version: FileVersionInfo,
         all_versions: List[FileVersionInfo]
     ):
         self.selected_version = selected_version
@@ -65,7 +66,7 @@ class B2SyncPath(AbstractSyncPath):
 
     def __repr__(self):
         return '%s(%s, [%s])' % (
-            self.__class__.__name__, self.relative_path, ', '.join(
+            self.__class__.__name__, repr(str(self.relative_path)), ', '.join(
                 '(%s, %s, %s)' % (
                     repr(fv.id_),
                     repr(fv.mod_time_millis),

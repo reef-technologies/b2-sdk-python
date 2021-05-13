@@ -10,9 +10,15 @@
 
 import pytest
 
-from apiver_deps import AbstractFolder, File, B2File, FileVersion, B2FileVersion, FileVersionInfo
+import apiver_deps
+from apiver_deps import AbstractFolder, B2SyncPath, LocalSyncPath
 from apiver_deps import CompareVersionMode, NewerFileSyncMode, KeepOrDeleteMode
 from apiver_deps import DEFAULT_SCAN_MANAGER, Synchronizer
+
+if apiver_deps.V <= 1:
+    from apiver_deps import FileVersionInfo as VFileVersion
+else:
+    from apiver_deps import FileVersion as VFileVersion
 
 
 class FakeFolder(AbstractFolder):
@@ -37,11 +43,11 @@ class FakeFolder(AbstractFolder):
 
     def all_files(self, reporter, policies_manager=DEFAULT_SCAN_MANAGER):
         for single_file in self.files:
-            if single_file.name.endswith('/'):
-                if policies_manager.should_exclude_directory(single_file.name):
+            if single_file.relative_path.endswith('/'):
+                if policies_manager.should_exclude_directory(single_file.relative_path):
                     continue
             else:
-                if policies_manager.should_exclude_file(single_file.name):
+                if policies_manager.should_exclude_file(single_file.relative_path):
                     continue
             yield single_file
 
@@ -63,10 +69,7 @@ def local_file(name, mod_times, size=10):
     Makes a File object for a local file, with one FileVersion for
     each modification time given in mod_times.
     """
-    versions = [
-        FileVersion('/dir/%s' % (name,), name, mod_time, 'upload', size) for mod_time in mod_times
-    ]
-    return File(name, versions)
+    return LocalSyncPath(name, mod_times[0], size)
 
 
 def b2_file(name, mod_times, size=10):
@@ -77,34 +80,20 @@ def b2_file(name, mod_times, size=10):
     Positive modification times are uploads, and negative modification
     times are hides.  It's a hack, but it works.
 
-        b2_file('a.txt', [300, -200, 100])
-
-    Is the same as:
-
-        File(
-            'a.txt',
-            [
-               FileVersion('id_a_300', 'a.txt', 300, 'upload'),
-               FileVersion('id_a_200', 'a.txt', 200, 'hide'),
-               FileVersion('id_a_100', 'a.txt', 100, 'upload')
-            ]
-        )
     """
     versions = [
-        B2FileVersion(
-            FileVersionInfo(
-                id_='id_%s_%d' % (name[0], abs(mod_time)),
-                file_name='folder/' + name,
-                upload_timestamp=abs(mod_time),
-                action='upload' if 0 < mod_time else 'hide',
-                size=size,
-                file_info={'in_b2': 'yes'},
-                content_type='text/plain',
-                content_sha1='content_sha1',
-            )
+        VFileVersion(
+            id_='id_%s_%d' % (name[0], abs(mod_time)),
+            file_name='folder/' + name,
+            upload_timestamp=abs(mod_time),
+            action='upload' if 0 < mod_time else 'hide',
+            size=size,
+            file_info={'in_b2': 'yes'},
+            content_type='text/plain',
+            content_sha1='content_sha1',
         ) for mod_time in mod_times
     ]  # yapf disable
-    return B2File(name, versions)
+    return B2SyncPath(name, versions)
 
 
 @pytest.fixture(scope='session')

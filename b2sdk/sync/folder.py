@@ -16,7 +16,7 @@ import sys
 
 from abc import ABCMeta, abstractmethod
 from .exception import EmptyDirectory, EnvironmentEncodingError, UnSyncableFilename, NotADirectory, UnableToCreateDirectory
-from .file import File, B2File, FileVersion, B2FileVersion
+from .path import B2SyncPath, LocalSyncPath
 from .scan_policies import DEFAULT_SCAN_MANAGER
 from ..utils import fix_windows_path_limit, get_file_mtime, is_file_readable
 
@@ -258,12 +258,13 @@ class LocalFolder(AbstractFolder):
                 if is_file_readable(local_path, reporter):
                     file_mod_time = get_file_mtime(local_path)
                     file_size = os.path.getsize(local_path)
-                    version = FileVersion(local_path, b2_path, file_mod_time, 'upload', file_size)
 
-                    if policies_manager.should_exclude_file_version(version):
-                        continue
+                    # if policies_manager.should_exclude_file_version(version):  TODO: fix method name
+                    #     continue
 
-                    yield File(b2_path, [version])
+                    yield LocalSyncPath(
+                        relative_path=b2_path, mod_time=file_mod_time, size=file_size
+                    )
 
     @classmethod
     def _handle_non_unicode_file_name(cls, name):
@@ -311,19 +312,19 @@ class B2Folder(AbstractFolder):
         """
         current_name = None
         current_versions = []
-        current_file_version_info = None
-        for file_version_info, _ in self.bucket.ls(
+        current_file_version = None
+        for file_version, _ in self.bucket.ls(
             self.folder_name,
             show_versions=True,
             recursive=True,
         ):
-            if current_file_version_info is None:
-                current_file_version_info = file_version_info
+            if current_file_version is None:
+                current_file_version = file_version
 
-            assert file_version_info.file_name.startswith(self.prefix)
-            if file_version_info.action == 'start':
+            assert file_version.file_name.startswith(self.prefix)
+            if file_version.action == 'start':
                 continue
-            file_name = file_version_info.file_name[len(self.prefix):]
+            file_name = file_version.file_name[len(self.prefix):]
 
             if policies_manager.should_exclude_file(file_name):
                 continue
@@ -345,19 +346,18 @@ class B2Folder(AbstractFolder):
                 )
 
             if current_name != file_name and current_name is not None and current_versions:
-                yield B2File(current_name, current_versions)
+                yield B2SyncPath(relative_path=current_name, file_versions=current_versions)
                 current_versions = []
 
             current_name = file_name
-            file_version = B2FileVersion(file_version_info)
 
-            if policies_manager.should_exclude_file_version(file_version):
-                continue
+            # if policies_manager.should_exclude_file_version(file_version):  TODO: adjust method name
+            #     continue
 
             current_versions.append(file_version)
 
         if current_name is not None and current_versions:
-            yield B2File(current_name, current_versions)
+            yield B2SyncPath(relative_path=current_name, file_versions=current_versions)
 
     def folder_type(self):
         """

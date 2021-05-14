@@ -24,7 +24,7 @@ from typing import Any, Dict, Optional
 from .b2http import B2Http
 from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault
 from .encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
-from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_FILE_SETTING, RetentionMode, RetentionPeriod
+from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_FILE_SETTING, RetentionMode, RetentionPeriod, LegalHoldSerializer
 from .utils import b2_url_encode, hex_sha1_of_stream
 
 # All possible capabilities
@@ -664,7 +664,11 @@ class B2RawApi(AbstractRawApi):
             )
             kwargs['serverSideEncryption'] = server_side_encryption.serialize_to_json_for_request()
 
-        # FIXME: implement `legal_hold` and `file_retention`
+        if legal_hold is not None:
+            kwargs['legalHold'] = LegalHoldSerializer.to_server(legal_hold)
+
+        if file_retention is not None:
+            kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()
 
         return self._post_json(
             api_url,
@@ -833,7 +837,11 @@ class B2RawApi(AbstractRawApi):
             )
             server_side_encryption.add_to_upload_headers(headers)
 
-        # FIXME: implement `legal_hold` and `file_retention`
+        if legal_hold is not None:
+            LegalHoldSerializer.add_to_upload_headers(legal_hold, headers)
+
+        if file_retention is not None:
+            file_retention.add_to_to_upload_headers(headers)
 
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 
@@ -914,7 +922,11 @@ class B2RawApi(AbstractRawApi):
             kwargs['sourceServerSideEncryption'
                   ] = source_server_side_encryption.serialize_to_json_for_request()
 
-        # FIXME: implement `legal_hold` and `file_retention`
+        if legal_hold is not None:
+            kwargs['legalHold'] = LegalHoldSerializer.to_server(legal_hold)
+
+        if file_retention is not None:
+            kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()
 
         return self._post_json(
             api_url,

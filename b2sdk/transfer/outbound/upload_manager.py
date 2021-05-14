@@ -82,8 +82,8 @@ class UploadManager(metaclass=B2TraceMetaAbstract):
         file_info,
         progress_listener,
         encryption: Optional[EncryptionSetting] = None,
-        legal_hold: Optional[bool] = None,
         file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         f = self.get_thread_pool().submit(
             self._upload_small_file,
@@ -94,6 +94,8 @@ class UploadManager(metaclass=B2TraceMetaAbstract):
             file_info,
             progress_listener,
             encryption,
+            file_retention,
+            legal_hold,
         )
         return f
 
@@ -209,8 +211,8 @@ class UploadManager(metaclass=B2TraceMetaAbstract):
         file_info,
         progress_listener,
         encryption: Optional[EncryptionSetting] = None,
-        legal_hold: Optional[bool] = None,
         file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         content_length = upload_source.get_content_length()
         exception_info_list = []

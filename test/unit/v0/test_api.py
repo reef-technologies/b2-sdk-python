@@ -47,6 +47,18 @@ class TestApi(TestBase):
                         'mode': 'none'
                     },
                 },
+            'fileLockConfiguration':
+                {
+                    'isClientAuthorizedToRead': True,
+                    'value':
+                        {
+                            'defaultRetention': {
+                                'mode': None,
+                                'period': None
+                            },
+                            'isFileLockEnabled': None
+                        }
+                },
         }  # yapf: off
         assert delete_output == expected, delete_output
         self.api.create_bucket('bucket3', 'allPrivate')

@@ -67,6 +67,18 @@ from b2sdk.file_version import FileVersionInfo
 from b2sdk.large_file.part import Part
 from b2sdk.large_file.unfinished_large_file import UnfinishedLargeFile
 
+
+# file lock
+
+from b2sdk.file_lock import BucketRetentionSetting
+from b2sdk.file_lock import FileRetentionSetting
+from b2sdk.file_lock import LegalHoldSerializer
+from b2sdk.file_lock import NO_RETENTION_BUCKET_SETTING
+from b2sdk.file_lock import NO_RETENTION_FILE_SETTING
+from b2sdk.file_lock import RetentionMode
+from b2sdk.file_lock import UNKNOWN_BUCKET_RETENTION
+from b2sdk.file_lock import UNKNOWN_FILE_LOCK_CONFIGURATION
+
 # progress reporting
 
 from b2sdk.progress import AbstractProgressListener

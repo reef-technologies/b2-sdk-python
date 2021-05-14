@@ -312,7 +312,8 @@ class FileSimulator(object):
         else:
             file_lock_configuration['value'] = {'mode': self.file_retention.mode.value}
             if self.file_retention.retain_until is not None:
-                file_lock_configuration['value']['retainUntilTimestamp'] = self.file_retention.retain_until
+                file_lock_configuration['value']['retainUntilTimestamp'
+                                                ] = self.file_retention.retain_until
         return file_lock_configuration
 
     def _legal_hold_dict(self, account_auth_token):
@@ -651,6 +652,8 @@ class BucketSimulator(object):
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
         source_server_side_encryption: Optional[EncryptionSetting] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         if metadata_directive is not None:
             assert metadata_directive in tuple(MetadataDirectiveMode)
@@ -685,6 +688,8 @@ class BucketSimulator(object):
             data_bytes,
             next(self.upload_timestamp_counter),
             server_side_encryption=sse,
+            file_retention=file_retention,
+            legal_hold=legal_hold,
         )
 
         if metadata_directive is MetadataDirectiveMode.REPLACE:
@@ -758,7 +763,9 @@ class BucketSimulator(object):
         file_sim = self.file_id_to_file[file_id]
         return file_sim.list_parts(start_part_number, max_part_count)
 
-    def list_unfinished_large_files(self, account_auth_token, start_file_id=None, max_file_count=None, prefix=None):
+    def list_unfinished_large_files(
+        self, account_auth_token, start_file_id=None, max_file_count=None, prefix=None
+    ):
         start_file_id = start_file_id or self.FIRST_FILE_ID
         max_file_count = max_file_count or 100
         all_unfinished_ids = set(
@@ -786,6 +793,8 @@ class BucketSimulator(object):
         content_type,
         file_info,
         server_side_encryption: Optional[EncryptionSetting] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         file_id = self._next_file_id()
         sse = server_side_encryption or self.default_server_side_encryption
@@ -794,6 +803,7 @@ class BucketSimulator(object):
         file_sim = self.FILE_SIMULATOR_CLASS(
             self.account_id, self, file_id, 'start', file_name, content_type, 'none',
             file_info, None, next(self.upload_timestamp_counter), server_side_encryption=sse,
+            file_retention=file_retention, legal_hold=legal_hold,
         )  # yapf: disable
         self.file_id_to_file[file_id] = file_sim
         self.file_name_and_id_to_file[file_sim.sort_key()] = file_sim
@@ -838,6 +848,8 @@ class BucketSimulator(object):
         file_infos,
         data_stream,
         server_side_encryption: Optional[EncryptionSetting] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         data_bytes = self._simulate_chunked_post(data_stream, content_length)
         assert len(data_bytes) == content_length
@@ -868,6 +880,8 @@ class BucketSimulator(object):
             data_bytes,
             next(self.upload_timestamp_counter),
             server_side_encryption=encryption,
+            file_retention=file_retention,
+            legal_hold=legal_hold,
         )
         self.file_id_to_file[file_id] = file_sim
         self.file_name_and_id_to_file[file_sim.sort_key()] = file_sim
@@ -1312,7 +1326,9 @@ class RawSimulator(AbstractRawApi):
             file_info,
             destination_bucket_id,
             destination_server_side_encryption=destination_server_side_encryption,
-            source_server_side_encryption=source_server_side_encryption
+            source_server_side_encryption=source_server_side_encryption,
+            file_retention=file_retention,
+            legal_hold=legal_hold,
         )
 
         if destination_bucket_id:
@@ -1324,8 +1340,6 @@ class RawSimulator(AbstractRawApi):
 
         dest_bucket.file_id_to_file[copy_file_sim.file_id] = copy_file_sim
         dest_bucket.file_name_and_id_to_file[copy_file_sim.sort_key()] = copy_file_sim
-
-        # FIXME: implement `legal_hold` and `file_retention`
 
         return copy_file_sim.as_upload_result(account_auth_token)
 
@@ -1481,7 +1495,9 @@ class RawSimulator(AbstractRawApi):
         )
         start_file_id = start_file_id or ''
         max_file_count = max_file_count or 100
-        return bucket.list_unfinished_large_files(account_auth_token, start_file_id, max_file_count, prefix)
+        return bucket.list_unfinished_large_files(
+            account_auth_token, start_file_id, max_file_count, prefix
+        )
 
     def start_large_file(
         self,
@@ -1503,10 +1519,12 @@ class RawSimulator(AbstractRawApi):
             content_type,
             file_info,
             server_side_encryption,
+            file_retention,
+            legal_hold,
         )
         self.file_id_to_bucket_id[result['fileId']] = bucket_id
 
-        # FIXME: implement `legal_hold` and `file_retention`
+        # FIXME: implement `legal_hold` and `file_retention` - probably done
 
         return result
 
@@ -1577,11 +1595,13 @@ class RawSimulator(AbstractRawApi):
                 file_infos,
                 data_stream,
                 server_side_encryption,
+                file_retention,
+                legal_hold,
             )
             file_id = response['fileId']
             self.file_id_to_bucket_id[file_id] = bucket_id
 
-        # FIXME: implement `legal_hold` and `file_retention`
+        # FIXME: implement `legal_hold` and `file_retention` - probably done
 
         return response
 

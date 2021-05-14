@@ -24,6 +24,7 @@ from typing import Any, Dict, Optional
 from .b2http import B2Http
 from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault
 from .encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
+from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_FILE_SETTING, RetentionMode, RetentionPeriod
 from .utils import b2_url_encode, hex_sha1_of_stream
 
 # All possible capabilities
@@ -36,6 +37,12 @@ ALL_CAPABILITIES = [
     'deleteBuckets',
     'readBucketEncryption',
     'writeBucketEncryption',
+    'readBucketRetentions',
+    'writeBucketRetentions',
+    'writeFileRetentions',
+    'writeFileLegalHolds',
+    'readFileRetentions',
+    'readFileLegalHolds',
     'listFiles',
     'readFiles',
     'shareFiles',
@@ -89,6 +96,8 @@ class AbstractRawApi(metaclass=ABCMeta):
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
         source_server_side_encryption: Optional[EncryptionSetting] = None,
+        legal_hold: Optional[bool] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
     ):
         pass
 
@@ -118,6 +127,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         cors_rules=None,
         lifecycle_rules=None,
         default_server_side_encryption: Optional[EncryptionSetting] = None,
+        is_file_lock_enabled: Optional[bool] = None,
     ):
         pass
 
@@ -256,6 +266,8 @@ class AbstractRawApi(metaclass=ABCMeta):
         content_type,
         file_info,
         server_side_encryption: Optional[EncryptionSetting] = None,
+        legal_hold: Optional[bool] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
     ):
         pass
 
@@ -272,6 +284,19 @@ class AbstractRawApi(metaclass=ABCMeta):
         lifecycle_rules=None,
         if_revision_is=None,
         default_server_side_encryption: Optional[EncryptionSetting] = None,
+        default_retention: Optional[BucketRetentionSetting] = None,
+    ):
+        pass
+
+    @abstractmethod
+    def update_file_retention(
+        self,
+        api_url,
+        account_auth_token,
+        file_id,
+        file_name,
+        file_retention: FileRetentionSetting,
+        bypass_governance: bool = False,
     ):
         pass
 
@@ -287,6 +312,8 @@ class AbstractRawApi(metaclass=ABCMeta):
         file_infos,
         data_stream,
         server_side_encryption: Optional[EncryptionSetting] = None,
+        legal_hold: Optional[bool] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
     ):
         pass
 
@@ -364,7 +391,8 @@ class B2RawApi(AbstractRawApi):
         bucket_info=None,
         cors_rules=None,
         lifecycle_rules=None,
-        default_server_side_encryption=None,
+        default_server_side_encryption: Optional[EncryptionSetting] = None,
+        is_file_lock_enabled: Optional[bool] = None,
     ):
         kwargs = dict(
             accountId=account_id,
@@ -382,6 +410,8 @@ class B2RawApi(AbstractRawApi):
                 raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs['defaultServerSideEncryption'
                   ] = default_server_side_encryption.serialize_to_json_for_request()
+        if is_file_lock_enabled is not None:
+            kwargs['fileLockEnabled'] = is_file_lock_enabled
         return self._post_json(
             api_url,
             'b2_create_bucket',
@@ -624,6 +654,8 @@ class B2RawApi(AbstractRawApi):
         content_type,
         file_info,
         server_side_encryption: Optional[EncryptionSetting] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         kwargs = {}
         if server_side_encryption is not None:
@@ -631,6 +663,9 @@ class B2RawApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['serverSideEncryption'] = server_side_encryption.serialize_to_json_for_request()
+
+        # FIXME: implement `legal_hold` and `file_retention`
+
         return self._post_json(
             api_url,
             'b2_start_large_file',
@@ -653,7 +688,8 @@ class B2RawApi(AbstractRawApi):
         cors_rules=None,
         lifecycle_rules=None,
         if_revision_is=None,
-        default_server_side_encryption=None,
+        default_server_side_encryption: Optional[EncryptionSetting] = None,
+        default_retention: Optional[BucketRetentionSetting] = None,
     ):
         assert bucket_info is not None or bucket_type is not None
 
@@ -669,11 +705,12 @@ class B2RawApi(AbstractRawApi):
         if lifecycle_rules is not None:
             kwargs['lifecycleRules'] = lifecycle_rules
         if default_server_side_encryption is not None:
-            if default_server_side_encryption is not None:
-                if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
-                    raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
-                kwargs['defaultServerSideEncryption'
-                      ] = default_server_side_encryption.serialize_to_json_for_request()
+            if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
+                raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
+            kwargs['defaultServerSideEncryption'
+                  ] = default_server_side_encryption.serialize_to_json_for_request()
+        if default_retention is not None:
+            kwargs['defaultRetention'] = default_retention.serialize_to_json_for_request()
 
         return self._post_json(
             api_url,
@@ -681,6 +718,27 @@ class B2RawApi(AbstractRawApi):
             account_auth_token,
             accountId=account_id,
             bucketId=bucket_id,
+            **kwargs
+        )
+
+    def update_file_retention(
+        self,
+        api_url,
+        account_auth_token,
+        file_id,
+        file_name,
+        file_retention: FileRetentionSetting,
+        bypass_governance: bool = False,
+    ):
+        kwargs = {}
+        kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()
+        return self._post_json(
+            api_url,
+            'b2_update_file_retention',
+            account_auth_token,
+            fileId=file_id,
+            fileName=file_name,
+            bypassGovernance=bypass_governance,
             **kwargs
         )
 
@@ -742,6 +800,8 @@ class B2RawApi(AbstractRawApi):
         file_infos,
         data_stream,
         server_side_encryption: Optional[EncryptionSetting] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         """
         Upload one, small file to b2.
@@ -772,6 +832,8 @@ class B2RawApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             server_side_encryption.add_to_upload_headers(headers)
+
+        # FIXME: implement `legal_hold` and `file_retention`
 
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 
@@ -812,6 +874,8 @@ class B2RawApi(AbstractRawApi):
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
         source_server_side_encryption: Optional[EncryptionSetting] = None,
+        file_retention: Optional[FileRetentionSetting] = None,
+        legal_hold: Optional[bool] = None,
     ):
         kwargs = {}
         if bytes_range is not None:
@@ -849,6 +913,8 @@ class B2RawApi(AbstractRawApi):
             assert source_server_side_encryption.mode == EncryptionMode.SSE_C
             kwargs['sourceServerSideEncryption'
                   ] = source_server_side_encryption.serialize_to_json_for_request()
+
+        # FIXME: implement `legal_hold` and `file_retention`
 
         return self._post_json(
             api_url,
@@ -979,8 +1045,17 @@ def test_raw_api_helper(raw_api):
     bucket_name = 'test-raw-api-%s-%d-%d' % (
         account_id, int(time.time()), random.randint(1000, 9999)
     )
+
+    # very verbose http debug
+    #import http.client; http.client.HTTPConnection.debuglevel = 1
+
     bucket_dict = raw_api.create_bucket(
-        api_url, account_auth_token, account_id, bucket_name, 'allPublic'
+        api_url,
+        account_auth_token,
+        account_id,
+        bucket_name,
+        'allPublic',
+        is_file_lock_enabled=True,
     )
     bucket_id = bucket_dict['bucketId']
     first_bucket_revision = bucket_dict['revision']
@@ -992,9 +1067,13 @@ def test_raw_api_helper(raw_api):
         algorithm=EncryptionAlgorithm.AES256,
     )
     sse_none = EncryptionSetting(mode=EncryptionMode.NONE)
-    for encryption_setting in [
-        sse_none,
-        sse_b2_aes,
+    for encryption_setting, default_retention in [
+        (
+            sse_none,
+            BucketRetentionSetting(mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1))
+        ),
+        (sse_b2_aes, None),
+        (sse_b2_aes, BucketRetentionSetting(RetentionMode.NONE)),
     ]:
         bucket_dict = raw_api.update_bucket(
             api_url,
@@ -1003,11 +1082,13 @@ def test_raw_api_helper(raw_api):
             bucket_id,
             'allPublic',
             default_server_side_encryption=encryption_setting,
+            default_retention=default_retention,
         )
 
     # b2_list_buckets
     print('b2_list_buckets')
     bucket_list_dict = raw_api.list_buckets(api_url, account_auth_token, account_id)
+    #print(bucket_list_dict)
 
     # b2_get_upload_url
     print('b2_get_upload_url')
@@ -1186,7 +1267,10 @@ def test_raw_api_helper(raw_api):
         account_id,
         bucket_id,
         'allPrivate',
-        bucket_info={'color': 'blue'}
+        bucket_info={'color': 'blue'},
+        default_retention=BucketRetentionSetting(
+            mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1)
+        ),
     )
     assert first_bucket_revision < updated_bucket['revision']
 
@@ -1212,6 +1296,16 @@ def _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, b
         action = version_dict['action']
         if action in ['hide', 'upload']:
             print('b2_delete_file', file_name, action)
+            if action == 'upload' and version_dict[
+                'fileRetention'] and version_dict['fileRetention']['value']['mode'] is not None:
+                raw_api.update_file_retention(
+                    api_url,
+                    account_auth_token,
+                    file_id,
+                    file_name,
+                    NO_RETENTION_FILE_SETTING,
+                    bypass_governance=True
+                )
             raw_api.delete_file_version(api_url, account_auth_token, file_id, file_name)
         else:
             print('b2_cancel_large_file', file_name)

@@ -29,6 +29,8 @@ RETENTION_MODES_REQUIRING_PERIODS = frozenset({RetentionMode.COMPLIANCE, Retenti
 
 
 class RetentionPeriod:
+    KNOWN_UNITS = ['days', 'years']
+
     def __init__(self, years: Optional[int] = None, days: Optional[int] = None):
         assert (years is None) != (days is None)
         if years is not None:
@@ -50,6 +52,7 @@ class RetentionPeriod:
                 "unit": "years"
             }
         """
+        assert period_dict['unit'] in cls.KNOWN_UNITS
         return cls(**{period_dict['unit']: period_dict['duration']})
 
     def as_dict(self):
@@ -135,10 +138,19 @@ class FileRetentionSetting:
             self.mode.value
         )  # mode = NONE is not supported by the server at the
         # moment, but it should be
-        headers['X-Bz-File-Retention-Retain-Until-Timestamp'] = self.retain_until
+        headers['X-Bz-File-Retention-Retain-Until-Timestamp'] = str(self.retain_until)
+
+    def __eq__(self, other):
+        return self.mode == other.mode and self.retain_until == self.retain_until
+
+    def __repr__(self):
+        return '%s(%s, %s)' % (self.__class__.__name__, self.mode.value, self.retain_until)
 
 
 class LegalHoldSerializer:
+    ON = 'on'
+    OFF = 'off'
+
     @classmethod
     def from_server(cls, file_version_dict) -> Optional[bool]:
         if 'legalHold' not in file_version_dict:
@@ -148,22 +160,25 @@ class LegalHoldSerializer:
                     (file_version_dict['action'])
                 )
             return None
-        legal_hold_dict = file_version_dict['legalHold']
-        if legal_hold_dict['value'] is None:
+        return cls.from_string_or_none(file_version_dict['legalHold']['value'])
+
+    @classmethod
+    def from_string_or_none(cls, string: Optional[str]):
+        if string is None:
             return None
-        if legal_hold_dict['value'] == 'on':
+        if string == cls.ON:
             return True
-        elif legal_hold_dict['value'] == 'off':
+        if string == cls.OFF:
             return False
-        raise ValueError('Unknown legal hold value: %s' % (legal_hold_dict['value'],))
+        raise ValueError('Unknown legal hold value: %s' % (string,))
 
     @classmethod
     def to_server(cls, bool_value: Optional[bool]) -> str:
         if bool_value is None:
             raise ValueError('Cannot use unknown legal hold in requests')
         if bool_value:
-            return 'on'
-        return 'off'
+            return cls.ON
+        return cls.OFF
 
     @classmethod
     def add_to_upload_headers(cls, bool_value: Optional[bool], headers):

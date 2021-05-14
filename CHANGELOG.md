@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Cleanup sync errors related to directories
 * Use proper error handling in `ScanPoliciesManager`
 * Application key restriction message reverted to previous form
+* Added missing apiver wrappers for FileVersionInfo
 
 ### Changed
 * `b2sdk.v1.sync` refactored to reflect `b2sdk.sync` structure
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 * Remove `Bucket.copy_file` and `Bucket.start_large_file` 
+* Remove `FileVersionInfo.format_ls_entry` and `FileVersionInfo.format_folder_ls_entry`
 
 ## [1.7.0] - 2021-04-22
 

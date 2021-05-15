@@ -37,7 +37,7 @@ from .exception import (
     UnsatisfiableRange,
     SSECKeyError,
 )
-from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_BUCKET_SETTING, UNKNOWN_FILE_LOCK_CONFIGURATION
+from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_BUCKET_SETTING, UNKNOWN_FILE_LOCK_CONFIGURATION, LegalHoldSerializer
 from .raw_api import AbstractRawApi, HEX_DIGITS_AT_END, MetadataDirectiveMode, ALL_CAPABILITIES
 from .utils import (
     b2_url_decode,
@@ -640,6 +640,28 @@ class BucketSimulator(object):
         assert file_sim.name == file_name
         # TODO: check bypass etc
         file_sim.file_retention = file_retention
+        return {
+            'fileId': file_id,
+            'fileName': file_name,
+            'fileRetention': file_sim.file_retention.serialize_to_json_for_request(),
+        }
+
+    def update_file_legal_hold(
+        self,
+        account_auth_token,
+        file_id,
+        file_name,
+        legal_hold: bool = False,
+    ):
+        file_sim = self.file_id_to_file[file_id]
+        assert self.is_file_lock_enabled
+        assert file_sim.name == file_name
+        file_sim.legal_hold = legal_hold
+        return {
+            'fileId': file_id,
+            'fileName': file_name,
+            'legalHold': LegalHoldSerializer.to_server(file_sim.legal_hold),
+        }
 
     def copy_file(
         self,
@@ -1191,7 +1213,22 @@ class RawSimulator(AbstractRawApi):
         bucket_id = self.file_id_to_bucket_id[file_id]
         bucket = self._get_bucket_by_id(bucket_id)
         return bucket.update_file_retention(
-            account_auth_token, file_id, file_name, file_retention, bypass_governance
+            account_auth_token, file_id, file_name, file_retention, bypass_governance,
+        )
+
+
+    def update_file_legal_hold(
+        self,
+        api_url,
+        account_auth_token,
+        file_id,
+        file_name,
+        legal_hold: bool,
+    ):
+        bucket_id = self.file_id_to_bucket_id[file_id]
+        bucket = self._get_bucket_by_id(bucket_id)
+        return bucket.update_file_legal_hold(
+            account_auth_token, file_id, file_name, legal_hold,
         )
 
     def delete_bucket(self, api_url, account_auth_token, account_id, bucket_id):

@@ -36,7 +36,7 @@ class UnfinishedLargeFile(object):
         self.file_info = file_dict['fileInfo']
         self.encryption = EncryptionSettingFactory.from_file_version_dict(file_dict)
         self.file_retention = FileRetentionSetting.from_file_version_dict(file_dict)
-        self.legal_hold = LegalHoldSerializer.from_server(file_dict)
+        self.legal_hold = LegalHoldSerializer.from_file_version_dict(file_dict)
 
     def __repr__(self):
         return '<%s %s %s>' % (self.__class__.__name__, self.bucket_id, self.file_name)

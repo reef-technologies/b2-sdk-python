@@ -190,7 +190,7 @@ class FileVersionInfoFactory(object):
         server_side_encryption = EncryptionSettingFactory.from_file_version_dict(file_info_dict)
         file_retention = FileRetentionSetting.from_file_version_dict(file_info_dict)
 
-        legal_hold = LegalHoldSerializer.from_server(file_info_dict)
+        legal_hold = LegalHoldSerializer.from_file_version_dict(file_info_dict)
 
         return FileVersionInfo(
             id_,
@@ -252,3 +252,54 @@ class FileIdAndName(object):
     def as_dict(self):
         """ represents the object as a dict which looks almost exactly like the raw api output for delete_file_version """
         return {'action': 'delete', 'fileId': self.file_id, 'fileName': self.file_name}
+
+
+class FileIdNameAndRetention(object):
+    """
+    A structure which represents a B2 cloud file with just `fileName`, `fileId` and `fileRetention` attributes.
+
+    Used to return data from calls to :py:meth:`b2sdk.v1.B2Api.update_file_retention`.
+    """
+
+    def __init__(self, file_id: str, file_name: str, file_retention: FileRetentionSetting):
+        self.file_id = file_id
+        self.file_name = file_name
+        self.file_retention = file_retention
+
+    def as_dict(self):
+        return {'fileId': self.file_id, 'fileName': self.file_name, 'fileRetention': self.file_retention.as_dict()}
+
+    @classmethod
+    def from_response(cls, response: dict):
+        """Build a FileIdNameAndRetention from API response dict"""
+        return cls(
+            response['fileId'],
+            response['fileName'],
+            FileRetentionSetting.from_file_retention_value_dict(response['fileRetention'])
+        )
+
+
+class FileIdNameAndLegalHold(object):
+    """
+    A structure which represents a B2 cloud file with just `fileName`, `fileId` and `legalHold` attributes.
+
+    Used to return data from calls to :py:meth:`b2sdk.v1.B2Api.update_file_legal_hold`.
+    """
+
+    def __init__(self, file_id: str, file_name: str, legal_hold: bool):
+        self.file_id = file_id
+        self.file_name = file_name
+        self.legal_hold = legal_hold
+
+
+    def as_dict(self):
+        return {'fileId': self.file_id, 'fileName': self.file_name, 'legalHold': self.legal_hold}
+
+    @classmethod
+    def from_response(cls, response: dict):
+        """Build a FileIdNameAndRetention from API response dict"""
+        return cls(
+            response['fileId'],
+            response['fileName'],
+            LegalHoldSerializer.from_string(response['legalHold'])
+        )

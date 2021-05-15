@@ -13,8 +13,8 @@ from typing import Any, Dict, Optional
 from .bucket import Bucket, BucketFactory
 from .encryption.setting import EncryptionSetting
 from .exception import NonExistentBucket, RestrictedBucket
-from .file_lock import BucketRetentionSetting
-from .file_version import FileIdAndName
+from .file_lock import BucketRetentionSetting, FileRetentionSetting
+from .file_version import FileIdAndName, FileIdNameAndRetention, FileIdNameAndLegalHold
 from .large_file.services import LargeFileServices
 from .raw_api import API_VERSION
 from .session import B2Session
@@ -262,6 +262,32 @@ class B2Api(metaclass=B2TraceMeta):
             range_,
             encryption,
         )
+
+    def update_file_retention(
+            self,
+            file_id: str,
+            file_name: str,
+            file_retention: FileRetentionSetting,
+            bypass_governance: bool = False,
+    ):
+        return FileIdNameAndRetention.from_response(self.session.update_file_retention(
+            file_id,
+            file_name,
+            file_retention,
+            bypass_governance,
+    ))
+
+    def update_file_legal_hold(
+            self,
+            file_id: str,
+            file_name: str,
+            legal_hold: bool,
+    ) -> FileIdNameAndLegalHold:
+        return FileIdNameAndLegalHold.from_response(self.session.update_file_legal_hold(
+            file_id,
+            file_name,
+            legal_hold,
+    ))
 
     def get_bucket_by_id(self, bucket_id: str) -> Bucket:
         """

@@ -70,7 +70,7 @@ class FileRetentionSetting:
         self.retain_until = retain_until
 
     @classmethod
-    def from_file_version_dict(cls, file_version_dict: dict):
+    def from_file_version_dict(cls, file_version_dict: dict) -> 'FileRetentionSetting':
         """
         Returns FileRetentionSetting for the given file_version_dict retrieved from the api. E.g.
 
@@ -104,19 +104,23 @@ class FileRetentionSetting:
                     (file_version_dict['action'])
                 )
             return NO_RETENTION_FILE_SETTING
+        file_retention_dict = file_version_dict['fileRetention']
 
-        retention_dict = file_version_dict['fileRetention']
-
-        if not retention_dict['isClientAuthorizedToRead']:
+        if not file_retention_dict['isClientAuthorizedToRead']:
             return cls(RetentionMode.UNKNOWN, None)
 
-        mode = retention_dict['value']['mode']
+        return cls.from_file_retention_value_dict(file_retention_dict['value'])
+
+    @classmethod
+    def from_file_retention_value_dict(cls, file_retention_value_dict: dict) -> 'FileRetentionSetting':
+
+        mode = file_retention_value_dict['mode']
         if mode is None:
             return NO_RETENTION_FILE_SETTING
 
         return cls(
             RetentionMode(mode),
-            retention_dict['value']['retainUntilTimestamp'],
+            file_retention_value_dict['retainUntilTimestamp'],
         )
 
     def serialize_to_json_for_request(self):
@@ -152,7 +156,7 @@ class LegalHoldSerializer:
     OFF = 'off'
 
     @classmethod
-    def from_server(cls, file_version_dict) -> Optional[bool]:
+    def from_file_version_dict(cls, file_version_dict: dict) -> Optional[bool]:
         if 'legalHold' not in file_version_dict:
             if file_version_dict['action'] not in ACTIONS_WITHOUT_LOCK_SETTINGS:
                 raise UnexpectedCloudBehaviour(
@@ -163,9 +167,13 @@ class LegalHoldSerializer:
         return cls.from_string_or_none(file_version_dict['legalHold']['value'])
 
     @classmethod
-    def from_string_or_none(cls, string: Optional[str]):
+    def from_string_or_none(cls, string: Optional[str]) -> Optional[bool]:
         if string is None:
             return None
+        return cls.from_string(string)
+
+    @classmethod
+    def from_string(cls, string: str) -> bool:
         if string == cls.ON:
             return True
         if string == cls.OFF:

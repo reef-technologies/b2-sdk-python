@@ -746,6 +746,23 @@ class B2RawApi(AbstractRawApi):
             **kwargs
         )
 
+    def update_file_legal_hold(
+        self,
+        api_url,
+        account_auth_token,
+        file_id,
+        file_name,
+        legal_hold: bool,
+    ):
+        return self._post_json(
+            api_url,
+            'b2_update_file_legal_hold',
+            account_auth_token,
+            fileId=file_id,
+            fileName=file_name,
+            legalHold=LegalHoldSerializer.to_server(legal_hold),
+        )
+
     def unprintable_to_hex(self, string):
         """
         Replace unprintable chars in string with a hex representation.

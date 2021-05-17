@@ -24,7 +24,7 @@ from typing import Any, Dict, Optional
 from .b2http import B2Http
 from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault
 from .encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
-from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_FILE_SETTING, RetentionMode, RetentionPeriod, LegalHoldSerializer
+from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_FILE_SETTING, RetentionMode, RetentionPeriod, LegalHold
 from .utils import b2_url_encode, hex_sha1_of_stream
 
 # All possible capabilities
@@ -96,7 +96,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         destination_bucket_id=None,
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
         source_server_side_encryption: Optional[EncryptionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[LegalHold] = None,
         file_retention: Optional[FileRetentionSetting] = None,
     ):
         pass
@@ -266,7 +266,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         content_type,
         file_info,
         server_side_encryption: Optional[EncryptionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[LegalHold] = None,
         file_retention: Optional[FileRetentionSetting] = None,
     ):
         pass
@@ -312,7 +312,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         file_infos,
         data_stream,
         server_side_encryption: Optional[EncryptionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[LegalHold] = None,
         file_retention: Optional[FileRetentionSetting] = None,
     ):
         pass
@@ -655,7 +655,7 @@ class B2RawApi(AbstractRawApi):
         file_info,
         server_side_encryption: Optional[EncryptionSetting] = None,
         file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[LegalHold] = None,
     ):
         kwargs = {}
         if server_side_encryption is not None:
@@ -665,7 +665,7 @@ class B2RawApi(AbstractRawApi):
             kwargs['serverSideEncryption'] = server_side_encryption.serialize_to_json_for_request()
 
         if legal_hold is not None:
-            kwargs['legalHold'] = LegalHoldSerializer.to_server(legal_hold)
+            kwargs['legalHold'] = legal_hold.to_server()
 
         if file_retention is not None:
             kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()
@@ -752,7 +752,7 @@ class B2RawApi(AbstractRawApi):
         account_auth_token,
         file_id,
         file_name,
-        legal_hold: bool,
+        legal_hold: LegalHold,
     ):
         return self._post_json(
             api_url,
@@ -760,7 +760,7 @@ class B2RawApi(AbstractRawApi):
             account_auth_token,
             fileId=file_id,
             fileName=file_name,
-            legalHold=LegalHoldSerializer.to_server(legal_hold),
+            legalHold=legal_hold.to_server(),
         )
 
     def unprintable_to_hex(self, string):
@@ -822,7 +822,7 @@ class B2RawApi(AbstractRawApi):
         data_stream,
         server_side_encryption: Optional[EncryptionSetting] = None,
         file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[LegalHold] = None,
     ):
         """
         Upload one, small file to b2.
@@ -855,7 +855,7 @@ class B2RawApi(AbstractRawApi):
             server_side_encryption.add_to_upload_headers(headers)
 
         if legal_hold is not None:
-            LegalHoldSerializer.add_to_upload_headers(legal_hold, headers)
+            legal_hold.add_to_upload_headers(headers)
 
         if file_retention is not None:
             file_retention.add_to_to_upload_headers(headers)
@@ -900,7 +900,7 @@ class B2RawApi(AbstractRawApi):
         destination_server_side_encryption: Optional[EncryptionSetting] = None,
         source_server_side_encryption: Optional[EncryptionSetting] = None,
         file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[LegalHold] = None,
     ):
         kwargs = {}
         if bytes_range is not None:
@@ -940,7 +940,7 @@ class B2RawApi(AbstractRawApi):
                   ] = source_server_side_encryption.serialize_to_json_for_request()
 
         if legal_hold is not None:
-            kwargs['legalHold'] = LegalHoldSerializer.to_server(legal_hold)
+            kwargs['legalHold'] = legal_hold.to_server()
 
         if file_retention is not None:
             kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()

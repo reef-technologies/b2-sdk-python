@@ -17,6 +17,7 @@ from .deps import EncryptionMode
 from .deps import EncryptionSetting
 from .deps import FileRetentionSetting
 from .deps import InMemoryAccountInfo
+from .deps import LegalHold
 from .deps import RawSimulator
 from .deps import RetentionMode
 from .deps import NO_RETENTION_FILE_SETTING
@@ -228,8 +229,8 @@ class TestApi(TestBase):
         self._authorize_account()
         bucket = self.api.create_bucket('bucket1', 'allPrivate', is_file_lock_enabled=True)
         created_file = bucket.upload_bytes(b'hello world', 'file')
-        self.assertEqual(created_file.legal_hold, False)
-        new_legal_hold = True
+        self.assertEqual(created_file.legal_hold, LegalHold.UNSET)
+        new_legal_hold = LegalHold.ON
         file_id_name_hold = self.api.update_file_legal_hold(created_file.id_, created_file.file_name, new_legal_hold)
         self.assertEqual(new_legal_hold, file_id_name_hold.legal_hold)
         file_version = bucket.get_file_info_by_id(created_file.id_)

@@ -26,7 +26,7 @@ class Bucket(v2.Bucket):
         destination_encryption: Optional[v2.EncryptionSetting] = None,
         source_encryption: Optional[v2.EncryptionSetting] = None,
         file_retention: Optional[v2.FileRetentionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[v2.LegalHold] = None,
     ):
         """
         Creates a new file in this bucket by (server-side) copying from an existing file.
@@ -64,7 +64,7 @@ class Bucket(v2.Bucket):
         content_type=None,
         file_info=None,
         file_retention: Optional[v2.FileRetentionSetting] = None,
-        legal_hold: Optional[bool] = None,
+        legal_hold: Optional[v2.LegalHold] = None,
     ):
         """
         Start a large file transfer.

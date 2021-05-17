@@ -73,7 +73,7 @@ from b2sdk.large_file.unfinished_large_file import UnfinishedLargeFile
 
 from b2sdk.file_lock import BucketRetentionSetting
 from b2sdk.file_lock import FileRetentionSetting
-from b2sdk.file_lock import LegalHoldSerializer
+from b2sdk.file_lock import LegalHold
 from b2sdk.file_lock import NO_RETENTION_BUCKET_SETTING
 from b2sdk.file_lock import NO_RETENTION_FILE_SETTING
 from b2sdk.file_lock import RetentionMode

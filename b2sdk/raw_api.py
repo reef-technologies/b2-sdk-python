@@ -22,7 +22,7 @@ from logging import getLogger
 from typing import Any, Dict, Optional
 
 from .b2http import B2Http
-from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault
+from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault, AccessDenied, SSECKeyError, RetentionWriteError
 from .encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
 from .file_lock import BucketRetentionSetting, FileRetentionSetting, NO_RETENTION_FILE_SETTING, RetentionMode, RetentionPeriod, LegalHold
 from .utils import b2_url_encode, hex_sha1_of_stream
@@ -488,7 +488,10 @@ class B2RawApi(AbstractRawApi):
 
         if account_auth_token_or_none is not None:
             request_headers['Authorization'] = account_auth_token_or_none
-        return self.b2_http.get_content(url, request_headers)
+        try:
+            return self.b2_http.get_content(url, request_headers)
+        except AccessDenied:
+            raise SSECKeyError
 
     def finish_large_file(self, api_url, account_auth_token, file_id, part_sha1_array):
         return self._post_json(
@@ -736,15 +739,18 @@ class B2RawApi(AbstractRawApi):
     ):
         kwargs = {}
         kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()
-        return self._post_json(
-            api_url,
-            'b2_update_file_retention',
-            account_auth_token,
-            fileId=file_id,
-            fileName=file_name,
-            bypassGovernance=bypass_governance,
-            **kwargs
-        )
+        try:
+            return self._post_json(
+                api_url,
+                'b2_update_file_retention',
+                account_auth_token,
+                fileId=file_id,
+                fileName=file_name,
+                bypassGovernance=bypass_governance,
+                **kwargs
+            )
+        except AccessDenied:
+            raise RetentionWriteError
 
     def update_file_legal_hold(
         self,
@@ -754,14 +760,17 @@ class B2RawApi(AbstractRawApi):
         file_name,
         legal_hold: LegalHold,
     ):
-        return self._post_json(
-            api_url,
-            'b2_update_file_legal_hold',
-            account_auth_token,
-            fileId=file_id,
-            fileName=file_name,
-            legalHold=legal_hold.to_server(),
-        )
+        try:
+            return self._post_json(
+                api_url,
+                'b2_update_file_legal_hold',
+                account_auth_token,
+                fileId=file_id,
+                fileName=file_name,
+                legalHold=legal_hold.to_server(),
+            )
+        except AccessDenied:
+            raise RetentionWriteError
 
     def unprintable_to_hex(self, string):
         """
@@ -945,14 +954,17 @@ class B2RawApi(AbstractRawApi):
         if file_retention is not None:
             kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()
 
-        return self._post_json(
-            api_url,
-            'b2_copy_file',
-            account_auth_token,
-            sourceFileId=source_file_id,
-            fileName=new_file_name,
-            **kwargs
-        )
+        try:
+            return self._post_json(
+                api_url,
+                'b2_copy_file',
+                account_auth_token,
+                sourceFileId=source_file_id,
+                fileName=new_file_name,
+                **kwargs
+            )
+        except AccessDenied:
+            raise SSECKeyError
 
     def copy_part(
         self,
@@ -982,15 +994,18 @@ class B2RawApi(AbstractRawApi):
             )
             kwargs['sourceServerSideEncryption'
                   ] = source_server_side_encryption.serialize_to_json_for_request()
-        return self._post_json(
-            api_url,
-            'b2_copy_part',
-            account_auth_token,
-            sourceFileId=source_file_id,
-            largeFileId=large_file_id,
-            partNumber=part_number,
-            **kwargs
-        )
+        try:
+            return self._post_json(
+                api_url,
+                'b2_copy_part',
+                account_auth_token,
+                sourceFileId=source_file_id,
+                largeFileId=large_file_id,
+                partNumber=part_number,
+                **kwargs
+            )
+        except AccessDenied:
+            raise SSECKeyError
 
 
 def test_raw_api():

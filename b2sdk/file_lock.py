@@ -12,23 +12,24 @@ from typing import Optional
 import enum
 
 from .exception import UnexpectedCloudBehaviour
-# TODO: write __repr__ and __eq__ methods for the classes below
 
 ACTIONS_WITHOUT_LOCK_SETTINGS = frozenset(['hide', 'folder'])
 
 
 @enum.unique
 class RetentionMode(enum.Enum):
-    COMPLIANCE = "compliance"  # TODO: docs
-    GOVERNANCE = "governance"  # TODO: docs
+    """Modes for retention settings in files and buckets"""
+    GOVERNANCE = "governance"  # retention settings for files in this mode can be modified by clients with appropriate application key capabilities
+    COMPLIANCE = "compliance"  # retention settings for files in this mode can only be modified by extending the retention dates by clients with appropriate application key capabilities
     NONE = None
-    UNKNOWN = "unknown"
+    UNKNOWN = "unknown"  # This one is used if the client is not authorized to read retention settings
 
 
 RETENTION_MODES_REQUIRING_PERIODS = frozenset({RetentionMode.COMPLIANCE, RetentionMode.GOVERNANCE})
 
 
 class RetentionPeriod:
+    """Represent a time period (either in days or in years) that is used as a default for bucket retention"""
     KNOWN_UNITS = ['days', 'years']
 
     def __init__(self, years: Optional[int] = None, days: Optional[int] = None):
@@ -61,8 +62,18 @@ class RetentionPeriod:
             "unit": self.unit,
         }
 
+    def __repr__(self):
+        return '%s(%s %s)' % (self.__class__.__name__, self.duration, self.unit)
+
+    def __eq__(self, other):
+        if not isinstance(other, RetentionPeriod):
+            return NotImplemented
+        return self.unit == other.unit and self.duration == other.duration
+
 
 class FileRetentionSetting:
+    """Represent file retention settings, i.e. whether the file is retained, in which mode and until when"""
+
     def __init__(self, mode: RetentionMode, retain_until: Optional[int] = None):
         if mode in RETENTION_MODES_REQUIRING_PERIODS and retain_until is None:
             raise ValueError('must specify retain_until for retention mode %s' % (mode,))
@@ -112,7 +123,9 @@ class FileRetentionSetting:
         return cls.from_file_retention_value_dict(file_retention_dict['value'])
 
     @classmethod
-    def from_file_retention_value_dict(cls, file_retention_value_dict: dict) -> 'FileRetentionSetting':
+    def from_file_retention_value_dict(
+        cls, file_retention_value_dict: dict
+    ) -> 'FileRetentionSetting':
 
         mode = file_retention_value_dict['mode']
         if mode is None:
@@ -160,18 +173,24 @@ class FileRetentionSetting:
         headers['X-Bz-File-Retention-Retain-Until-Timestamp'] = str(self.retain_until)
 
     def __eq__(self, other):
-        return self.mode == other.mode and self.retain_until == self.retain_until
+        if not isinstance(other, FileRetentionSetting):
+            return NotImplemented
+        return self.mode == other.mode and self.retain_until == other.retain_until
 
     def __repr__(self):
-        return '%s(%s, %s)' % (self.__class__.__name__, self.mode.value, self.retain_until)
+        return '%s(%s, %s)' % (
+            self.__class__.__name__, repr(self.mode.value), repr(self.retain_until)
+        )
 
 
 @enum.unique
 class LegalHold(enum.Enum):
+    """Information about legalHold switch in a file."""
+
     ON = 'on'
     OFF = 'off'
-    UNSET = None
-    UNKNOWN = 'unknown'
+    UNSET = None  # this is the server default, as for now it is functionally equivalent to OFF
+    UNKNOWN = 'unknown'  # This one is used if the client is not authorized to read retention settings
 
     def __bool__(self):
         if self is LegalHold.UNKNOWN:
@@ -200,7 +219,8 @@ class LegalHold(enum.Enum):
         legal_hold_header = 'X-Bz-File-Legal-Hold'
         if legal_hold_header in headers:
             return cls(headers['X-Bz-File-Legal-Hold'])
-        if 'X-Bz-Client-Unauthorized-To-Read' in headers and legal_hold_header in headers['X-Bz-Client-Unauthorized-To-Read'].split(','):
+        if 'X-Bz-Client-Unauthorized-To-Read' in headers and legal_hold_header in headers[
+            'X-Bz-Client-Unauthorized-To-Read'].split(','):
             return cls.UNKNOWN
         return cls.UNSET  # the bucket is not file-lock-enabled or the header is missing for any other reason
 
@@ -216,6 +236,9 @@ class LegalHold(enum.Enum):
 
 
 class BucketRetentionSetting:
+    """Represent bucket's default file retention settings, i.e. whether the files should be retained, in which mode
+       and for how long"""
+
     def __init__(self, mode: RetentionMode, period: Optional[RetentionPeriod] = None):
         if mode in RETENTION_MODES_REQUIRING_PERIODS and period is None:
             raise ValueError('must specify period for retention mode %s' % (mode,))
@@ -256,8 +279,19 @@ class BucketRetentionSetting:
             raise ValueError('cannot use an unknown file lock configuration in requests')
         return self.as_dict()
 
+    def __eq__(self, other):
+        if not isinstance(other, BucketRetentionSetting):
+            return NotImplemented
+        return self.mode == other.mode and self.period == other.period
+
+    def __repr__(self):
+        return '%s(%s, %s)' % (self.__class__.__name__, repr(self.mode.value), repr(self.period))
+
 
 class FileLockConfiguration:
+    """Represent bucket's file lock configuration, i.e. whether the file lock mechanism is enabled and default
+    file retention"""
+
     def __init__(
         self,
         default_retention: BucketRetentionSetting,
@@ -307,6 +341,16 @@ class FileLockConfiguration:
             "defaultRetention": self.default_retention.as_dict(),
             "isFileLockEnabled": self.is_file_lock_enabled,
         }
+
+    def __eq__(self, other):
+        if not isinstance(other, FileLockConfiguration):
+            return NotImplemented
+        return self.default_retention == other.default_retention and self.is_file_lock_enabled == other.is_file_lock_enabled
+
+    def __repr__(self):
+        return '%s(%s, %s)' % (
+            self.__class__.__name__, repr(self.default_retention), repr(self.is_file_lock_enabled)
+        )
 
 
 UNKNOWN_BUCKET_RETENTION = BucketRetentionSetting(RetentionMode.UNKNOWN)

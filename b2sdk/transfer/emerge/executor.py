@@ -314,8 +314,9 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
             # FIXME: encryption is None ???
             if encryption is None or file_.encryption != encryption:
                 continue
-            if legal_hold != file_.legal_hold:
-                # when `file_.legal_hold is None` it means that `legal_hold` is unknown and we skip
+            if (legal_hold or LegalHold.UNSET) != file_.legal_hold:
+                # Uploading and not providing legal_hold means that server's response about that file version will have
+                # legal_hold=LegalHold.UNSET
                 continue
             if file_retention != file_.file_retention:
                 # if `file_.file_retention` is UNKNOWN then we skip - lib user can still
@@ -370,8 +371,9 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
             # FIXME: what if `encryption is None` - match ANY encryption? :)
             if encryption is not None and encryption != file_.encryption:
                 continue
-            if bool(legal_hold) != file_.legal_hold:
-                # when `file_.legal_hold is None` it means that `legal_hold` is unknown and we skip
+            if (legal_hold or LegalHold.UNSET) != file_.legal_hold:
+                # Uploading and not providing legal_hold means that server's response about that file version will have
+                # legal_hold=LegalHold.UNSET
                 continue
             if file_retention != file_.file_retention:
                 # if `file_.file_retention` is UNKNOWN then we skip - lib user can still

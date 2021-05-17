@@ -62,8 +62,11 @@ class FileVersionInfo(object):
         action,
         content_md5=None,
         server_side_encryption: Optional[EncryptionSetting] = None,  # TODO: make it mandatory in v2
-        file_retention: Optional[FileRetentionSetting] = None,  # TODO: in v2 change the default value to NO_RETENTION_FILE_SETTING
-        legal_hold: Optional[LegalHold] = None,  # TODO: in v2 change the default value to LegalHold.UNSET
+        file_retention: Optional[
+            FileRetentionSetting
+        ] = None,  # TODO: in v2 change the default value to NO_RETENTION_FILE_SETTING
+        legal_hold: Optional[LegalHold
+                            ] = None,  # TODO: in v2 change the default value to LegalHold.UNSET
     ):
         self.id_ = id_
         self.file_name = file_name
@@ -269,14 +272,17 @@ class FileIdNameAndRetention(object):
         self.file_retention = file_retention
 
     def as_dict(self):
-        return {'fileId': self.file_id, 'fileName': self.file_name, 'fileRetention': self.file_retention.as_dict()}
+        return {
+            'fileId': self.file_id,
+            'fileName': self.file_name,
+            'fileRetention': self.file_retention.as_dict()
+        }
 
     @classmethod
     def from_response(cls, response: dict):
         """Build a FileIdNameAndRetention from API response dict"""
         return cls(
-            response['fileId'],
-            response['fileName'],
+            response['fileId'], response['fileName'],
             FileRetentionSetting.from_file_retention_value_dict(response['fileRetention'])
         )
 
@@ -294,7 +300,11 @@ class FileIdNameAndLegalHold(object):
         self.legal_hold = legal_hold
 
     def as_dict(self):
-        return {'fileId': self.file_id, 'fileName': self.file_name, 'legalHold': self.legal_hold.value}
+        return {
+            'fileId': self.file_id,
+            'fileName': self.file_name,
+            'legalHold': self.legal_hold.value
+        }
 
     @classmethod
     def from_response(cls, response: dict):

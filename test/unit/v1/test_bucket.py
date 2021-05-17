@@ -804,7 +804,11 @@ class TestUpload(TestCaseWithBucket):
             write_file(path, data)
             retention = FileRetentionSetting(RetentionMode.COMPLIANCE, 150)
             file_info = self.bucket.upload_local_file(
-                path, 'file1', encryption=SSE_C_AES, file_retention=retention, legal_hold=LegalHold.ON
+                path,
+                'file1',
+                encryption=SSE_C_AES,
+                file_retention=retention,
+                legal_hold=LegalHold.ON
             )
             self._check_file_contents('file1', data)
             self.assertEqual(retention, file_info.file_retention)

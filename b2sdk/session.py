@@ -533,11 +533,11 @@ class B2Session(object):
         return response
 
     def update_file_retention(
-            self,
-            file_id,
-            file_name,
-            file_retention: FileRetentionSetting,
-            bypass_governance: bool = False,
+        self,
+        file_id,
+        file_name,
+        file_retention: FileRetentionSetting,
+        bypass_governance: bool = False,
     ):
         return self._wrap_default_token(
             self.raw_api.update_file_retention,
@@ -548,10 +548,10 @@ class B2Session(object):
         )
 
     def update_file_legal_hold(
-            self,
-            file_id,
-            file_name,
-            legal_hold: bool,
+        self,
+        file_id,
+        file_name,
+        legal_hold: LegalHold,
     ):
         return self._wrap_default_token(
             self.raw_api.update_file_legal_hold,

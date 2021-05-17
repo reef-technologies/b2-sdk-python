@@ -319,9 +319,9 @@ class FileSimulator(object):
     def _legal_hold_dict(self, account_auth_token):
         if not self.is_allowed_to_read_file_legal_hold(account_auth_token):
             return {
-            'isClientAuthorizedToRead': False,
-            'value': None,
-        }
+                'isClientAuthorizedToRead': False,
+                'value': None,
+            }
         return {
             'isClientAuthorizedToRead': True,
             'value': self.legal_hold.value,
@@ -1216,9 +1216,12 @@ class RawSimulator(AbstractRawApi):
         bucket_id = self.file_id_to_bucket_id[file_id]
         bucket = self._get_bucket_by_id(bucket_id)
         return bucket.update_file_retention(
-            account_auth_token, file_id, file_name, file_retention, bypass_governance,
+            account_auth_token,
+            file_id,
+            file_name,
+            file_retention,
+            bypass_governance,
         )
-
 
     def update_file_legal_hold(
         self,
@@ -1231,7 +1234,10 @@ class RawSimulator(AbstractRawApi):
         bucket_id = self.file_id_to_bucket_id[file_id]
         bucket = self._get_bucket_by_id(bucket_id)
         return bucket.update_file_legal_hold(
-            account_auth_token, file_id, file_name, legal_hold,
+            account_auth_token,
+            file_id,
+            file_name,
+            legal_hold,
         )
 
     def delete_bucket(self, api_url, account_auth_token, account_id, bucket_id):

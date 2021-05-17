@@ -537,7 +537,7 @@ def interpret_b2_error(
     elif status == 403 and code == "transaction_cap_exceeded":
         return TransactionCapExceeded()
     elif status == 403 and code == "access_denied":
-        return SSECKeyError()
+        return AccessDenied()
     elif status == 409:
         return Conflict()
     elif status == 416 and code == "range_not_satisfiable":

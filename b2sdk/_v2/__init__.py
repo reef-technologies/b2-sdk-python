@@ -77,6 +77,7 @@ from b2sdk.file_lock import LegalHold
 from b2sdk.file_lock import NO_RETENTION_BUCKET_SETTING
 from b2sdk.file_lock import NO_RETENTION_FILE_SETTING
 from b2sdk.file_lock import RetentionMode
+from b2sdk.file_lock import RetentionPeriod
 from b2sdk.file_lock import UNKNOWN_BUCKET_RETENTION
 from b2sdk.file_lock import UNKNOWN_FILE_LOCK_CONFIGURATION
 

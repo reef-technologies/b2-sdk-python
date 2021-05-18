@@ -11,13 +11,15 @@
 import logging
 import concurrent.futures as futures
 from enum import Enum, unique
+from typing import Optional
 
 from ..bounded_queue_executor import BoundedQueueExecutor
 from .encryption_provider import AbstractSyncEncryptionSettingsProvider, SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
 from .exception import InvalidArgument, IncompleteSync
+from .folder import AbstractFolder
 from .policy import CompareVersionMode, NewerFileSyncMode
 from .policy_manager import POLICY_MANAGER
-from .scan_policies import DEFAULT_SCAN_MANAGER
+from .scan_policies import DEFAULT_SCAN_MANAGER, ScanPoliciesManager
 
 logger = logging.getLogger(__name__)
 
@@ -123,15 +125,19 @@ class Synchronizer:
 
     def __init__(
         self,
-        max_workers,
-        policies_manager=DEFAULT_SCAN_MANAGER,
-        dry_run=False,
-        allow_empty_source=False,
-        newer_file_mode=NewerFileSyncMode.RAISE_ERROR,
-        keep_days_or_delete=KeepOrDeleteMode.NO_DELETE,
-        compare_version_mode=CompareVersionMode.MODTIME,
-        compare_threshold=None,
-        keep_days=None,
+        max_workers: int,
+        policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER,
+        dry_run: bool =False,
+        allow_empty_source: bool=False,
+        newer_file_mode: NewerFileSyncMode=NewerFileSyncMode.RAISE_ERROR,
+        keep_days_or_delete: KeepOrDeleteMode=KeepOrDeleteMode.NO_DELETE,
+        compare_version_mode: CompareVersionMode=CompareVersionMode.MODTIME,
+        compare_threshold: Optional[int]=None,
+        keep_days: Optional[int]=None,
+        copy_legal_holds: bool=False,
+        copy_file_retention: bool=False,
+        remove_legal_hold: bool = False,
+        remove_file_retention: bool = False,
     ):
         """
         Initialize synchronizer class and validate arguments
@@ -145,6 +151,14 @@ class Synchronizer:
         :param b2sdk.v1.CompareVersionMode compare_version_mode: how to compare the source and destination files to find new ones
         :param int compare_threshold: should be greater than 0, default is 0
         :param int keep_days: if keep_days_or_delete is `b2sdk.v1.KeepOrDeleteMode.KEEP_BEFORE_DELETE`, then this should be greater than 0
+        :param bool copy_legal_holds: If true, copied dest files will have legal holds equal to source files',
+                                      only allowed for bucket2bucket syncs
+        :param bool copy_file_retention: If true, copied dest files will have retention settings equal to source files',
+                                         only allowed for bucket2bucket syncs
+        :param bool remove_legal_hold: If true, files with legal hold on will have it removed before attempting to
+                                       remove them, only allowed if dest is b2 and keep_days_or_delete is not NO_DELETE
+        :param bool remove_file_retention: If true, files with retention on will have it removed before attempting to
+                                           remove them, only allowed if dest is b2 and keep_days_or_delete is not NO_DELETE
         """
         self.newer_file_mode = newer_file_mode
         self.keep_days_or_delete = keep_days_or_delete
@@ -155,6 +169,10 @@ class Synchronizer:
         self.allow_empty_source = allow_empty_source
         self.policies_manager = policies_manager
         self.max_workers = max_workers
+        self.copy_legal_holds = copy_legal_holds
+        self.copy_file_retention = copy_file_retention
+        self.remove_legal_hold = remove_legal_hold
+        self.remove_file_retention = remove_file_retention
         self._validate()
 
     def _validate(self):
@@ -185,6 +203,32 @@ class Synchronizer:
                 'must be one of :%s' % CompareVersionMode.__members__,
             )
 
+        if self.remove_legal_hold and self.keep_days_or_delete == KeepOrDeleteMode.NO_DELETE:
+            raise InvalidArgument(
+                'remove_legal_hold',
+                'cannot be set to True when keep_days_or_delete is :%s' % KeepOrDeleteMode.NO_DELETE,
+            )
+
+        if self.remove_file_retention and self.keep_days_or_delete == KeepOrDeleteMode.NO_DELETE:
+            raise InvalidArgument(
+                'remove_file_retention',
+                'cannot be set to True when keep_days_or_delete is :%s' % KeepOrDeleteMode.NO_DELETE,
+            )
+
+    def _validate_copy_settings(self, source_folder: AbstractFolder, dest_folder: AbstractFolder):
+        is_b2_to_b2 = source_folder.folder_type() == dest_folder.folder_type() == 'b2'
+        if self.copy_legal_holds and not is_b2_to_b2:
+            raise InvalidArgument(
+                'copy_legal_holds',
+                'cannot be set to True when syncing two b2 folders',
+            )
+
+        if self.copy_file_retention and not is_b2_to_b2:
+            raise InvalidArgument(
+                'copy_file_retention',
+                'cannot be set to True when syncing two b2 folders',
+            )
+
     def sync_folders(
         self,
         source_folder,
@@ -210,6 +254,8 @@ class Synchronizer:
 
         if source_type != 'b2' and dest_type != 'b2':
             raise ValueError('Sync between two local folders is not supported!')
+
+        self._validate_copy_settings(source_folder, dest_folder)
 
         # For downloads, make sure that the target directory is there.
         if dest_type == 'local' and not self.dry_run:
@@ -368,5 +414,9 @@ class Synchronizer:
             self.compare_threshold,
             self.compare_version_mode,
             encryption_settings_provider=encryption_settings_provider,
+            copy_legal_holds=self.copy_legal_holds,
+            copy_file_retention=self.copy_file_retention,
+            remove_legal_hold=self.remove_legal_hold,
+            remove_file_retention=self.remove_file_retention,
         )
         return policy.get_all_actions()

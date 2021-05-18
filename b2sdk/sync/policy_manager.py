@@ -37,6 +37,10 @@ class SyncPolicyManager(object):
         compare_threshold,
         compare_version_mode,
         encryption_settings_provider,
+        copy_legal_holds: bool = False,
+        copy_file_retention: bool = False,
+        remove_legal_hold: bool = False,
+        remove_file_retention: bool = False,
     ):
         """
         Return a policy object.
@@ -53,6 +57,14 @@ class SyncPolicyManager(object):
         :param int compare_threshold: difference between file modification time or file size
         :param b2sdk.v1.CompareVersionMode compare_version_mode: setting which determines how to compare source and destination files
         :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: an object which decides which encryption to use (if any)
+        :param bool copy_legal_holds: If true, copied dest files will have legal holds equal to source files',
+                                      only allowed for bucket2bucket syncs
+        :param bool copy_file_retention: If true, copied dest files will have retention settings equal to source files',
+                                         only allowed for bucket2bucket syncs
+        :param bool remove_legal_hold: If true, files with legal hold on will have it removed before attempting to
+                                       remove them, only allowed if dest is b2 and keep_days_or_delete is not NO_DELETE
+        :param bool remove_file_retention: If true, files with retention on will have it removed before attempting to
+                                           remove them, only allowed if dest is b2 and keep_days_or_delete is not NO_DELETE
         :return: a policy object
         """
         policy_class = self.get_policy_class(sync_type, delete, keep_days)
@@ -67,6 +79,10 @@ class SyncPolicyManager(object):
             compare_threshold,
             compare_version_mode,
             encryption_settings_provider,
+            copy_legal_holds,
+            copy_file_retention,
+            remove_legal_hold,
+            remove_file_retention,
         )
 
     def get_policy_class(self, sync_type, delete, keep_days):

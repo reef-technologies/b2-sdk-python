@@ -18,6 +18,7 @@ from .encryption_provider import AbstractSyncEncryptionSettingsProvider, SERVER_
 from .action import LocalDeleteAction, B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction
 from .exception import InvalidArgument
 
+
 ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,10 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         compare_version_mode=CompareVersionMode.MODTIME,
         encryption_settings_provider:
         AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+        copy_legal_holds: bool = False,
+        copy_file_retention: bool = False,
+        remove_legal_hold: bool = False,
+        remove_file_retention: bool = False,
     ):
         """
         :param b2sdk.v1.File source_file: source file object
@@ -71,6 +76,14 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         :param int compare_threshold: when comparing with size or time for sync
         :param b2sdk.v1.COMPARE_VERSION_MODES compare_version_mode: how to compare source and destination files
         :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
+        :param bool copy_legal_holds: If true, copied dest files will have legal holds equal to source files',
+                                      only allowed for bucket2bucket syncs
+        :param bool copy_file_retention: If true, copied dest files will have retention settings equal to source files',
+                                         only allowed for bucket2bucket syncs
+        :param bool remove_legal_hold: If true, files with legal hold on will have it removed before attempting to
+                                       remove them
+        :param bool remove_file_retention: If true, files with retention on will have it removed before attempting to
+                                           remove them
         """
         self._source_file = source_file
         self._source_folder = source_folder
@@ -83,6 +96,10 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
         self._now_millis = now_millis
         self._transferred = False
         self._encryption_settings_provider = encryption_settings_provider
+        self.copy_legal_holds = copy_legal_holds
+        self.copy_file_retention = copy_file_retention
+        self.remove_legal_hold = remove_legal_hold
+        self.remove_file_retention = remove_file_retention
 
     def _should_transfer(self):
         """
@@ -380,7 +397,14 @@ def make_b2_delete_note(version, index, transferred):
     return note
 
 
-def make_b2_delete_actions(source_file, dest_file, dest_folder, transferred):
+def make_b2_delete_actions(
+        source_file,
+        dest_file,
+        dest_folder,
+        transferred: bool,
+        remove_legal_hold: bool,
+        remove_file_retention: bool,
+):
     """
     Create the actions to delete files stored on B2, which are not present locally.
 

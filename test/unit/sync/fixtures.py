@@ -16,9 +16,9 @@ from apiver_deps import CompareVersionMode, NewerFileSyncMode, KeepOrDeleteMode
 from apiver_deps import DEFAULT_SCAN_MANAGER, Synchronizer
 
 if apiver_deps.V <= 1:
-    from apiver_deps import FileVersionInfo as VB2FileVersion
+    from apiver_deps import FileVersionInfo as VFileVersion
 else:
-    from apiver_deps import B2FileVersion as VB2FileVersion
+    from apiver_deps import FileVersion as VFileVersion
 
 
 class FakeFolder(AbstractFolder):
@@ -82,7 +82,7 @@ def b2_file(name, mod_times, size=10):
 
     """
     versions = [
-        VB2FileVersion(
+        VFileVersion(
             id_='id_%s_%d' % (name[0], abs(mod_time)),
             file_name='folder/' + name,
             upload_timestamp=abs(mod_time),

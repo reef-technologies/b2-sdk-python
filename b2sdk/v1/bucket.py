@@ -10,14 +10,15 @@
 
 from typing import Optional
 
-from .file_version import translate_single_file_version, FileVersionFactory
+from .file_version import translate_single_file_version, FileVersionInfoFactory
 from b2sdk import _v2 as v2
 from b2sdk.utils import validate_b2_file_name
 
 
 # Overridden to retain the obsolete copy_file and start_large_file methods
+# and to return old style FileVersionInfo
 class Bucket(v2.Bucket):
-    FILE_VERSION_FACTORY = staticmethod(FileVersionFactory)
+    FILE_VERSION_FACTORY = staticmethod(FileVersionInfoFactory)
 
     def copy_file(
         self,

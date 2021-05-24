@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * `Synchronizer.make_file_sync_actions` and `Synchronizer.make_folder_sync_actions` are now private
 * Refactored `sync.file.*File` and `sync.file.*FileVersion` to `sync.path.*SyncPath`
-* Refactored `FileVersionInfo` to `B2FileVersion`
+* Refactored `FileVersionInfo` to `FileVersion`
 
 ## [1.8.0] - 2021-05-21
 

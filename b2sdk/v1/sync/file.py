@@ -10,7 +10,7 @@
 
 from typing import List
 
-from b2sdk.v1 import FileVersionInfo  # TODO: change to importing from b2sdk.v1 after merging with master
+from b2sdk.v1 import FileVersionInfo
 from b2sdk.raw_api import SRC_LAST_MODIFIED_MILLIS
 
 

@@ -37,7 +37,7 @@ class FileVersionInfo(v2.FileVersion):
         return cls.LS_ENTRY_TEMPLATE % ('-', '-', '-', '-', 0, name)
 
 
-def file_version_info_from_new_file_version_info(
+def file_version_info_from_new_file_version(
     file_version: v2.FileVersion
 ) -> FileVersionInfo:
     return FileVersionInfo(
@@ -64,13 +64,13 @@ def file_version_info_from_new_file_version_info(
 def translate_single_file_version(func):
     @functools.wraps(func)
     def inner(*a, **kw):
-        return file_version_info_from_new_file_version_info(func(*a, **kw))
+        return file_version_info_from_new_file_version(func(*a, **kw))
 
     return inner
 
 
 # override to return old style FileVersionInfo
-class FileVersionFactory(v2.FileVersionFactory):
+class FileVersionInfoFactory(v2.FileVersionFactory):
 
     from_api_response = translate_single_file_version(v2.FileVersionFactory.from_api_response)
     from_cancel_large_file_response = translate_single_file_version(

@@ -8,8 +8,6 @@
 #
 ######################################################################
 
-import functools
-
 from .file_version import translate_single_file_version, FileVersionInfoFactory
 from typing import Optional
 from b2sdk import _v2 as v2

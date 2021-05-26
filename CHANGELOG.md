@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+* `ScanPoliciesManager` is able to filter b2 files by upload timestamp
+
+### Changed
+* `Synchronizer.make_file_sync_actions` and `Synchronizer.make_folder_sync_actions` were made private in v2 interface
+* Refactored `sync.file.*File` and `sync.file.*FileVersion` to `sync.path.*SyncPath`
+* Refactored `FileVersionInfo` to `FileVersion`
+* `ScanPoliciesManager` exclusion interface changed
+* `B2Api` unittests for v0, v1 and v2 are now common
+* `B2Api.cancel_large_file` returns a `FileIdAndName` object instead of a `FileVersion` object in v2
+* `FileVersion` has a mandatory `api` parameter 
+* `B2Folder` holds a handle to B2Api 
+* `Bucket` unit tests for v1 and v2 are now common
+
 ## [1.8.0] - 2021-05-21
 
 ### Added
@@ -183,8 +197,7 @@ has changed.
 ### Added
 Initial official release of SDK as a separate package (until now it was a part of B2 CLI)
 
-[Unreleased]: https://github.com/Backblaze/b2-sdk-python/compare/v1.8.0...HEAD
-[1.8.0]: https://github.com/Backblaze/b2-sdk-python/compare/v1.7.0...v1.8.0
+[Unreleased]: https://github.com/Backblaze/b2-sdk-python/compare/v1.7.0...HEAD
 [1.7.0]: https://github.com/Backblaze/b2-sdk-python/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/Backblaze/b2-sdk-python/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Backblaze/b2-sdk-python/compare/v1.4.0...v1.5.0

@@ -8,9 +8,10 @@
 #
 ######################################################################
 
-from typing import Optional
+import functools
 
 from .file_version import translate_single_file_version, FileVersionInfoFactory
+from typing import Optional
 from b2sdk import _v2 as v2
 from b2sdk.utils import validate_b2_file_name
 
@@ -92,6 +93,9 @@ class Bucket(v2.Bucket):
 
     create_file = translate_single_file_version(v2.Bucket.create_file)
     create_file_stream = translate_single_file_version(v2.Bucket.create_file_stream)
+    copy = translate_single_file_version(v2.Bucket.copy)
+
+    _create_file = translate_single_file_version(v2.Bucket._create_file)
     copy = translate_single_file_version(v2.Bucket.copy)
 
 

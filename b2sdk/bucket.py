@@ -196,6 +196,7 @@ class Bucket(metaclass=B2TraceMeta):
         progress_listener=None,
         range_=None,
         encryption: Optional[EncryptionSetting] = None,
+        allow_seeking: bool = True,
     ):
         """
         Download a file by name.
@@ -214,6 +215,8 @@ class Bucket(metaclass=B2TraceMeta):
         :param b2sdk.v1.AbstractProgressListener, None progress_listener: a progress listener object to use, or ``None`` to not track progress
         :param tuple[int, int] range_: two integer values, start and end offsets
         :param b2sdk.v1.EncryptionSetting encryption: encryption settings (``None`` if unknown)
+        :param bool allow_seeking: if true, download strategies requiring seeking on the download destination will be
+                                   taken into account
         """
         url = self.api.session.get_download_url_by_name(self.name, file_name)
         return self.api.services.download_manager.download_file_from_url(
@@ -222,6 +225,7 @@ class Bucket(metaclass=B2TraceMeta):
             progress_listener,
             range_,
             encryption=encryption,
+            allow_seeking=allow_seeking,
         )
 
     def get_file_info_by_id(self, file_id: str) -> FileVersion:

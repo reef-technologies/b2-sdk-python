@@ -119,7 +119,7 @@ class B2Api(metaclass=B2TraceMeta):
         :param int max_upload_workers: a number of upload threads, default is 10
         :param int max_copy_workers: a number of copy threads, default is 10
         """
-        self.session = self.SESSION_CLASS(account_info=account_info, cache=cache, raw_api=raw_api)
+        self.session: B2Session = self.SESSION_CLASS(account_info=account_info, cache=cache, raw_api=raw_api)
         self.services = Services(
             self.session,
             max_upload_workers=max_upload_workers,
@@ -222,6 +222,7 @@ class B2Api(metaclass=B2TraceMeta):
         progress_listener=None,
         range_=None,
         encryption: Optional[EncryptionSetting] = None,
+        allow_seeking: bool = True,
     ):
         """
         Download a file with the given ID.
@@ -244,6 +245,8 @@ class B2Api(metaclass=B2TraceMeta):
         :param list range_: a list of two integers, the first one is a start\
         position, and the second one is the end position in the file
         :param b2sdk.v1.EncryptionSetting encryption: encryption settings (``None`` if unknown)
+        :param bool allow_seeking: if true, download strategies requiring seeking on the download destination will be
+                                   taken into account
         :return: context manager that returns an object that supports iter_content()
         """
         url = self.session.get_download_url_by_id(file_id)
@@ -253,6 +256,7 @@ class B2Api(metaclass=B2TraceMeta):
             progress_listener,
             range_,
             encryption,
+            allow_seeking,
         )
 
     def update_file_retention(

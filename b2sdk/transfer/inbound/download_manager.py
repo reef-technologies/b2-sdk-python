@@ -23,6 +23,7 @@ from b2sdk.exception import (
 from b2sdk.raw_api import SRC_LAST_MODIFIED_MILLIS
 from b2sdk.utils import B2TraceMetaAbstract
 
+from .downloaded_file import DownloadedFile
 from .downloader.parallel import ParallelDownloader
 from .downloader.simple import SimpleDownloader
 from .file_metadata import FileMetadata
@@ -75,7 +76,7 @@ class DownloadManager(metaclass=B2TraceMetaAbstract):
         range_=None,
         encryption: Optional[EncryptionSetting] = None,
         allow_seeking=True,
-    ):
+    ) -> DownloadedFile:
         """
         :param url: url from which the file should be downloaded
         :param download_dest: where to put the file when it is downloaded
@@ -119,35 +120,8 @@ class DownloadManager(metaclass=B2TraceMetaAbstract):
                 for strategy in self.strategies:
 
                     if strategy.is_suitable(metadata, allow_seeking):
-                        bytes_read, actual_sha1 = strategy.download(
-                            file,
-                            response,
-                            metadata,
-                            self.services.session,
-                            encryption=encryption,
-                        )
-                        break
+                        return DownloadedFile(file_version, strategy, range_, response, encryption,
+                                              self.services.session, progress_listener)
                 else:
                     assert False, 'no strategy suitable for download was found!'
 
-                self._validate_download(
-                    range_, bytes_read, actual_sha1, metadata
-                )  # raises exceptions
-                return metadata.as_info_dict()
-
-    @classmethod
-    def _validate_download(cls, range_, bytes_read, actual_sha1, metadata):
-        if range_ is None:
-            if bytes_read != metadata.content_length:
-                raise TruncatedOutput(bytes_read, metadata.content_length)
-
-            if metadata.content_sha1 != 'none' and actual_sha1 != metadata.content_sha1:
-                raise ChecksumMismatch(
-                    checksum_type='sha1',
-                    expected=metadata.content_sha1,
-                    actual=actual_sha1,
-                )
-        else:
-            desired_length = range_[1] - range_[0] + 1
-            if bytes_read != desired_length:
-                raise TruncatedOutput(bytes_read, desired_length)

@@ -69,6 +69,7 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
         response,
         metadata,
         session,
+        executor,
         encryption: Optional[EncryptionSetting] = None,
     ):
         """

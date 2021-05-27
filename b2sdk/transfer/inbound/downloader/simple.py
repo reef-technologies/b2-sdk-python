@@ -26,7 +26,7 @@ class SimpleDownloader(AbstractDownloader):
         return True
 
     def download(
-        self, file, response, metadata, session, encryption: Optional[EncryptionSetting] = None
+        self, file, response, metadata, session, executor, encryption: Optional[EncryptionSetting] = None
     ):
         actual_size = self._get_remote_range(response, metadata).size()
         chunk_size = self._get_chunk_size(actual_size)

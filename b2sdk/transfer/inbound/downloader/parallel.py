@@ -62,7 +62,7 @@ class ParallelDownloader(AbstractDownloader):
         return min(self.max_streams, content_length // self.min_part_size) or 1
 
     def download(
-        self, file, response, metadata, session, encryption: Optional[EncryptionSetting] = None
+        self, file, response, metadata, session, executor, encryption: Optional[EncryptionSetting] = None
     ):
         """
         Download a file from given url using parallel download sessions and stores it in the given download_destination.
@@ -96,6 +96,7 @@ class ParallelDownloader(AbstractDownloader):
                 parts_to_download[1:],
                 self._get_chunk_size(actual_size),
                 encryption=encryption,
+                executor=executor,
             )
         bytes_written = writer.total
 
@@ -129,9 +130,9 @@ class ParallelDownloader(AbstractDownloader):
 
     def _get_parts(
         self, response, session, writer, hasher, first_part, parts_to_download, chunk_size,
-        encryption
+        encryption, executor,
     ):
-        stream = FirstPartDownloaderThread(
+        streams = [executor.submit(FirstPartDownloaderThread(
             response,
             hasher,
             session,
@@ -139,23 +140,19 @@ class ParallelDownloader(AbstractDownloader):
             first_part,
             chunk_size,
             encryption=encryption,
-        )
-        stream.start()
-        streams = [stream]
+        ).run)]
 
         for part in parts_to_download:
-            stream = NonHashingDownloaderThread(
+            streams.append(executor.submit(NonHashingDownloaderThread(
                 response.request.url,
                 session,
                 writer,
                 part,
                 chunk_size,
                 encryption=encryption,
-            )
-            stream.start()
-            streams.append(stream)
+            ).run))
         for stream in streams:
-            stream.join()
+            stream.result()
 
 
 class WriterThread(threading.Thread):
@@ -208,7 +205,7 @@ class WriterThread(threading.Thread):
         self.join()
 
 
-class AbstractDownloaderThread(threading.Thread):
+class AbstractDownloaderThread:
     def __init__(
         self,
         session,

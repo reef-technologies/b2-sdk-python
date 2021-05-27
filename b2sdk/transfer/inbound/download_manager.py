@@ -9,6 +9,7 @@
 ######################################################################
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from b2sdk.download_dest import DownloadDestProgressWrapper
@@ -52,7 +53,7 @@ class DownloadManager(metaclass=B2TraceMetaAbstract):
 
         :param b2sdk.v1.Services services:
         """
-
+        self.executor = ThreadPoolExecutor(max_workers=8)
         self.services = services
         self.strategies = [
             ParallelDownloader(
@@ -122,6 +123,7 @@ class DownloadManager(metaclass=B2TraceMetaAbstract):
                             metadata,
                             self.services.session,
                             encryption=encryption,
+                            executor=self.executor,
                         )
                         break
                 else:

@@ -8,7 +8,7 @@
 #
 ######################################################################
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from .bucket import Bucket, BucketFactory
 from .encryption.setting import EncryptionSetting
@@ -17,6 +17,7 @@ from .file_lock import FileRetentionSetting, LegalHold
 from .file_version import FileIdAndName
 from .large_file.services import LargeFileServices
 from .raw_api import API_VERSION
+from .progress import AbstractProgressListener
 from .session import B2Session
 from .transfer import (
     CopyManager,
@@ -24,6 +25,7 @@ from .transfer import (
     Emerger,
     UploadManager,
 )
+from .transfer.inbound.downloaded_file import DownloadedFile
 from .utils import B2TraceMeta, b2_url_encode, limit_trace_arguments
 
 
@@ -45,15 +47,16 @@ def url_for_api(info, api_name):
 class Services(object):
     """ Gathers objects that provide high level logic over raw api usage. """
 
-    def __init__(self, session, max_upload_workers=10, max_copy_workers=10):
+    def __init__(self, api, max_upload_workers=10, max_copy_workers=10):
         """
         Initialize Services object using given session.
 
-        :param b2sdk.v1.Session session:
+        :param b2sdk.v1.B2Api api:
         :param int max_upload_workers: a number of upload threads
         :param int max_copy_workers: a number of copy threads
         """
-        self.session = session
+        self.api = api
+        self.session = api.session
         self.large_file = LargeFileServices(self)
         self.download_manager = DownloadManager(self)
         self.upload_manager = UploadManager(self, max_upload_workers=max_upload_workers)
@@ -84,6 +87,11 @@ class B2Api(metaclass=B2TraceMeta):
     BUCKET_FACTORY_CLASS = staticmethod(BucketFactory)
     BUCKET_CLASS = staticmethod(Bucket)
     SESSION_CLASS = staticmethod(B2Session)
+
+    @classmethod
+    def file_version_factory(cls):
+        # sadly, combining @property and @classmethod does not work well for python version lower than 3.9
+        return cls.BUCKET_CLASS.FILE_VERSION_FACTORY
 
     def __init__(
         self,
@@ -121,7 +129,7 @@ class B2Api(metaclass=B2TraceMeta):
         """
         self.session = self.SESSION_CLASS(account_info=account_info, cache=cache, raw_api=raw_api)
         self.services = Services(
-            self.session,
+            self,
             max_upload_workers=max_upload_workers,
             max_copy_workers=max_copy_workers,
         )
@@ -217,42 +225,30 @@ class B2Api(metaclass=B2TraceMeta):
 
     def download_file_by_id(
         self,
-        file_id,
-        download_dest,
-        progress_listener=None,
-        range_=None,
+        file_id: str,
+        progress_listener: Optional[AbstractProgressListener] = None,
+        range_: Optional[Tuple[int, int]] = None,
         encryption: Optional[EncryptionSetting] = None,
-    ):
+        allow_seeking: bool = True,
+    ) -> DownloadedFile:
         """
         Download a file with the given ID.
 
         :param str file_id: a file ID
-        :param download_dest: an instance of the one of the following classes: \
-        :class:`~b2sdk.v1.DownloadDestLocalFile`,\
-        :class:`~b2sdk.v1.DownloadDestBytes`,\
-        :class:`~b2sdk.v1.DownloadDestProgressWrapper`,\
-        :class:`~b2sdk.v1.PreSeekedDownloadDest`,\
-        or any sub class of :class:`~b2sdk.v1.AbstractDownloadDestination`
-        :param progress_listener: an instance of the one of the following classes: \
-        :class:`~b2sdk.v1.PartProgressReporter`,\
-        :class:`~b2sdk.v1.TqdmProgressListener`,\
-        :class:`~b2sdk.v1.SimpleProgressListener`,\
-        :class:`~b2sdk.v1.DoNothingProgressListener`,\
-        :class:`~b2sdk.v1.ProgressListenerForTest`,\
-        :class:`~b2sdk.v1.SyncFileReporter`,\
-        or any sub class of :class:`~b2sdk.v1.AbstractProgressListener`
-        :param list range_: a list of two integers, the first one is a start\
+        :param progress_listener: a progress listener object to use, or ``None`` to not track progress
+        :param range_: a list of two integers, the first one is a start\
         position, and the second one is the end position in the file
-        :param b2sdk.v1.EncryptionSetting encryption: encryption settings (``None`` if unknown)
-        :return: context manager that returns an object that supports iter_content()
+        :param encryption: encryption settings (``None`` if unknown)
+        :param allow_seeking: if true, download strategies requiring seeking on the download destination will be
+                              taken into account
         """
         url = self.session.get_download_url_by_id(file_id)
         return self.services.download_manager.download_file_from_url(
             url,
-            download_dest,
             progress_listener,
             range_,
             encryption,
+            allow_seeking,
         )
 
     def update_file_retention(
@@ -394,28 +390,22 @@ class B2Api(metaclass=B2TraceMeta):
         )
 
     # delete/cancel
-    def cancel_large_file(self, file_id):
+    def cancel_large_file(self, file_id: str) -> FileIdAndName:
         """
         Cancel a large file upload.
-
-        :param str file_id: a file ID
-        :rtype: None
         """
         return self.services.large_file.cancel_large_file(file_id)
 
-    def delete_file_version(self, file_id, file_name):
+    def delete_file_version(self, file_id: str, file_name: str) -> FileIdAndName:
         """
         Permanently and irrevocably delete one version of a file.
-
-        :param str file_id: a file ID
-        :param str file_name: a file name
-        :rtype: FileIdAndName
         """
         # filename argument is not first, because one day it may become optional
         response = self.session.delete_file_version(file_id, file_name)
-        assert response['fileId'] == file_id
-        assert response['fileName'] == file_name
-        return FileIdAndName(file_id, file_name)
+        file_id_and_name = FileIdAndName.from_cancel_or_delete_response(response)
+        assert file_id_and_name.file_id == file_id
+        assert file_id_and_name.file_name == file_name
+        return file_id_and_name
 
     # download
     def get_download_url_for_fileid(self, file_id):

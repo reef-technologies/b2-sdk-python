@@ -27,13 +27,13 @@ Public API
    api/bucket
    api/file_lock
    api/data_classes
+   api/downloaded_file
    api/enums
    api/progress
    api/sync
    api/utils
    api/transfer/emerge/write_intent
    api/transfer/outbound/outbound_source
-   api/download_dest
    api/encryption/setting
    api/encryption/types
 
@@ -50,7 +50,6 @@ Internal API
    api/internal/b2http
    api/internal/utils
    api/internal/cache
-   api/internal/download_dest
    api/internal/stream/chained
    api/internal/stream/hashing
    api/internal/stream/progress

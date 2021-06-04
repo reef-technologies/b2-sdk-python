@@ -96,7 +96,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          repository: Backblaze/B2_Command_Line_Tool
+          repository: reef-technologies/B2_Command_Line_Tool
+          ref: test-buket-name-entropy
           path: B2_Command_Line_Tool
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2

@@ -10,7 +10,7 @@
 
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
-
+i_am_an_error_introduced_to_show_that_cli_tests_are_run_using_this_version_sdk
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 

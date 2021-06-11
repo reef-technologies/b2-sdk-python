@@ -8,13 +8,13 @@
 #
 ######################################################################
 
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from .bucket import Bucket, BucketFactory
 from .encryption.setting import EncryptionSetting
 from .exception import NonExistentBucket, RestrictedBucket
 from .file_lock import FileRetentionSetting, LegalHold
-from .file_version import FileIdAndName, FileVersionFactory
+from .file_version import FileIdAndName, FileVersion, FileVersionFactory
 from .large_file.services import LargeFileServices
 from .raw_api import API_VERSION
 from .session import B2Session
@@ -490,18 +490,15 @@ class B2Api(metaclass=B2TraceMeta):
         )
 
     # other
-    def get_file_info(self, file_id: str) -> Dict[str, Any]:
+    def get_file_info(self, file_id: str) -> FileVersion:
         """
-        Legacy interface which just returns whatever remote API returns.
-
-        .. todo::
-            get_file_info() should return a File with .delete(), copy(), rename(), read() and so on
+        Gets info about file version.
 
         :param str file_id: the id of the file who's info will be retrieved.
-        :return: The parsed response
-        :rtype: dict
         """
-        return self.session.get_file_info_by_id(file_id)
+        return self.file_version_factory.from_api_response(
+            self.session.get_file_info_by_id(file_id)
+        )
 
     def check_bucket_name_restrictions(self, bucket_name: str):
         """

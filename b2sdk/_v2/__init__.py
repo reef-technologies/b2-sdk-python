@@ -62,11 +62,14 @@ from b2sdk.utils import trace_call
 
 # data classes
 
+from b2sdk.file_version import DownloadVersion
+from b2sdk.file_version import DownloadVersionFactory
 from b2sdk.file_version import FileIdAndName
 from b2sdk.file_version import FileVersion
 from b2sdk.file_version import FileVersionFactory
 from b2sdk.large_file.part import Part
 from b2sdk.large_file.unfinished_large_file import UnfinishedLargeFile
+from b2sdk.utils.range_ import Range
 
 # file lock
 
@@ -116,11 +119,7 @@ from b2sdk.stream import WritingStreamWithProgress
 
 # source / destination
 
-from b2sdk.download_dest import AbstractDownloadDestination
-from b2sdk.download_dest import DownloadDestBytes
-from b2sdk.download_dest import DownloadDestLocalFile
-from b2sdk.download_dest import DownloadDestProgressWrapper
-from b2sdk.download_dest import PreSeekedDownloadDest
+from b2sdk.transfer.inbound.downloaded_file import DownloadedFile
 
 from b2sdk.transfer.outbound.outbound_source import OutboundTransferSource
 from b2sdk.transfer.outbound.copy_source import CopySource
@@ -136,7 +135,6 @@ from b2sdk.transfer.emerge.write_intent import WriteIntent
 # trasfer
 
 from b2sdk.transfer.inbound.downloader.abstract import AbstractDownloader
-from b2sdk.transfer.inbound.file_metadata import FileMetadata
 from b2sdk.transfer.outbound.large_file_upload_state import LargeFileUploadState
 from b2sdk.transfer.inbound.downloader.parallel import AbstractDownloaderThread
 from b2sdk.transfer.inbound.downloader.parallel import FirstPartDownloaderThread
@@ -145,7 +143,6 @@ from b2sdk.transfer.inbound.downloader.parallel import ParallelDownloader
 from b2sdk.transfer.inbound.downloader.parallel import PartToDownload
 from b2sdk.transfer.inbound.downloader.parallel import WriterThread
 from b2sdk.transfer.outbound.progress_reporter import PartProgressReporter
-from b2sdk.transfer.inbound.downloader.range import Range
 from b2sdk.transfer.inbound.downloader.simple import SimpleDownloader
 
 # sync

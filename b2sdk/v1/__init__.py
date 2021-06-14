@@ -16,7 +16,12 @@ from b2sdk.v1.api import B2Api
 from b2sdk.v1.b2http import B2Http
 from b2sdk.v1.bucket import Bucket, BucketFactory
 from b2sdk.v1.cache import AbstractCache
+from b2sdk.v1.download_dest import (
+    AbstractDownloadDestination, DownloadDestLocalFile, PreSeekedDownloadDest, DownloadDestBytes,
+    DownloadDestProgressWrapper
+)
 from b2sdk.v1.exception import CommandError, DestFileNewer
+from b2sdk.v1.file_metadata import FileMetadata
 from b2sdk.v1.file_version import FileVersionInfo
 from b2sdk.v1.session import B2Session
 from b2sdk.v1.sync import (

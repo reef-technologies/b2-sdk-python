@@ -103,7 +103,7 @@ from b2sdk.raw_simulator import RawSimulator
 # raw_api
 
 from b2sdk.raw_api import AbstractRawApi
-from b2sdk.raw_api import B2RawApi
+from b2sdk.raw_api import B2RawHTTPApi
 from b2sdk.raw_api import MetadataDirectiveMode
 
 # stream
@@ -198,6 +198,8 @@ from b2sdk.sync.encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTIN
 # other
 
 from b2sdk.b2http import B2Http
+from b2sdk.api_config import B2HttpApiConfig
+from b2sdk.api_config import DEFAULT_HTTP_API_CONFIG
 from b2sdk.b2http import ClockSkewHook
 from b2sdk.b2http import HttpCallback
 from b2sdk.b2http import ResponseContextManager

@@ -512,7 +512,7 @@ class BucketSimulator(object):
                 'value': {
                     'defaultRetention': {
                         'mode': self.default_retention.mode.value,
-                        'period': self.default_retention.period,
+                        'period': self.default_retention.period.as_dict() if self.default_retention.period else None,
                     },
                     'isFileLockEnabled': self.is_file_lock_enabled,
                 },
@@ -978,11 +978,11 @@ class BucketSimulator(object):
 
 class RawSimulator(AbstractRawApi):
     """
-    Implement the same interface as B2RawApi by simulating all of the
+    Implement the same interface as B2RawHTTPApi by simulating all of the
     calls and keeping state in memory.
 
     The intended use for this class is for unit tests that test things
-    built on top of B2RawApi.
+    built on top of B2RawHTTPApi.
     """
 
     BUCKET_SIMULATOR_CLASS = BucketSimulator

@@ -8,15 +8,18 @@
 #
 ######################################################################
 
-from typing import Any, Dict, Optional
+from typing import Optional
 
+from .account_info.abstract import AbstractAccountInfo
+from .cache import AbstractCache
 from .bucket import Bucket, BucketFactory
 from .encryption.setting import EncryptionSetting
 from .exception import NonExistentBucket, RestrictedBucket
 from .file_lock import FileRetentionSetting, LegalHold
-from .file_version import FileIdAndName, FileVersionFactory
+from .file_version import FileIdAndName, FileVersion, FileVersionFactory
 from .large_file.services import LargeFileServices
 from .raw_api import API_VERSION
+from .api_config import B2HttpApiConfig, DEFAULT_HTTP_API_CONFIG
 from .session import B2Session
 from .transfer import (
     CopyManager,
@@ -66,7 +69,7 @@ class B2Api(metaclass=B2TraceMeta):
     """
     Provide file-level access to B2 services.
 
-    While :class:`b2sdk.v1.B2RawApi` provides direct access to the B2 web APIs, this
+    While :class:`b2sdk.v1.B2RawHTTPApi` provides direct access to the B2 web APIs, this
     class handles several things that simplify the task of uploading
     and downloading files:
 
@@ -89,39 +92,28 @@ class B2Api(metaclass=B2TraceMeta):
 
     def __init__(
         self,
-        account_info=None,
-        cache=None,
-        raw_api=None,
-        max_upload_workers=10,
-        max_copy_workers=10
+        account_info: Optional[AbstractAccountInfo] = None,
+        cache: Optional[AbstractCache] = None,
+        max_upload_workers: int = 10,
+        max_copy_workers: int = 10,
+        api_config: B2HttpApiConfig = DEFAULT_HTTP_API_CONFIG,
     ):
         """
         Initialize the API using the given account info.
 
-        :param account_info: an instance of :class:`~b2sdk.v1.UrlPoolAccountInfo`,
-                      or any custom class derived from
-                      :class:`~b2sdk.v1.AbstractAccountInfo`
-                      To learn more about Account Info objects, see here
+        :param account_info: To learn more about Account Info objects, see here
                       :class:`~b2sdk.v1.SqliteAccountInfo`
 
-        :param cache: an instance of the one of the following classes:
-                      :class:`~b2sdk.cache.DummyCache`, :class:`~b2sdk.cache.InMemoryCache`,
-                      :class:`~b2sdk.cache.AuthInfoCache`,
-                      or any custom class derived from :class:`~b2sdk.cache.AbstractCache`
-                      It is used by B2Api to cache the mapping between bucket name and bucket ids.
+        :param cache: It is used by B2Api to cache the mapping between bucket name and bucket ids.
                       default is :class:`~b2sdk.cache.DummyCache`
 
-        :param raw_api: an instance of one of the following classes:
-                        :class:`~b2sdk.raw_api.B2RawApi`, :class:`~b2sdk.raw_simulator.RawSimulator`,
-                        or any custom class derived from :class:`~b2sdk.raw_api.AbstractRawApi`
-                        It makes network-less unit testing simple by using :class:`~b2sdk.raw_simulator.RawSimulator`,
-                        in tests and :class:`~b2sdk.raw_api.B2RawApi` in production.
-                        default is :class:`~b2sdk.raw_api.B2RawApi`
-
-        :param int max_upload_workers: a number of upload threads, default is 10
-        :param int max_copy_workers: a number of copy threads, default is 10
+        :param max_upload_workers: a number of upload threads
+        :param max_copy_workers: a number of copy threads
+        :param api_config:
         """
-        self.session = self.SESSION_CLASS(account_info=account_info, cache=cache, raw_api=raw_api)
+        self.session = self.SESSION_CLASS(
+            account_info=account_info, cache=cache, api_config=api_config
+        )
         self.file_version_factory = self.FILE_VERSION_FACTORY_CLASS(self)
         self.services = Services(
             self,
@@ -141,8 +133,8 @@ class B2Api(metaclass=B2TraceMeta):
     def raw_api(self):
         """
         .. warning::
-            :class:`~b2sdk.raw_api.B2RawApi` attribute is deprecated.
-            :class:`~b2sdk.session.B2Session` expose all :class:`~b2sdk.raw_api.B2RawApi` methods now."""
+            :class:`~b2sdk.raw_api.B2RawHTTPApi` attribute is deprecated.
+            :class:`~b2sdk.session.B2Session` expose all :class:`~b2sdk.raw_api.B2RawHTTPApi` methods now."""
         return self.session.raw_api
 
     def authorize_automatically(self):
@@ -490,18 +482,15 @@ class B2Api(metaclass=B2TraceMeta):
         )
 
     # other
-    def get_file_info(self, file_id: str) -> Dict[str, Any]:
+    def get_file_info(self, file_id: str) -> FileVersion:
         """
-        Legacy interface which just returns whatever remote API returns.
-
-        .. todo::
-            get_file_info() should return a File with .delete(), copy(), rename(), read() and so on
+        Gets info about file version.
 
         :param str file_id: the id of the file who's info will be retrieved.
-        :return: The parsed response
-        :rtype: dict
         """
-        return self.session.get_file_info_by_id(file_id)
+        return self.file_version_factory.from_api_response(
+            self.session.get_file_info_by_id(file_id)
+        )
 
     def check_bucket_name_restrictions(self, bucket_name: str):
         """

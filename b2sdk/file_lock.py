@@ -266,7 +266,7 @@ class LegalHold(enum.Enum):
             }
         return {
             "isClientAuthorizedToRead": True,
-            "value": self.to_dict_repr(),
+            "value": self.value,
         }
 
 

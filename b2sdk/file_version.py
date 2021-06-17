@@ -171,8 +171,8 @@ class FileVersion(BaseFileVersion):
             legal_hold=legal_hold,
         )
 
-    def as_dict(self):
-        result = super().as_dict()
+    def as_dict(self, include_auth=False):
+        result = super().as_dict(include_auth=include_auth)
 
         if self.action is not None:
             result['action'] = self.action

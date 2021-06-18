@@ -73,21 +73,16 @@ class BaseFileVersion:
         else:
             self.mod_time_millis = self.upload_timestamp
 
-    def as_dict(self, include_auth=False):
+    def as_dict(self):
         """ represents the object as a dict which looks almost exactly like the raw api output for upload/list """
         result = {
             'fileId': self.id_,
             'fileName': self.file_name,
             'fileInfo': self.file_info,
             'serverSideEncryption': self.server_side_encryption.as_dict(),
+            'legalHold': self.legal_hold.to_dict_repr(),
+            'fileRetention': self.file_retention.as_dict(),
         }
-
-        if include_auth:
-            result['legalHold'] = self.legal_hold.as_dict_with_auth()
-            result['fileRetention'] = self.file_retention.as_dict_with_auth()
-        else:
-            result['legalHold'] = self.legal_hold.to_dict_repr()
-            result['fileRetention'] = self.file_retention.as_dict()
 
         if self.size is not None:
             result['size'] = self.size
@@ -171,8 +166,8 @@ class FileVersion(BaseFileVersion):
             legal_hold=legal_hold,
         )
 
-    def as_dict(self, include_auth=False):
-        result = super().as_dict(include_auth=include_auth)
+    def as_dict(self):
+        result = super().as_dict()
 
         if self.action is not None:
             result['action'] = self.action

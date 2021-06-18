@@ -161,17 +161,6 @@ class FileRetentionSetting:
             "retainUntilTimestamp": self.retain_until,
         }
 
-    def as_dict_with_auth(self):
-        if self == UNKNOWN_FILE_RETENTION_SETTING:
-            return {
-                "isClientAuthorizedToRead": False,
-                "value": None,
-            }
-        return {
-            "isClientAuthorizedToRead": True,
-            "value": self.as_dict(),
-        }
-
     def add_to_to_upload_headers(self, headers):
         if self.mode is RetentionMode.UNKNOWN:
             raise ValueError('cannot use an unknown file retention setting in requests')
@@ -250,24 +239,11 @@ class LegalHold(enum.Enum):
         headers['X-Bz-File-Legal-Hold'] = self.to_server()
 
     def to_dict_repr(self):
-        if self.is_on():
-            return self.__class__.ON.value
-        elif self.is_off():
-            return self.__class__.OFF.value
-        elif self.is_unknown():
-            return self.__class__.UNKNOWN.value
+        if self in (
+            self.__class__.ON, self.__class__.OFF, self.__class__.UNSET, self.__class__.UNKNOWN
+        ):
+            return self.value
         raise ValueError('Unrepresentable value')
-
-    def as_dict_with_auth(self):
-        if self == self.__class__.UNKNOWN:
-            return {
-                "isClientAuthorizedToRead": False,
-                "value": None,
-            }
-        return {
-            "isClientAuthorizedToRead": True,
-            "value": self.value,
-        }
 
 
 class BucketRetentionSetting:

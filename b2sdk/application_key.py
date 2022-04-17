@@ -94,6 +94,8 @@ class ApplicationKey(BaseApplicationKey):
         """Create an ApplicationKey object from a delete-key or list-key response (a parsed json object)."""
         return cls(**cls.parse_response_dict(response))
 
+    from_dict = from_api_response
+
 
 class FullApplicationKey(BaseApplicationKey):
     """Dataclass for storing info about an application key, including the actual key, as returned by create-key."""

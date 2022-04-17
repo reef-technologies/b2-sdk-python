@@ -530,6 +530,24 @@ class B2Api(metaclass=B2TraceMeta):
                 return
             start_application_key_id = next_application_key_id
 
+    def get_key(self, key_id: str) -> Optional[ApplicationKey]:
+        """
+        Get a single application key.
+
+        :param key_id: an :term:`application key ID`
+        """
+        account_id = self.account_info.get_account_id()
+
+        response = self.session.list_keys(
+            account_id,
+            max_key_count=1,
+            start_application_key_id=key_id,
+        )
+        for entry in response['keys']:
+            return ApplicationKey.from_api_response(entry)
+
+        return None
+
     # other
     def get_file_info(self, file_id: str) -> FileVersion:
         """

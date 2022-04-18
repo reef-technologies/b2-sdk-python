@@ -233,6 +233,7 @@ class B2Session:
         start_file_name=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         return self._wrap_default_token(
             self.raw_api.list_file_names,
@@ -240,6 +241,7 @@ class B2Session:
             start_file_name=start_file_name,
             max_file_count=max_file_count,
             prefix=prefix,
+            delimiter=delimiter,
         )
 
     def list_file_versions(
@@ -249,6 +251,7 @@ class B2Session:
         start_file_id=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         return self._wrap_default_token(
             self.raw_api.list_file_versions,
@@ -257,6 +260,7 @@ class B2Session:
             start_file_id=start_file_id,
             max_file_count=max_file_count,
             prefix=prefix,
+            delimiter=delimiter,
         )
 
     def list_keys(self, account_id, max_key_count=None, start_application_key_id=None):

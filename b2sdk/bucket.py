@@ -364,11 +364,23 @@ class Bucket(metaclass=B2TraceMeta):
         start_file_id = None
         session = self.api.session
         while True:
+            delimiter = recursive and '/' or None
             if latest_only:
-                response = session.list_file_names(self.id_, start_file_name, fetch_count, prefix)
+                response = session.list_file_names(
+                    self.id_,
+                    start_file_name,
+                    fetch_count,
+                    prefix,
+                    delimiter=delimiter,
+                )
             else:
                 response = session.list_file_versions(
-                    self.id_, start_file_name, start_file_id, fetch_count, prefix
+                    self.id_,
+                    start_file_name,
+                    start_file_id,
+                    fetch_count,
+                    prefix,
+                    delimiter=delimiter,
                 )
             for entry in response['files']:
                 file_version = self.api.file_version_factory.from_api_response(entry)

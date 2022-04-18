@@ -829,6 +829,7 @@ class BucketSimulator:
         start_file_name=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         assert prefix is None or start_file_name is None or start_file_name.startswith(prefix
                                                                                       ), locals()
@@ -838,11 +839,15 @@ class BucketSimulator:
         next_file_name = None
         prev_file_name = None
         for key in sorted(self.file_name_and_id_to_file):
-            (file_name, file_id) = key
+            file_name, file_id = key
             assert file_id
             if start_file_name <= file_name and file_name != prev_file_name:
                 if prefix is not None and not file_name.startswith(prefix):
                     break
+                if delimiter is not None:
+                    # output entries matching the prefix until one with delimiter after a prefix
+                    # is hit, then skip over everything that startswith filename + delimiter
+                    raise NotImplemented
                 prev_file_name = file_name
                 file_sim = self.file_name_and_id_to_file[key]
                 if file_sim.is_visible():
@@ -861,6 +866,7 @@ class BucketSimulator:
         start_file_id=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         assert prefix is None or start_file_name is None or start_file_name.startswith(prefix
                                                                                       ), locals()
@@ -871,7 +877,7 @@ class BucketSimulator:
         next_file_name = None
         next_file_id = None
         for key in sorted(self.file_name_and_id_to_file):
-            (file_name, file_id) = key
+            file_name, file_id = key
             if (start_file_name < file_name) or (
                 start_file_name == file_name and
                 (start_file_id == '' or int(start_file_id) <= int(file_id))
@@ -879,6 +885,10 @@ class BucketSimulator:
                 file_sim = self.file_name_and_id_to_file[key]
                 if prefix is not None and not file_name.startswith(prefix):
                     break
+                if delimiter is not None:
+                    # output entries matching the prefix until one with delimiter after a prefix
+                    # is hit, then skip over everything that startswith filename + delimiter
+                    raise NotImplemented
                 result_files.append(file_sim.as_list_files_dict(account_auth_token))
                 if len(result_files) == max_file_count:
                     next_file_name = file_sim.name
@@ -1578,6 +1588,7 @@ class RawSimulator(AbstractRawApi):
         start_file_name=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         bucket = self._get_bucket_by_id(bucket_id)
         self._assert_account_auth(
@@ -1588,7 +1599,13 @@ class RawSimulator(AbstractRawApi):
             bucket_id=bucket_id,
             file_name=prefix,
         )
-        return bucket.list_file_names(account_auth_token, start_file_name, max_file_count, prefix)
+        return bucket.list_file_names(
+            account_auth_token,
+            start_file_name,
+            max_file_count,
+            prefix,
+            delimiter,
+        )
 
     def list_file_versions(
         self,
@@ -1599,6 +1616,7 @@ class RawSimulator(AbstractRawApi):
         start_file_id=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         bucket = self._get_bucket_by_id(bucket_id)
         self._assert_account_auth(

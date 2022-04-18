@@ -576,6 +576,7 @@ class B2RawHTTPApi(AbstractRawApi):
         start_file_name=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         return self._post_json(
             api_url,
@@ -585,6 +586,7 @@ class B2RawHTTPApi(AbstractRawApi):
             startFileName=start_file_name,
             maxFileCount=max_file_count,
             prefix=prefix,
+            delimiter=delimiter,
         )
 
     def list_file_versions(
@@ -596,6 +598,7 @@ class B2RawHTTPApi(AbstractRawApi):
         start_file_id=None,
         max_file_count=None,
         prefix=None,
+        delimiter=None,
     ):
         return self._post_json(
             api_url,
@@ -606,6 +609,7 @@ class B2RawHTTPApi(AbstractRawApi):
             startFileId=start_file_id,
             maxFileCount=max_file_count,
             prefix=prefix,
+            delimiter=delimiter,
         )
 
     def list_keys(

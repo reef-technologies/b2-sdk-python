@@ -89,9 +89,8 @@ class rename_argument(AbstractDeprecator):
     Change the argument name to new one if old one is used, warns about deprecation in docs and through a warning.
 
     >>> @rename_argument('aaa', 'bbb', '0.1.0', '0.2.0')
-    >>> def easy(bbb):
-    >>>     return bbb
-
+    ... def easy(bbb):
+    ...     return bbb
     >>> easy(aaa=5)
     'aaa' is a deprecated argument for 'easy' function/method - it was renamed to 'bbb' in version 0.1.0. Support for the old name is going to be dropped in 0.2.0.
     5
@@ -142,10 +141,10 @@ class rename_function(AbstractDeprecator):
     Warn about deprecation in docs and through a DeprecationWarning when used.  Use it to decorate a proxy function, like this:
 
     >>> def new(foobar):
-    >>>     return foobar ** 2
+    ...     return foobar ** 2
     >>> @rename_function(new, '0.1.0', '0.2.0')
-    >>> def old(foo, bar):
-    >>>     return new(foo + bar)
+    ... def old(foo, bar):
+    ...     return new(foo + bar)
     >>> old()
     'old' is deprecated since version 0.1.0 - it was moved to 'new', please switch to use that. The proxy for the old name is going to be removed in 0.2.0.
     123

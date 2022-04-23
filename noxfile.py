@@ -109,7 +109,7 @@ def unit(session):
     """Run unit tests."""
     install_myself(session)
     session.install(*REQUIREMENTS_TEST)
-    args = ['--doctest-modules', '-p', 'pyfakefs', '-n', 'auto']
+    args = ['-p', 'pyfakefs', '-n', 'auto']
     if not SKIP_COVERAGE:
         args += ['--cov=b2sdk', '--cov-branch', '--cov-report=xml']
     # TODO: Use session.parametrize for apiver
@@ -119,6 +119,8 @@ def unit(session):
     session.run('pytest', '--api=v2', *args, *session.posargs, 'test/unit')
     session.run('pytest', '--api=v1', *args, *session.posargs, 'test/unit')
     session.run('pytest', '--api=v0', *args, *session.posargs, 'test/unit')
+    session.run('pytest', '--doctest-modules', '--ignore', 'b2sdk/_pyinstaller', 'b2sdk')
+
 
     if not SKIP_COVERAGE and not session.posargs:
         session.notify('cover')

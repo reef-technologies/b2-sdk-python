@@ -96,7 +96,7 @@ class BucketCleaner:
                     b2_api.delete_bucket(bucket)
 
 
-def _cleanup_old_buckets(raw_api, api_url, account_auth_token, account_id,  bucket_list_dict):
+def _cleanup_old_buckets(raw_api, api_url, account_auth_token, account_id, bucket_list_dict):
     for bucket_dict in bucket_list_dict['buckets']:
         bucket_id = bucket_dict['bucketId']
         bucket_name = bucket_dict['bucketName']
@@ -122,7 +122,7 @@ def _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, b
         if action in ['hide', 'upload']:
             print('b2_delete_file', file_name, action)
             if action == 'upload' and version_dict[
-                    'fileRetention'] and version_dict['fileRetention']['value']['mode'] is not None:
+                'fileRetention'] and version_dict['fileRetention']['value']['mode'] is not None:
                 raw_api.update_file_retention(
                     api_url,
                     account_auth_token,

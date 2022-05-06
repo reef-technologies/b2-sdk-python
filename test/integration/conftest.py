@@ -181,7 +181,11 @@ def file_id(file_dict) -> str:
 @pytest.fixture(scope='module')
 def download_auth_dict(raw_api, api_url, account_auth_token, bucket_id, file_name) -> dict:
     return raw_api.get_download_authorization(
-        api_url, account_auth_token, bucket_id, file_name[:-2], 12345,
+        api_url,
+        account_auth_token,
+        bucket_id,
+        file_name[:-2],
+        12345,
     )
 
 

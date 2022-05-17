@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Extracted folder/bucket scanning from `sync` module - new `scan` module
+
 ## [1.16.0] - 2022-04-27
 
 This release contains a preview of replication support. It allows for basic

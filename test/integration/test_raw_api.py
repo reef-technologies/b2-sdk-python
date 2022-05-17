@@ -14,13 +14,16 @@ from time import time
 
 import pytest
 
-from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
+from b2sdk.encryption.setting import SSE_B2_AES, SSE_NONE
 from b2sdk.file_lock import BucketRetentionSetting, RetentionMode, RetentionPeriod
 from b2sdk.replication.setting import ReplicationConfiguration, ReplicationDestinationConfiguration, ReplicationRule, ReplicationSourceConfiguration
 from b2sdk.replication.types import ReplicationStatus
 from b2sdk.utils import hex_sha1_of_stream
 
 from .bucket_cleaner import _clean_and_delete_bucket, _cleanup_old_buckets
+from .conftest import FILE_CONTENTS, FILE_NAME
+
+
 """
 Try each of the calls to the raw api.
 
@@ -191,16 +194,15 @@ class TestReplication:
             account_auth_token,
             source_bucket_dict['bucketId'],
         )
-        file_contents = b'hello world'
         file_dict = raw_api.upload_file(
             upload_url_dict['uploadUrl'],
             upload_url_dict['authorizationToken'],
             'test.txt',
-            len(file_contents),
+            len(FILE_CONTENTS),
             'text/plain',
-            hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents)),
+            hex_sha1_of_stream(io.BytesIO(FILE_CONTENTS), len(FILE_CONTENTS)),
             {'color': 'blue'},
-            io.BytesIO(file_contents),
+            io.BytesIO(FILE_CONTENTS),
         )
 
         assert ReplicationStatus[file_dict['replicationStatus'].upper()
@@ -248,15 +250,15 @@ class TestReplication:
 
 
 def test_update_bucket(
-    raw_api, api_url, account_auth_token, account_id, bucket_id, sse_none, sse_b2_aes
+    raw_api, api_url, account_auth_token, account_id, bucket_id,
 ):
     for encryption_setting, default_retention in [
         (
-            sse_none,
+            SSE_NONE,
             BucketRetentionSetting(mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1))
         ),
-        (sse_b2_aes, None),
-        (sse_b2_aes, BucketRetentionSetting(RetentionMode.NONE)),
+        (SSE_B2_AES, None),
+        (SSE_B2_AES, BucketRetentionSetting(RetentionMode.NONE)),
     ]:
         raw_api.update_bucket(
             api_url,
@@ -281,43 +283,43 @@ def test_file_upload(file_dict):
     pass
 
 
-def test_list_file_versions(raw_api, api_url, account_auth_token, bucket_id, file_dict, file_name):
+def test_list_file_versions(raw_api, api_url, account_auth_token, bucket_id, file_dict):
     list_versions_dict = raw_api.list_file_versions(api_url, account_auth_token, bucket_id)
-    assert [file_name] == [f_dict['fileName'] for f_dict in list_versions_dict['files']]
+    assert [FILE_NAME] == [f_dict['fileName'] for f_dict in list_versions_dict['files']]
 
 
 def test_download_file_by_id_with_auth(
-    raw_api, download_url, file_dict, account_auth_token, file_contents
+    raw_api, download_url, file_dict, account_auth_token,
 ):
     url = raw_api.get_download_url_by_id(download_url, file_dict['fileId'])
     with raw_api.download_file_from_url(account_auth_token, url) as response:
-        data = next(response.iter_content(chunk_size=len(file_contents)))
-        assert data == file_contents, data
+        data = next(response.iter_content(chunk_size=len(FILE_CONTENTS)))
+        assert data == FILE_CONTENTS, data
 
 
-def test_download_file_by_id_no_auth(raw_api, download_url, file_dict, file_contents):
+def test_download_file_by_id_no_auth(raw_api, download_url, file_dict):
     url = raw_api.get_download_url_by_id(download_url, file_dict['fileId'])
     with raw_api.download_file_from_url(None, url) as response:
-        data = next(response.iter_content(chunk_size=len(file_contents)))
-        assert data == file_contents, data
+        data = next(response.iter_content(chunk_size=len(FILE_CONTENTS)))
+        assert data == FILE_CONTENTS, data
 
 
 def test_download_file_by_name_with_auth(
-    raw_api, download_url, file_name, bucket_name, account_auth_token, file_contents
+    raw_api, download_url, bucket_name, account_auth_token, file_dict
 ):
-    url = raw_api.get_download_url_by_name(download_url, bucket_name, file_name)
+    url = raw_api.get_download_url_by_name(download_url, bucket_name, FILE_NAME)
     with raw_api.download_file_from_url(account_auth_token, url) as response:
-        data = next(response.iter_content(chunk_size=len(file_contents)))
-        assert data == file_contents, data
+        data = next(response.iter_content(chunk_size=len(FILE_CONTENTS)))
+        assert data == FILE_CONTENTS, data
 
 
 def test_download_file_by_name_no_auth(
-    raw_api, download_url, file_name, bucket_name, file_contents
+    raw_api, download_url, bucket_name, file_dict
 ):
-    url = raw_api.get_download_url_by_name(download_url, bucket_name, file_name)
+    url = raw_api.get_download_url_by_name(download_url, bucket_name, FILE_NAME)
     with raw_api.download_file_from_url(None, url) as response:
-        data = next(response.iter_content(chunk_size=len(file_contents)))
-        assert data == file_contents, data
+        data = next(response.iter_content(chunk_size=len(FILE_CONTENTS)))
+        assert data == FILE_CONTENTS, data
 
 
 def test_get_download_authorization(download_auth_dict):
@@ -325,25 +327,25 @@ def test_get_download_authorization(download_auth_dict):
 
 
 def test_download_file_by_name_download_auth(
-    download_auth_dict, raw_api, download_url, bucket_name, file_name, file_contents
+    download_auth_dict, raw_api, download_url, bucket_name, file_dict
 ):
     download_auth_token = download_auth_dict['authorizationToken']
-    url = raw_api.get_download_url_by_name(download_url, bucket_name, file_name)
+    url = raw_api.get_download_url_by_name(download_url, bucket_name, FILE_NAME)
     with raw_api.download_file_from_url(download_auth_token, url) as response:
-        data = next(response.iter_content(chunk_size=len(file_contents)))
-        assert data == file_contents, data
+        data = next(response.iter_content(chunk_size=len(FILE_CONTENTS)))
+        assert data == FILE_CONTENTS, data
 
 
-def test_list_file_names(raw_api, api_url, account_auth_token, bucket_id, file_name):
+def test_list_file_names(raw_api, api_url, account_auth_token, bucket_id, file_dict):
     list_names_dict = raw_api.list_file_names(api_url, account_auth_token, bucket_id)
-    assert [file_name] == [f_dict['fileName'] for f_dict in list_names_dict['files']]
+    assert [FILE_NAME] == [f_dict['fileName'] for f_dict in list_names_dict['files']]
 
 
-def test_list_file_names_start_count(raw_api, api_url, account_auth_token, bucket_id, file_name):
+def test_list_file_names_start_count(raw_api, api_url, account_auth_token, bucket_id, file_dict):
     list_names_dict = raw_api.list_file_names(
-        api_url, account_auth_token, bucket_id, start_file_name=file_name, max_file_count=5
+        api_url, account_auth_token, bucket_id, start_file_name=FILE_NAME, max_file_count=5
     )
-    assert [file_name] == [f_dict['fileName'] for f_dict in list_names_dict['files']]
+    assert [FILE_NAME] == [f_dict['fileName'] for f_dict in list_names_dict['files']]
 
 
 def test_copy_file(raw_api, api_url, account_auth_token, file_id):
@@ -351,38 +353,38 @@ def test_copy_file(raw_api, api_url, account_auth_token, file_id):
     raw_api.copy_file(api_url, account_auth_token, file_id, copy_file_name)
 
 
-def test_get_file_info_by_id(raw_api, api_url, account_auth_token, file_id, file_name):
+def test_get_file_info_by_id(raw_api, api_url, account_auth_token, file_id):
     file_info_dict = raw_api.get_file_info_by_id(api_url, account_auth_token, file_id)
-    assert file_info_dict['fileName'] == file_name
+    assert file_info_dict['fileName'] == FILE_NAME
 
 
 def test_get_file_info_by_name_no_auth(
-    raw_api, api_url, account_id, bucket_name, file_name, file_id, download_url
+    raw_api, api_url, account_id, bucket_name, file_id, download_url
 ):
-    info_headers = raw_api.get_file_info_by_name(download_url, None, bucket_name, file_name)
+    info_headers = raw_api.get_file_info_by_name(download_url, None, bucket_name, FILE_NAME)
     assert info_headers['x-bz-file-id'] == file_id
 
 
 def test_get_file_info_by_name_with_auth(
-    raw_api, download_url, account_auth_token, bucket_name, file_name, file_id
+    raw_api, download_url, account_auth_token, bucket_name, file_id
 ):
     info_headers = raw_api.get_file_info_by_name(
-        download_url, account_auth_token, bucket_name, file_name
+        download_url, account_auth_token, bucket_name, FILE_NAME
     )
     assert info_headers['x-bz-file-id'] == file_id
 
 
 def test_get_file_info_by_name_download_auth(
-    raw_api, download_url, download_auth_token, bucket_name, file_name, file_id
+    raw_api, download_url, download_auth_token, bucket_name, file_id
 ):
     info_headers = raw_api.get_file_info_by_name(
-        download_url, download_auth_token, bucket_name, file_name
+        download_url, download_auth_token, bucket_name, FILE_NAME
     )
     assert info_headers['x-bz-file-id'] == file_id
 
 
-def test_hide_file(raw_api, api_url, account_auth_token, bucket_id, file_name):
-    raw_api.hide_file(api_url, account_auth_token, bucket_id, file_name)
+def test_hide_file(raw_api, api_url, account_auth_token, bucket_id, file_dict):
+    raw_api.hide_file(api_url, account_auth_token, bucket_id, FILE_NAME)
 
 
 class TestLargeFile:
@@ -392,16 +394,16 @@ class TestLargeFile:
 
     @pytest.fixture(scope='class')
     def large_file_id(
-        self, raw_api, api_url, account_auth_token, bucket_id, file_name, sse_b2_aes, file_info
+        self, raw_api, api_url, account_auth_token, bucket_id, file_info, file_dict
     ) -> str:
         large_info = raw_api.start_large_file(
             api_url,
             account_auth_token,
             bucket_id,
-            file_name,
+            FILE_NAME,
             'text/plain',
             file_info,
-            server_side_encryption=sse_b2_aes,
+            server_side_encryption=SSE_B2_AES,
         )
         return large_info['fileId']
 
@@ -414,7 +416,7 @@ class TestLargeFile:
         return hex_sha1_of_stream(io.BytesIO(part_contents), len(part_contents))
 
     def test_upload_part(
-        self, raw_api, api_url, account_auth_token, large_file_id, file_contents, part_contents,
+        self, raw_api, api_url, account_auth_token, large_file_id, part_contents,
         part_sha1
     ):
         upload_part_dict = raw_api.get_upload_part_url(api_url, account_auth_token, large_file_id)
@@ -434,12 +436,12 @@ class TestLargeFile:
         assert [1, 2] == [part['partNumber'] for part in parts_response['parts']]
 
     def test_list_unfinished_large_files(
-        self, raw_api, api_url, account_auth_token, bucket_id, file_name, file_info
+        self, raw_api, api_url, account_auth_token, bucket_id, file_info, file_dict
     ):
         unfinished_list = raw_api.list_unfinished_large_files(
             api_url, account_auth_token, bucket_id
         )
-        assert [file_name] == [f_dict['fileName'] for f_dict in unfinished_list['files']]
+        assert [FILE_NAME] == [f_dict['fileName'] for f_dict in unfinished_list['files']]
         assert file_info == unfinished_list['files'][0]['fileInfo']
 
     def test_finish_large_file(

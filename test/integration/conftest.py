@@ -135,40 +135,21 @@ def upload_url_dict(raw_api, api_url, account_auth_token, bucket_id) -> dict:
     return raw_api.get_upload_url(api_url, account_auth_token, bucket_id)
 
 
-@pytest.fixture(scope='module')
-def file_name() -> str:
-    return 'test.txt'
+FILE_NAME = 'test.txt'
+FILE_CONTENTS = b'hello world'
 
 
 @pytest.fixture(scope='module')
-def file_contents() -> bytes:
-    return b'hello world'
-
-
-@pytest.fixture(scope='session')
-def sse_none() -> EncryptionSetting:
-    return EncryptionSetting(mode=EncryptionMode.NONE)
-
-
-@pytest.fixture(scope='session')
-def sse_b2_aes() -> EncryptionSetting:
-    return EncryptionSetting(
-        mode=EncryptionMode.SSE_B2,
-        algorithm=EncryptionAlgorithm.AES256,
-    )
-
-
-@pytest.fixture(scope='module')
-def file_dict(raw_api, upload_url_dict, file_name, file_contents, sse_b2_aes) -> dict:
+def file_dict(raw_api, upload_url_dict, sse_b2_aes) -> dict:
     return raw_api.upload_file(
         upload_url_dict['uploadUrl'],
         upload_url_dict['authorizationToken'],
-        file_name,
-        len(file_contents),
+        FILE_NAME,
+        len(FILE_CONTENTS),
         'text/plain',
-        hex_sha1_of_stream(BytesIO(file_contents), len(file_contents)),
+        hex_sha1_of_stream(BytesIO(FILE_CONTENTS), len(FILE_CONTENTS)),
         {'color': 'blue'},
-        BytesIO(file_contents),
+        BytesIO(FILE_CONTENTS),
         server_side_encryption=sse_b2_aes,
     )
 
@@ -179,12 +160,12 @@ def file_id(file_dict) -> str:
 
 
 @pytest.fixture(scope='module')
-def download_auth_dict(raw_api, api_url, account_auth_token, bucket_id, file_name) -> dict:
+def download_auth_dict(raw_api, api_url, account_auth_token, bucket_id) -> dict:
     return raw_api.get_download_authorization(
         api_url,
         account_auth_token,
         bucket_id,
-        file_name[:-2],
+        FILE_NAME[:-2],
         12345,
     )
 

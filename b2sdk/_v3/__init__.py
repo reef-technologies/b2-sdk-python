@@ -206,9 +206,7 @@ from b2sdk.sync.encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTIN
 
 from b2sdk.replication.setting import ReplicationConfigurationFactory
 from b2sdk.replication.setting import ReplicationConfiguration
-from b2sdk.replication.setting import ReplicationSourceConfiguration
 from b2sdk.replication.setting import ReplicationRule
-from b2sdk.replication.setting import ReplicationDestinationConfiguration
 from b2sdk.replication.setup import ReplicationSetupHelper
 
 # other

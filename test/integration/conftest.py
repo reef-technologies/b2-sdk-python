@@ -135,8 +135,8 @@ def upload_url_dict(raw_api, api_url, account_auth_token, bucket_id) -> dict:
     return raw_api.get_upload_url(api_url, account_auth_token, bucket_id)
 
 
-FILE_NAME = 'test.txt'
-FILE_CONTENTS = b'hello world'
+TEST_FILE_NAME = 'test.txt'
+TEST_FILE_CONTENTS = b'hello world'
 
 
 @pytest.fixture(scope='module')
@@ -144,12 +144,12 @@ def file_dict(raw_api, upload_url_dict, sse_b2_aes) -> dict:
     return raw_api.upload_file(
         upload_url_dict['uploadUrl'],
         upload_url_dict['authorizationToken'],
-        FILE_NAME,
-        len(FILE_CONTENTS),
+        TEST_FILE_NAME,
+        len(TEST_FILE_CONTENTS),
         'text/plain',
-        hex_sha1_of_stream(BytesIO(FILE_CONTENTS), len(FILE_CONTENTS)),
+        hex_sha1_of_stream(BytesIO(TEST_FILE_CONTENTS), len(TEST_FILE_CONTENTS)),
         {'color': 'blue'},
-        BytesIO(FILE_CONTENTS),
+        BytesIO(TEST_FILE_CONTENTS),
         server_side_encryption=sse_b2_aes,
     )
 
@@ -165,7 +165,7 @@ def download_auth_dict(raw_api, api_url, account_auth_token, bucket_id) -> dict:
         api_url,
         account_auth_token,
         bucket_id,
-        FILE_NAME[:-2],
+        TEST_FILE_NAME[:-2],
         12345,
     )
 

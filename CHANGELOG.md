@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-* Extracted folder/bucket scanning from `sync` module - new `scan` module
+### Added
+* Extracted folder/bucket scanning into a new `scan` module
 
 ## [1.16.0] - 2022-04-27
 

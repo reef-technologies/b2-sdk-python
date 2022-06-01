@@ -1391,8 +1391,10 @@ class TestConcatenate(TestCaseWithBucket):
                 )
             self.assertIsInstance(created_file, VFileVersionInfo)
             actual = (
-                created_file.id_, created_file.file_name, created_file.size,
-                created_file.server_side_encryption
+                created_file.id_,
+                created_file.file_name,
+                created_file.size,
+                created_file.server_side_encryption,
             )
             expected = (
                 mock.ANY,
@@ -1402,6 +1404,12 @@ class TestConcatenate(TestCaseWithBucket):
                 SSE_C_AES_NO_SECRET
             )
             self.assertEqual(expected, actual)
+            if data == b'hello_world':
+                continue
+            from pprint import pprint
+            print(self.simulator.MIN_PART_SIZE)
+            pprint(created_file.as_dict())
+            assert False
 
 
 class TestCreateFile(TestConcatenate):

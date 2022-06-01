@@ -665,11 +665,13 @@ class B2RawHTTPApi(AbstractRawApi):
         legal_hold: Optional[LegalHold] = None,
     ):
         kwargs = {}
+1/0        assert False
         if server_side_encryption is not None:
             assert server_side_encryption.mode in (
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['serverSideEncryption'] = server_side_encryption.serialize_to_json_for_request()
+            file_info = server_side_encryption.add_key_id_to_file_info(file_info)
 
         if legal_hold is not None:
             kwargs['legalHold'] = legal_hold.to_server()

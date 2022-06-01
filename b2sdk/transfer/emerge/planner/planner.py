@@ -126,13 +126,14 @@ class EmergePlanner:
         # Therefore here we increase the recommended upload part size if needed.
         # the constant is for handling mixed upload/copy in concatenate etc
         max_destination_offset = max(intent.destination_end_offset for intent in write_intents)
-        self.recommended_upload_part_size = max(
-            self.recommended_upload_part_size,
-            min(
-                ceil(1.5 * max_destination_offset / 10000),
-                self.max_part_size,
-            )
-        )
+        self.recommended_upload_part_size = 5000000
+        #self.recommended_upload_part_size = max(
+        #    self.recommended_upload_part_size,
+        #    min(
+        #        ceil(1.5 * max_destination_offset / 10000),
+        #        self.max_part_size,
+        #    )
+        #)
         assert self.min_part_size <= self.recommended_upload_part_size <= self.max_part_size, (
             self.min_part_size, self.recommended_upload_part_size, self.max_part_size
         )

@@ -1120,6 +1120,9 @@ class BucketFactory:
         options = set(bucket_dict['options']) if 'options' in bucket_dict else ValueNotSet()
         account_id = bucket_dict.get('accountId', ValueNotSet())
 
+        # The existence of these complex settings is checked below, instead of inside of their respective factory
+        # classes, because those would either break or return objects indistinguishable from objects representing
+        # insufficient permission to read set values.
         default_server_side_encryption = (
             EncryptionSettingFactory.from_bucket_dict(bucket_dict)
             if EncryptionSettingFactory.TOP_LEVEL_KEY in bucket_dict else ValueNotSet()

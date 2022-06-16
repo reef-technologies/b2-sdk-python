@@ -13,7 +13,7 @@ import re
 from abc import ABCMeta, abstractmethod
 from enum import Enum, unique
 from logging import getLogger
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Iterable
 
 from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault, AccessDenied, SSECKeyError, RetentionWriteError
 from .encryption.setting import EncryptionMode, EncryptionSetting
@@ -426,7 +426,7 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def create_key(
-        self, api_url, account_auth_token, account_id, capabilities, key_name,
+        self, api_url, account_auth_token, account_id, capabilities: Iterable[str], key_name,
         valid_duration_seconds, bucket_id, name_prefix
     ):
         return self._post_json(
@@ -434,7 +434,7 @@ class B2RawHTTPApi(AbstractRawApi):
             'b2_create_key',
             account_auth_token,
             accountId=account_id,
-            capabilities=capabilities,
+            capabilities=list(capabilities),
             keyName=key_name,
             validDurationInSeconds=valid_duration_seconds,
             bucketId=bucket_id,

@@ -10,7 +10,7 @@
 
 import logging
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Type
 
 if False:
     from b2sdk.api import B2Api
@@ -1028,6 +1028,7 @@ class BucketFactory:
     This is a factory for creating bucket objects from different kind of objects.
     """
     BUCKET_CLASS = staticmethod(Bucket)
+    BUCKET_STRUCTURE_CLASS = staticmethod(BucketStructure)
 
     @classmethod
     def from_api_response(cls, api, response):
@@ -1041,7 +1042,7 @@ class BucketFactory:
         return [cls.from_api_bucket_dict(api, bucket_dict) for bucket_dict in response['buckets']]
 
     @classmethod
-    def bucket_structure_from_dict(cls, bucket_dict) -> BucketStructure:
+    def bucket_structure_from_dict(cls, bucket_dict) -> Type[BUCKET_STRUCTURE_CLASS]:
         """
         Turn a dictionary, like this:
 
@@ -1143,7 +1144,7 @@ class BucketFactory:
             default_retention = cls.NOT_SET
             is_file_lock_enabled = cls.NOT_SET
 
-        return BucketStructure(
+        return cls.BUCKET_STRUCTURE_CLASS(
             bucket_id,
             bucket_name,
             type_,
@@ -1161,7 +1162,7 @@ class BucketFactory:
         )
 
     @classmethod
-    def from_api_bucket_dict(cls, api, bucket_dict):
+    def from_api_bucket_dict(cls, api, bucket_dict) -> Type[BUCKET_CLASS]:
         """
         Turn a dictionary, like this:
 

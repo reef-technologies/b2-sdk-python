@@ -14,7 +14,7 @@ from io import BytesIO
 import os
 import platform
 import unittest.mock as mock
-from typing import List
+from typing import List, Iterable
 
 import pytest
 
@@ -206,7 +206,7 @@ class TestCaseWithBucket(TestBase):
             self.account_info, api_config=B2HttpApiConfig(_raw_api_class=self.RAW_SIMULATOR_CLASS)
         )
 
-    def new_api_with_new_key(self, capabilities: List[str]) -> B2Api:
+    def new_api_with_new_key(self, capabilities: Iterable[str]) -> B2Api:
         new_key = create_key(self.api, capabilities=capabilities, key_name='newtestkey')
         new_api = B2Api(StubAccountInfo())
         new_api.session.raw_api = self.simulator

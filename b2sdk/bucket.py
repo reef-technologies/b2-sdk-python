@@ -56,6 +56,9 @@ class ValueNotSet:
     pass
 
 
+NOT_SET = ValueNotSet()
+
+
 class BucketStructure(metaclass=B2TraceMeta):
     """Structure holding all attributes of a bucket."""
 
@@ -1110,26 +1113,26 @@ class BucketFactory:
         :rtype: BucketStructure
 
         """
-        type_ = bucket_dict.get('bucketType', ValueNotSet())
-        bucket_name = bucket_dict.get('bucketName', ValueNotSet())
-        bucket_id = bucket_dict.get('bucketId', ValueNotSet())
-        bucket_info = bucket_dict.get('bucketInfo', ValueNotSet())
-        cors_rules = bucket_dict.get('corsRules', ValueNotSet())
-        lifecycle_rules = bucket_dict.get('lifecycleRules', ValueNotSet())
-        revision = bucket_dict.get('revision', ValueNotSet())
-        options = set(bucket_dict['options']) if 'options' in bucket_dict else ValueNotSet()
-        account_id = bucket_dict.get('accountId', ValueNotSet())
+        type_ = bucket_dict.get('bucketType', cls.NOT_SET)
+        bucket_name = bucket_dict.get('bucketName', cls.NOT_SET)
+        bucket_id = bucket_dict.get('bucketId', cls.NOT_SET)
+        bucket_info = bucket_dict.get('bucketInfo', cls.NOT_SET)
+        cors_rules = bucket_dict.get('corsRules', cls.NOT_SET)
+        lifecycle_rules = bucket_dict.get('lifecycleRules', cls.NOT_SET)
+        revision = bucket_dict.get('revision', cls.NOT_SET)
+        options = set(bucket_dict['options']) if 'options' in bucket_dict else cls.NOT_SET
+        account_id = bucket_dict.get('accountId', cls.NOT_SET)
 
         # The existence of these complex settings is checked below, instead of inside of their respective factory
         # classes, because those would either break or return objects indistinguishable from objects representing
         # insufficient permission to read set values.
         default_server_side_encryption = (
             EncryptionSettingFactory.from_bucket_dict(bucket_dict)
-            if EncryptionSettingFactory.TOP_LEVEL_KEY in bucket_dict else ValueNotSet()
+            if EncryptionSettingFactory.TOP_LEVEL_KEY in bucket_dict else cls.NOT_SET
         )
         replication = (
             ReplicationConfigurationFactory.from_bucket_dict(bucket_dict).value
-            if ReplicationConfigurationFactory.TOP_LEVEL_KEY in bucket_dict else ValueNotSet()
+            if ReplicationConfigurationFactory.TOP_LEVEL_KEY in bucket_dict else cls.NOT_SET
         )
 
         if FileLockConfiguration.TOP_LEVEL_KEY in bucket_dict:
@@ -1137,8 +1140,8 @@ class BucketFactory:
             default_retention = file_lock_configuration.default_retention
             is_file_lock_enabled = file_lock_configuration.is_file_lock_enabled
         else:
-            default_retention = ValueNotSet()
-            is_file_lock_enabled = ValueNotSet()
+            default_retention = cls.NOT_SET
+            is_file_lock_enabled = cls.NOT_SET
 
         return BucketStructure(
             bucket_id,

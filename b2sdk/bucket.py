@@ -1027,8 +1027,8 @@ class BucketFactory:
     """
     This is a factory for creating bucket objects from different kind of objects.
     """
-    BUCKET_CLASS = staticmethod(Bucket)
-    BUCKET_STRUCTURE_CLASS = staticmethod(BucketStructure)
+    BUCKET_CLASS = Bucket
+    BUCKET_STRUCTURE_CLASS = BucketStructure
 
     @classmethod
     def from_api_response(cls, api, response):

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Add `BucketStructure` to hold info about a bucket
 * Add `include_existing_files` parameter to `ReplicationSetupHelper`
+* Modify `create_key` to accept any iterable for `capabilities`, not only list
 
 ## [1.17.3] - 2022-07-15
 

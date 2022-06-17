@@ -1114,26 +1114,26 @@ class BucketFactory:
         :rtype: BucketStructure
 
         """
-        type_ = bucket_dict.get('bucketType', cls.NOT_SET)
-        bucket_name = bucket_dict.get('bucketName', cls.NOT_SET)
-        bucket_id = bucket_dict.get('bucketId', cls.NOT_SET)
-        bucket_info = bucket_dict.get('bucketInfo', cls.NOT_SET)
-        cors_rules = bucket_dict.get('corsRules', cls.NOT_SET)
-        lifecycle_rules = bucket_dict.get('lifecycleRules', cls.NOT_SET)
-        revision = bucket_dict.get('revision', cls.NOT_SET)
-        options = set(bucket_dict['options']) if 'options' in bucket_dict else cls.NOT_SET
-        account_id = bucket_dict.get('accountId', cls.NOT_SET)
+        type_ = bucket_dict.get('bucketType', NOT_SET)
+        bucket_name = bucket_dict.get('bucketName', NOT_SET)
+        bucket_id = bucket_dict.get('bucketId', NOT_SET)
+        bucket_info = bucket_dict.get('bucketInfo', NOT_SET)
+        cors_rules = bucket_dict.get('corsRules', NOT_SET)
+        lifecycle_rules = bucket_dict.get('lifecycleRules', NOT_SET)
+        revision = bucket_dict.get('revision', NOT_SET)
+        options = set(bucket_dict['options']) if 'options' in bucket_dict else NOT_SET
+        account_id = bucket_dict.get('accountId', NOT_SET)
 
         # The existence of these complex settings is checked below, instead of inside of their respective factory
         # classes, because those would either break or return objects indistinguishable from objects representing
         # insufficient permission to read set values.
         default_server_side_encryption = (
             EncryptionSettingFactory.from_bucket_dict(bucket_dict)
-            if EncryptionSettingFactory.TOP_LEVEL_KEY in bucket_dict else cls.NOT_SET
+            if EncryptionSettingFactory.TOP_LEVEL_KEY in bucket_dict else NOT_SET
         )
         replication = (
             ReplicationConfigurationFactory.from_bucket_dict(bucket_dict).value
-            if ReplicationConfigurationFactory.TOP_LEVEL_KEY in bucket_dict else cls.NOT_SET
+            if ReplicationConfigurationFactory.TOP_LEVEL_KEY in bucket_dict else NOT_SET
         )
 
         if FileLockConfiguration.TOP_LEVEL_KEY in bucket_dict:
@@ -1141,8 +1141,8 @@ class BucketFactory:
             default_retention = file_lock_configuration.default_retention
             is_file_lock_enabled = file_lock_configuration.is_file_lock_enabled
         else:
-            default_retention = cls.NOT_SET
-            is_file_lock_enabled = cls.NOT_SET
+            default_retention = NOT_SET
+            is_file_lock_enabled = NOT_SET
 
         return cls.BUCKET_STRUCTURE_CLASS(
             bucket_id,

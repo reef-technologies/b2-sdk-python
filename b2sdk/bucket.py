@@ -60,7 +60,17 @@ NOT_SET = ValueNotSet()
 
 
 class BucketStructure(metaclass=B2TraceMeta):
-    """Structure holding all attributes of a bucket."""
+    """
+    Structure holding all attributes of a bucket.
+
+    This structure doesn't hold reference to B2Api, so unlike `Bucket` class
+    it cannot be used to perform any actions. Instead, this class is used
+    to only hold Bucket's fields for serializing / deserializing.
+
+    Also important difference from `Bucket` is that this structure
+    allows storing subset of fields, setting others to `ValueNotSet`,
+    which preserves from serializing too much information.
+    """
 
     id_: Union[str, ValueNotSet]
     account_id: Union[str, ValueNotSet]

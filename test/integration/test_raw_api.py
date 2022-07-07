@@ -545,13 +545,16 @@ def _cleanup_old_buckets(raw_api, auth_dict, bucket_list_dict):
         bucket_name = bucket_dict['bucketName']
         if _should_delete_bucket(bucket_name):
             print('cleaning up old bucket: ' + bucket_name)
-            _clean_and_delete_bucket(
-                raw_api,
-                auth_dict['apiUrl'],
-                auth_dict['authorizationToken'],
-                auth_dict['accountId'],
-                bucket_id,
-            )
+            try:
+                _clean_and_delete_bucket(
+                    raw_api,
+                    auth_dict['apiUrl'],
+                    auth_dict['authorizationToken'],
+                    auth_dict['accountId'],
+                    bucket_id,
+                )
+            except Exception as exc:
+                print('Could not delete bucket ' + bucket_name + ' because ' + str(exc))
 
 
 def _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id):
@@ -587,7 +590,7 @@ def _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, b
 def _should_delete_bucket(bucket_name):
     # Bucket names for this test look like: c7b22d0b0ad7-1460060364-5670
     # Other buckets should not be deleted.
-    if bucket_name.startswith('clitst'):
+    if bucket_name.startswith('clitst') or bucket_name.startswith('sdktst'):
         return True
 
     match = re.match(r'^test-raw-api-[a-f0-9]+-([0-9]+)-([0-9]+)', bucket_name)

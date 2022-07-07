@@ -48,7 +48,9 @@ class BucketCleaner:
         for bucket in buckets:
             if not self._should_remove_bucket(bucket):
                 print('Skipping bucket removal:', bucket.name)
-            else:
+                continue
+
+            try:
                 print('Trying to remove bucket:', bucket.name)
                 files_leftover = False
                 file_versions = bucket.ls(latest_only=False, recursive=True)
@@ -88,3 +90,5 @@ class BucketCleaner:
                 else:
                     print('Removing bucket:', bucket.name)
                     b2_api.delete_bucket(bucket)
+            except Exception as exc:
+                print('Failed to delete bucket ', bucket.name, ' because ', str(exc))

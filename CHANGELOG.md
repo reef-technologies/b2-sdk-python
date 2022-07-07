@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Broke everything
+
 ## [1.17.0] - 2022-06-23
 
 As in version 1.16.0, the replication API may still be unstable, however

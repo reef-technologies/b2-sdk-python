@@ -1,12 +1,13 @@
+import enum
 import warnings
-from typing import Optional, Dict, Union, Tuple
+
+from dataclasses import dataclass
+from typing import Dict, Generator, Optional, Tuple, Union
 
 from b2sdk import version
 from b2sdk.api import B2Api
 from b2sdk.application_key import ApplicationKey
-from b2sdk.bucket import BucketStructure, BucketFactory, Bucket
-import enum
-
+from b2sdk.bucket import Bucket, BucketFactory, BucketStructure
 from b2sdk.exception import AccessDenied, BucketIdNotFound
 
 
@@ -18,77 +19,71 @@ class ReplicationFilter:
     # def get_checks
 
 
+@dataclass
 class TwoWayReplicationCheckGenerator:
-    def __init__(
-        self,
-        source_api: B2Api,
-        destination_api: B2Api,
-        filter_source_bucket_name: Optional[str],
-        filter_destination_bucket_name: Optional[str],
-        filter_replication_rule_name: Optional[str],
-        file_name_prefix: Optional[str],
-    ):
-        self.source_api = source_api
-        self.destination_api = destination_api
+    source_api: B2Api
+    destination_api: B2Api
+    filter_source_bucket_name: Optional[str] = None
+    filter_destination_bucket_name: Optional[str] = None
+    filter_replication_rule_name: Optional[str] = None
+    file_name_prefix: Optional[str] = None
 
-        self.filter_source_bucket_name = filter_source_bucket_name
-        self.filter_destination_bucket_name = filter_destination_bucket_name
-        self.filter_replication_rule_name = filter_replication_rule_name
-        self.file_name_prefix = file_name_prefix
-
-    def get_checks(self):
-        if self.filter_source_bucket_name is not None:
-            source_buckets = self.source_api.list_buckets(
-                bucket_name=self.filter_source_bucket_name
-            )
-        else:
-            source_buckets = self.source_api.list_buckets()
+    def get_checks(self) -> Generator['ReplicationCheck']:
+        source_buckets = self.source_api.list_buckets(
+            bucket_name=self.filter_source_bucket_name
+        )
         for source_bucket in source_buckets:
-            if not source_bucket.replication:
+            yield from self.get_source_bucket_checks()
+
+    def get_source_bucket_checks(self, source_bucket: Bucket) -> Generator['ReplicationCheck']:
+        if not source_bucket.replication:
+            return
+
+        if not source_bucket.replication.as_replication_source:
+            return
+
+        if not source_bucket.replication.as_replication_source.replication_rules:
+            return
+
+        source_key = _safe_get_key(
+            self.source_api,
+            source_bucket.replication.as_replication_source.source_application_key_id
+        )
+        for rule in source_bucket.replication.as_replication_source.replication_rules:
+            if (
+                self.filter_replication_rule_name and
+                rule.replication_rule_name != self.filter_replication_rule_name
+            ):
                 continue
-            if not source_bucket.replication.as_replication_source:
+
+            if self.file_name_prefix and rule.file_name_prefix != self.file_name_prefix:
                 continue
-            if not source_bucket.replication.as_replication_source.replication_rules:
-                continue
-            source_key = _safe_get_key(
-                self.source_api,
-                source_bucket.replication.as_replication_source.source_application_key_id
-            )
-            for rule in source_bucket.replication.as_replication_source.replication_rules:
-                if (
-                    self.filter_replication_rule_name is not None and
-                    rule.replication_rule_name != self.filter_replication_rule_name
-                ):
-                    continue
 
-                if self.file_name_prefix is not None and rule.file_name_prefix != self.file_name_prefix:
-                    continue
-
-                try:
-                    destination_bucket_list = self.destination_api.list_buckets(
-                        bucket_id=rule.destination_bucket_id
-                    )
-                    if not destination_bucket_list:
-                        raise BucketIdNotFound
-                except (AccessDenied, BucketIdNotFound):
-                    yield ReplicationSourceCheck(source_bucket, rule.replication_rule_name)
-                    continue
-
-                if (
-                    self.filter_destination_bucket_name is not None and
-                    destination_bucket_list[0].name != self.filter_destination_bucket_name
-                ):
-                    continue
-
-                yield TwoWayReplicationCheck(
-                    source_bucket=source_bucket,
-                    replication_rule_name=rule.replication_rule_name,
-                    source_application_key=source_key,
-                    destination_bucket=destination_bucket_list[0],
-                    destination_application_keys=self._get_destination_bucket_keys(
-                        destination_bucket_list[0]
-                    ),
+            try:
+                destination_bucket_list = self.destination_api.list_buckets(
+                    bucket_id=rule.destination_bucket_id
                 )
+                if not destination_bucket_list:
+                    raise BucketIdNotFound()
+            except (AccessDenied, BucketIdNotFound):
+                yield ReplicationSourceCheck(source_bucket, rule.replication_rule_name)
+                continue
+
+            if (
+                self.filter_destination_bucket_name is not None and
+                destination_bucket_list[0].name != self.filter_destination_bucket_name
+            ):
+                continue
+
+            yield TwoWayReplicationCheck(
+                source_bucket=source_bucket,
+                replication_rule_name=rule.replication_rule_name,
+                source_application_key=source_key,
+                destination_bucket=destination_bucket_list[0],
+                destination_application_keys=self._get_destination_bucket_keys(
+                    destination_bucket_list[0]
+                ),
+            )
 
     @classmethod
     def _get_destination_bucket_keys(cls, destination_bucket: Bucket) -> \
@@ -114,12 +109,39 @@ class CheckState(enum.Enum):
     def is_ok(self):
         return self == type(self).OK
 
+    @classmethod
+    def from_bool(cls, value: bool) -> 'CheckState':
+        return cls.OK if value else cls.NOT_OK
+
 
 class AccessDeniedEnum(enum.Enum):
     ACCESS_DENIED = 'ACCESS_DENIED'
 
 
-class ReplicationSourceCheck:
+class ReplicationCheck:
+    @classmethod
+    def _check_key(
+        cls,
+        key: Union[Optional[ApplicationKey], AccessDeniedEnum],
+        capability: str,
+        replication_name_prefix: str,
+        bucket_id: str,
+    ) -> Tuple[CheckState, CheckState, CheckState, CheckState]:
+        if key == AccessDeniedEnum.ACCESS_DENIED:
+            return (CheckState.UNKNOWN,) * 4
+        if key is None:
+            return (CheckState.NOT_OK,) * 4
+        return (
+            CheckState.OK,
+            CheckState.from_bool(key.bucket_id is None or key.bucket_id == bucket_id),
+            CheckState.from_bool(capability in key.capabilities),
+            CheckState.from_bool(
+                key.name_prefix is None or replication_name_prefix.startswith(key.name_prefix)
+            ),
+        )
+
+
+class ReplicationSourceCheck(ReplicationCheck):
     """
     key_exists
     key_read_capabilities
@@ -147,7 +169,7 @@ class ReplicationSourceCheck:
             self.key_bucket_match,
             self.key_read_capabilities,
             self.key_name_prefix_match,
-        ) = _check_key(application_key, 'readFiles', self._rule.file_name_prefix, bucket.id_)
+        ) = self._check_key(self.application_key, 'readFiles', self._rule.file_name_prefix, bucket.id_)
 
     def other_party_data(self):
         return OtherPartyReplicationCheckData(
@@ -220,7 +242,7 @@ class ReplicationDestinationCheck:
         )
 
 
-class TwoWayReplicationCheck:
+class TwoWayReplicationCheck(ReplicationCheck):
     """
     is_enabled
 
@@ -269,7 +291,8 @@ class TwoWayReplicationCheck:
         else:
             destination_application_key_id = destination_bucket.replication.as_replication_destination.\
                 source_to_destination_key_mapping.get(
-                source_bucket.replication.as_replication_source.source_application_key_id)
+                    source_bucket.replication.as_replication_source.source_application_key_id
+                )
 
         if destination_application_key_id is None:
             self.source_key_accepted_in_target_bucket = CheckState.NOT_OK
@@ -292,33 +315,12 @@ class TwoWayReplicationCheck:
 
         if destination_bucket.is_file_lock_enabled:
             self.file_lock_match = CheckState.OK
-        elif source_bucket.is_file_lock_enabled == False:
+        elif source_bucket.is_file_lock_enabled is False:
             self.file_lock_match = CheckState.OK
         elif source_bucket.is_file_lock_enabled is None or destination_bucket.is_file_lock_enabled is None:
             self.file_lock_match = CheckState.UNKNOWN
         else:
             self.file_lock_match = CheckState.NOT_OK
-
-    @classmethod
-    def _check_key(
-        cls,
-        key: Union[Optional[ApplicationKey], AccessDeniedEnum],
-        capability: str,
-        replication_name_prefix: str,
-        bucket_id: str,
-    ) -> Tuple[CheckState, CheckState, CheckState, CheckState]:
-        if key == AccessDeniedEnum.ACCESS_DENIED:
-            return (CheckState.UNKNOWN,) * 4
-        if key is None:
-            return (CheckState.NOT_OK,) * 4
-        return (
-            CheckState.OK,
-            CheckState.OK
-            if key.bucket_id is None or key.bucket_id == bucket_id else CheckState.NOT_OK,
-            CheckState.OK if capability in key.capabilities else CheckState.NOT_OK,
-            CheckState.OK if key.name_prefix is None or
-            replication_name_prefix.startswith(key.name_prefix) else CheckState.NOT_OK,
-        )
 
 
 class OtherPartyReplicationCheckData:
@@ -347,8 +349,7 @@ class OtherPartyReplicationCheckData:
         return key.as_dict()
 
     @classmethod
-    def _parse_key(cls, key_representation: Union[None, str, dict]
-                  ) -> Union[Optional[ApplicationKey], AccessDeniedEnum]:
+    def _parse_key(cls, key_representation: Union[None, str, dict]) -> Union[Optional[ApplicationKey], AccessDeniedEnum]:
         if key_representation is None:
             return None
         try:
@@ -388,22 +389,3 @@ def _safe_get_key(api: B2Api, key_id: str) -> Union[None, AccessDeniedEnum, Appl
         return api.get_key(key_id)
     except AccessDenied:
         return AccessDeniedEnum.ACCESS_DENIED
-
-
-def _check_key(
-    key: Union[Optional[ApplicationKey], AccessDeniedEnum],
-    capability: str,
-    replication_name_prefix: str,
-    bucket_id: str,
-) -> Tuple[CheckState, CheckState, CheckState, CheckState]:
-    if key == AccessDeniedEnum.ACCESS_DENIED:
-        return (CheckState.UNKNOWN,) * 4
-    if key is None:
-        return (CheckState.NOT_OK,) * 4
-    return (
-        CheckState.OK,
-        CheckState.OK if key.bucket_id is None or key.bucket_id == bucket_id else CheckState.NOT_OK,
-        CheckState.OK if capability in key.capabilities else CheckState.NOT_OK,
-        CheckState.OK if key.name_prefix is None or
-        replication_name_prefix.startswith(key.name_prefix) else CheckState.NOT_OK,
-    )

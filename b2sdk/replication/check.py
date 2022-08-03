@@ -1,3 +1,13 @@
+######################################################################
+#
+# File: b2sdk/replication/check.py
+#
+# Copyright 2022 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
+
 import enum
 import warnings
 
@@ -29,9 +39,7 @@ class TwoWayReplicationCheckGenerator:
     file_name_prefix: Optional[str] = None
 
     def get_checks(self) -> Generator['ReplicationCheck']:
-        source_buckets = self.source_api.list_buckets(
-            bucket_name=self.filter_source_bucket_name
-        )
+        source_buckets = self.source_api.list_buckets(bucket_name=self.filter_source_bucket_name)
         for source_bucket in source_buckets:
             yield from self.get_source_bucket_checks()
 
@@ -39,20 +47,13 @@ class TwoWayReplicationCheckGenerator:
         if not source_bucket.replication:
             return
 
-        if not source_bucket.replication.as_replication_source:
+        if not source_bucket.replication.rules:
             return
 
-        if not source_bucket.replication.as_replication_source.replication_rules:
-            return
-
-        source_key = _safe_get_key(
-            self.source_api,
-            source_bucket.replication.as_replication_source.source_application_key_id
-        )
-        for rule in source_bucket.replication.as_replication_source.replication_rules:
+        source_key = _safe_get_key(self.source_api, source_bucket.replication.source_key_id)
+        for rule in source_bucket.replication.rules:
             if (
-                self.filter_replication_rule_name and
-                rule.replication_rule_name != self.filter_replication_rule_name
+                self.filter_replication_rule_name and rule.name != self.filter_replication_rule_name
             ):
                 continue
 
@@ -66,7 +67,7 @@ class TwoWayReplicationCheckGenerator:
                 if not destination_bucket_list:
                     raise BucketIdNotFound()
             except (AccessDenied, BucketIdNotFound):
-                yield ReplicationSourceCheck(source_bucket, rule.replication_rule_name)
+                yield ReplicationSourceCheck.from_data(source_bucket, rule.replication_rule_name)
                 continue
 
             if (
@@ -75,7 +76,7 @@ class TwoWayReplicationCheckGenerator:
             ):
                 continue
 
-            yield TwoWayReplicationCheck(
+            yield TwoWayReplicationCheck.from_data(
                 source_bucket=source_bucket,
                 replication_rule_name=rule.replication_rule_name,
                 source_application_key=source_key,
@@ -90,10 +91,8 @@ class TwoWayReplicationCheckGenerator:
             Dict[str, Union[None, ApplicationKey, 'AccessDeniedEnum']]:
         if not destination_bucket.replication:
             return {}
-        if not destination_bucket.replication.as_replication_destination:
-            return {}
-        key_ids = destination_bucket.replication.as_replication_destination.source_to_destination_key_mapping.values(
-        )
+
+        key_ids = destination_bucket.replication.source_to_destination_key_mapping.values()
         try:
             return {key_id: destination_bucket.api.get_key(key_id) for key_id in key_ids}
         except AccessDenied:
@@ -107,7 +106,7 @@ class CheckState(enum.Enum):
     UNKNOWN = 'unknown'
 
     def is_ok(self):
-        return self == type(self).OK
+        return self == self.OK
 
     @classmethod
     def from_bool(cls, value: bool) -> 'CheckState':
@@ -141,186 +140,178 @@ class ReplicationCheck:
         )
 
 
+@dataclass
 class ReplicationSourceCheck(ReplicationCheck):
-    """
-    key_exists
-    key_read_capabilities
-    key_name_prefix_match
-    is_enabled
+    key_exists: CheckState
+    key_read_capabilities: CheckState
+    key_name_prefix_match: CheckState
+    is_enabled: CheckState
 
-    """
+    _bucket: Bucket
+    _application_key: Union[None, AccessDeniedEnum, ApplicationKey]
 
-    def __init__(self, bucket: Bucket, rule_name: str):
-        self.bucket = bucket
-        self.application_key = _safe_get_key(
-            self.bucket.api, self.bucket.replication.as_replication_source.source_application_key_id
-        )
-        rules = [
-            r for r in self.bucket.replication.as_replication_source.replication_rules
-            if r.replication_rule_name == rule_name
-        ]
+    @classmethod
+    def from_data(cls, bucket: Bucket, rule_name: str) -> 'ReplicationSourceCheck':
+        kwargs = {
+            '_bucket': bucket,
+        }
+
+        application_key = _safe_get_key(bucket.api, bucket.replication.source_key_id)
+        kwargs['_application_key'] = application_key
+
+        rules = [rule for rule in bucket.replication.rules if rule.name == rule_name]
         assert rules
-        self._rule = rules[0]
+        rule = rules[0]
 
-        self.is_enabled = self._rule.is_enabled
+        kwargs['is_enabled'] = rule.is_enabled
 
         (
-            self.key_exists,
-            self.key_bucket_match,
-            self.key_read_capabilities,
-            self.key_name_prefix_match,
-        ) = self._check_key(self.application_key, 'readFiles', self._rule.file_name_prefix, bucket.id_)
+            kwargs['key_exists'],
+            _,  # kwargs['key_bucket_match'],
+            kwargs['key_read_capabilities'],
+            kwargs['key_name_prefix_match'],
+        ) = cls._check_key(application_key, 'readFiles', rule.file_name_prefix, bucket.id_)
+
+        return cls(**kwargs)
 
     def other_party_data(self):
         return OtherPartyReplicationCheckData(
-            bucket=self.bucket,
-            keys_mapping={
-                self.bucket.replication.as_replication_source.source_application_key_id:
-                    self.application_key
-            }
+            bucket=self._bucket,
+            keys_mapping={self._bucket.replication.source_key_id: self._application_key},
         )
 
 
+@dataclass
 class ReplicationDestinationCheck:
-    """
-    keys_exist: {
-        10053d55ae26b790000000004: True
-        10053d55ae26b790030000004: True
-        10053d55ae26b790050000004: False
-    }
-    keys_write_capabilities: {
-        10053d55ae26b790000000004: True
-        10053d55ae26b790030000004: False
-        10053d55ae26b790050000004: False
-    }
-    keys_bucket_match: {
-        10053d55ae26b790000000004: True
-        10053d55ae26b790030000004: False
-        10053d55ae26b790050000004: False
-    }
-    """
+    key_exist: Dict[str, CheckState]
+    keys_write_capabilities: Dict[str, CheckState]
+    keys_bucket_match: Dict[str, CheckState]
 
-    def __init__(self, bucket: Bucket):
-        self.bucket = bucket
-        self.keys: Dict[str, Union[Optional[ApplicationKey], AccessDeniedEnum]] = {}
-        self.keys_exist: Dict[str, CheckState] = {}
-        self.keys_write_capabilities: Dict[str, CheckState] = {}
-        self.keys_bucket_match: Dict[str, CheckState] = {}
-        keys_to_check = bucket.replication.as_replication_destination.source_to_destination_key_mapping.values(
-        )
+    _bucket: Bucket
+    _keys: Dict[str, Union[Optional[ApplicationKey], AccessDeniedEnum]]
+
+    @classmethod
+    def from_data(cls, bucket: Bucket) -> 'ReplicationDestinationCheck':
+        kwargs = {
+            '_bucket': bucket,
+            '_keys': {},
+            'key_exist': {},
+            'keys_write_capabilities': {},
+            'keys_bucket_match': {},
+        }
+
+        keys_to_check = bucket.replication.source_to_destination_key_mapping.values()
         try:
             for key_id in keys_to_check:
-                application_key = self.bucket.api.get_key(
-                    self.bucket.replication.as_replication_source.source_application_key_id
-                )
-                self.keys[key_id] = application_key
+                application_key = bucket.api.get_key(bucket.replication.source_key_id)
+                kwargs['_keys'][key_id] = application_key
+
                 if application_key:
-                    self.keys_exist[key_id] = CheckState.OK
-                    self.keys_write_capabilities[
-                        key_id
-                    ] = CheckState.OK if 'writeFiles' in application_key.capabilities else CheckState.NOT_OK
-                    self.keys_bucket_match[key_id] = (
-                        CheckState.OK if application_key.bucket_id is None or
-                        application_key.bucket_id == bucket.id_ else CheckState.NOT_OK
+                    kwargs['keys_exist'][key_id] = CheckState.OK
+                    kwargs['keys_write_capabilities'][key_id] = CheckState.from_bool(
+                        'writeFiles' in application_key.capabilities
+                    )
+                    kwargs['keys_bucket_match'][key_id] = CheckState.from_bool(
+                        application_key.bucket_id is None or application_key.bucket_id == bucket.id_
                     )
                 else:
-                    self.keys_exist[key_id] = CheckState.NOT_OK
-                    self.keys_write_capabilities[key_id] = CheckState.NOT_OK
-                    self.keys_bucket_match[key_id] = CheckState.NOT_OK
+                    kwargs['keys_exist'][key_id] = CheckState.NOT_OK
+                    kwargs['keys_write_capabilities'][key_id] = CheckState.NOT_OK
+                    kwargs['keys_bucket_match'][key_id] = CheckState.NOT_OK
 
         except AccessDenied:
 
-            self.keys = dict.fromkeys(keys_to_check, None)
-            self.keys_exist = dict.fromkeys(keys_to_check, CheckState.UNKNOWN)
-            self.keys_write_capabilities = dict.fromkeys(keys_to_check, CheckState.UNKNOWN)
-            self.keys_bucket_match = dict.fromkeys(keys_to_check, CheckState.UNKNOWN)
+            kwargs['_keys'] = dict.fromkeys(keys_to_check, None)
+            kwargs['keys_exist'] = dict.fromkeys(keys_to_check, CheckState.UNKNOWN)
+            kwargs['keys_write_capabilities'] = dict.fromkeys(keys_to_check, CheckState.UNKNOWN)
+            kwargs['keys_bucket_match'] = dict.fromkeys(keys_to_check, CheckState.UNKNOWN)
+
+        return cls(**kwargs)
 
     def other_party_data(self):
         return OtherPartyReplicationCheckData(
-            bucket=self.bucket,
-            keys_mapping=self.keys,
+            bucket=self._bucket,
+            keys_mapping=self._keys,
         )
 
 
+@dataclass
 class TwoWayReplicationCheck(ReplicationCheck):
-    """
-    is_enabled
+    is_enabled: CheckState
 
-    source_key_exists
-    source_key_bucket_match
-    source_key_read_capabilities
-    source_key_name_prefix_match
+    source_key_exists: CheckState
+    source_key_bucket_match: CheckState
+    source_key_read_capabilities: CheckState
+    source_key_name_prefix_match: CheckState
 
-    source_key_accepted_in_target_bucket
+    source_key_accepted_in_target_bucket: CheckState
 
-    destination_key_exists
-    destination_key_bucket_match
-    destination_key_write_capabilities
-    destination_key_name_prefix_match
+    destination_key_exists: CheckState
+    destination_key_bucket_match: CheckState
+    destination_key_write_capabilities: CheckState
+    destination_key_name_prefix_match: CheckState
 
-    file_lock_match
-    """
+    file_lock_match: CheckState
 
-    def __init__(
-        self,
+    @classmethod
+    def from_data(
+        cls,
         source_bucket: BucketStructure,
         replication_rule_name: str,
         source_application_key: Union[Optional[ApplicationKey], AccessDeniedEnum],
         destination_bucket: BucketStructure,
         destination_application_keys: Dict[str, Union[Optional[ApplicationKey]], AccessDeniedEnum],
-    ):
+    ) -> 'TwoWayReplicationCheck':
+        kwargs = {}
+
         rules = [
-            r for r in source_bucket.replication.as_replication_source.replication_rules
-            if r.replication_rule_name == replication_rule_name
+            rule for rule in source_bucket.replication.rules if rule.name == replication_rule_name
         ]
         assert rules
-        self._rule = rules[0]
-        self.is_enabled = CheckState.OK if self._rule.is_enabled else CheckState.NOT_OK
+        rule = rules[0]
+
+        kwargs['is_enabled'] = CheckState.from_bool(rule.is_enabled),
 
         (
-            self.source_key_exists,
-            self.source_key_bucket_match,
-            self.source_key_read_capabilities,
-            self.source_key_name_prefix_match,
-        ) = self._check_key(
-            source_application_key, 'readFiles', self._rule.file_name_prefix, source_bucket.id_
+            kwargs['source_key_exists'],
+            kwargs['source_key_bucket_match'],
+            kwargs['source_key_read_capabilities'],
+            kwargs['source_key_name_prefix_match'],
+        ) = cls._check_key(
+            source_application_key, 'readFiles', rule.file_name_prefix, source_bucket.id_
         )
 
-        if destination_bucket.replication is None or destination_bucket.replication.as_replication_destination is None:
-            destination_application_key_id = None
-        else:
-            destination_application_key_id = destination_bucket.replication.as_replication_destination.\
-                source_to_destination_key_mapping.get(
-                    source_bucket.replication.as_replication_source.source_application_key_id
-                )
+        destination_application_key_id = destination_bucket.replication and destination_bucket.replication.source_to_destination_key_mapping.get(
+            source_bucket.replication.source_key_id
+        )
 
-        if destination_application_key_id is None:
-            self.source_key_accepted_in_target_bucket = CheckState.NOT_OK
-        else:
-            self.source_key_accepted_in_target_bucket = CheckState.OK
+        kwargs['source_key_accepted_in_target_bucket'] = CheckState.from_bool(
+            destination_application_key_id is not None
+        )
 
         destination_application_key = destination_application_keys.get(
             destination_application_key_id
         )
 
         (
-            self.destination_key_exists,
-            self.destination_key_bucket_match,
-            self.destination_key_read_capabilities,
-            self.destination_key_key_name_prefix_match,
-        ) = self._check_key(
-            destination_application_key, 'writeFiles', self._rule.file_name_prefix,
-            destination_bucket.id_
+            kwargs['destination_key_exists'],
+            kwargs['destination_key_bucket_match'],
+            kwargs['destination_key_read_capabilities'],
+            kwargs['destination_key_key_name_prefix_match'],
+        ) = cls._check_key(
+            destination_application_key, 'writeFiles', rule.file_name_prefix, destination_bucket.id_
         )
 
         if destination_bucket.is_file_lock_enabled:
-            self.file_lock_match = CheckState.OK
+            kwargs['file_lock_match'] = CheckState.OK
         elif source_bucket.is_file_lock_enabled is False:
-            self.file_lock_match = CheckState.OK
+            kwargs['file_lock_match'] = CheckState.OK
         elif source_bucket.is_file_lock_enabled is None or destination_bucket.is_file_lock_enabled is None:
-            self.file_lock_match = CheckState.UNKNOWN
+            kwargs['file_lock_match'] = CheckState.UNKNOWN
         else:
-            self.file_lock_match = CheckState.NOT_OK
+            kwargs['file_lock_match'] = CheckState.NOT_OK
+
+        return cls(**kwargs)
 
 
 class OtherPartyReplicationCheckData:
@@ -349,7 +340,8 @@ class OtherPartyReplicationCheckData:
         return key.as_dict()
 
     @classmethod
-    def _parse_key(cls, key_representation: Union[None, str, dict]) -> Union[Optional[ApplicationKey], AccessDeniedEnum]:
+    def _parse_key(cls, key_representation: Union[None, str, dict]
+                  ) -> Union[Optional[ApplicationKey], AccessDeniedEnum]:
         if key_representation is None:
             return None
         try:

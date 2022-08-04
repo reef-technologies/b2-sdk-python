@@ -534,7 +534,7 @@ class B2Api(metaclass=B2TraceMeta):
 
     def get_key(self, key_id: str) -> Optional[ApplicationKey]:
         """
-        Gets information about a single key: it's capabilities, prefix, name etc
+        Gets information about a single key: its capabilities, prefix, name etc
 
         Returns `None` if the key does not exist.
 

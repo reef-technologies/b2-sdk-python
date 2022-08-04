@@ -221,6 +221,12 @@ from b2sdk.replication.setup import ReplicationSetupHelper
 from b2sdk.replication.monitoring import ReplicationScanResult
 from b2sdk.replication.monitoring import ReplicationReport
 from b2sdk.replication.monitoring import ReplicationMonitor
+from b2sdk.replication.check import TwoWayReplicationCheckGenerator
+from b2sdk.replication.check import ReplicationSourceCheck
+from b2sdk.replication.check import ReplicationDestinationCheck
+from b2sdk.replication.check import TwoWayReplicationCheck
+from b2sdk.replication.check import OtherPartyReplicationCheckData
+from b2sdk.replication.check import CheckState
 
 # other
 

@@ -1,3 +1,13 @@
+######################################################################
+#
+# File: test/unit/replication/test_troubleshooter.py
+#
+# Copyright 2022 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
+
 import pytest
 
 from apiver_deps import CheckState, TwoWayReplicationCheck, TwoWayReplicationCheckGenerator
@@ -65,7 +75,7 @@ def test_troubleshooter_all_ok(api, source_bucket, troubleshooter):
 
 
 @pytest.mark.apiver(from_ver=2)
-def test_troubleshooter_rule_not_enabled(api, source_bucket, troubleshooter):
+def test_troubleshooter_source_not_enabled(api, source_bucket, troubleshooter):
     replication = source_bucket.replication
     replication.rules[0].is_enabled = False
     source_bucket.update(replication=replication)
@@ -74,11 +84,10 @@ def test_troubleshooter_rule_not_enabled(api, source_bucket, troubleshooter):
     assert check.source.is_enabled == CheckState.NOT_OK
 
 
-# @pytest.mark.apiver(from_ver=2)
-# def test_troubleshooter_rule_not_enabled(api, source_bucket, troubleshooter):
-#     replication = source_bucket.replication
-#     replication.rules[0].is_enabled = False
-#     source_bucket.update(replication=replication)
+@pytest.mark.apiver(from_ver=2)
+def test_troubleshooter_source_key_does_not_exist(api, source_bucket, source_key, troubleshooter):
+    api.delete_key(source_key)
+    assert not api.get_key(source_key.id_)
 
-#     check = one(troubleshooter.get_checks())
-#     assert check.source.is_enabled == CheckState.NOT_OK
+    check = one(troubleshooter.get_checks())
+    assert check.source.key_exists == CheckState.NOT_OK

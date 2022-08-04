@@ -42,7 +42,8 @@ class TwoWayReplicationCheckGenerator:
         for source_bucket in source_buckets:
             yield from self._get_source_bucket_checks(source_bucket)
 
-    def _get_source_bucket_checks(self, source_bucket: Bucket) -> Generator['ReplicationCheck', None, None]:
+    def _get_source_bucket_checks(self, source_bucket: Bucket
+                                 ) -> Generator['ReplicationCheck', None, None]:
         if not source_bucket.replication:
             return
 
@@ -136,14 +137,21 @@ class ReplicationCheck:
             result = {k: CheckState.NOT_OK for k in result.keys()}
 
         else:
-            result.update({
-                'key_exists': CheckState.OK,
-                'key_bucket_match': CheckState.from_bool(key.bucket_id is None or key.bucket_id == bucket_id),
-                'key_capabilities': CheckState.from_bool(capability in key.capabilities),
-                'key_name_prefix_match': CheckState.from_bool(
-                    key.name_prefix is None or replication_name_prefix.startswith(key.name_prefix)
-                ),
-            })
+            result.update(
+                {
+                    'key_exists':
+                        CheckState.OK,
+                    'key_bucket_match':
+                        CheckState.from_bool(key.bucket_id is None or key.bucket_id == bucket_id),
+                    'key_capabilities':
+                        CheckState.from_bool(capability in key.capabilities),
+                    'key_name_prefix_match':
+                        CheckState.from_bool(
+                            key.name_prefix is None or
+                            replication_name_prefix.startswith(key.name_prefix)
+                        ),
+                }
+            )
 
         return result
 
@@ -248,39 +256,30 @@ class TwoWayReplicationCheck(ReplicationCheck):
             file_lock_match = CheckState.NOT_OK
 
         kwargs = {
-            'source': ReplicationSourceCheck.from_data(
-                bucket=source_bucket,
-                rule_name=replication_rule_name,
-            ),
-            'destination': ReplicationDestinationCheck.from_data(
-                bucket=destination_bucket,
-                key_id=destination_application_key_id,
-            ),
-            'source_key_accepted_in_target_bucket': CheckState.from_bool(
-                destination_application_key_id is not None
-            ),
-            'file_lock_match': file_lock_match,
+            'source':
+                ReplicationSourceCheck.from_data(
+                    bucket=source_bucket,
+                    rule_name=replication_rule_name,
+                ),
+            'destination':
+                ReplicationDestinationCheck.from_data(
+                    bucket=destination_bucket,
+                    key_id=destination_application_key_id,
+                ),
+            'source_key_accepted_in_target_bucket':
+                CheckState.from_bool(destination_application_key_id is not None),
+            'file_lock_match':
+                file_lock_match,
         }
 
         return cls(**kwargs)
 
 
+@dataclass
 class OtherPartyReplicationCheckData:
-    b2sdk_version = version.VERSION
-
-    def __init__(
-        self,
-        bucket: BucketStructure,
-        keys_mapping: Dict[str, Union[None, ApplicationKey, AccessDenied]],
-        b2sdk_version: Optional[str] = None
-    ):
-
-        self.bucket = bucket
-        self.keys_mapping = keys_mapping
-        if b2sdk_version is None:
-            self.b2sdk_version = type(self).b2sdk_version
-        else:
-            self.b2sdk_version = b2sdk_version
+    bucket: BucketStructure
+    keys_mapping: Dict[str, Union[None, ApplicationKey, AccessDenied]]
+    b2sdk_version: version = version.VERSION
 
     @classmethod
     def _dump_key(self, key: Union[None, ApplicationKey, AccessDenied]):
@@ -291,7 +290,8 @@ class OtherPartyReplicationCheckData:
         return key.as_dict()
 
     @classmethod
-    def _parse_key(cls, key_representation: Union[None, str, dict]) -> Union[None, ApplicationKey, AccessDenied]:
+    def _parse_key(cls, key_representation: Union[None, str, dict]
+                  ) -> Union[None, ApplicationKey, AccessDenied]:
         if key_representation is None:
             return None
 

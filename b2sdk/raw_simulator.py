@@ -1398,8 +1398,7 @@ class RawSimulator(AbstractRawApi):
                 'bad_request',
             )
         self.all_application_keys = [
-            key for key in self.all_application_keys
-            if key.application_key_id != application_key_id
+            key for key in self.all_application_keys if key.application_key_id != application_key_id
         ]
         return key_sim.as_key()
 

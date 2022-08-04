@@ -11,7 +11,7 @@
 import enum
 import warnings
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Dict, Generator, Optional, Union
 
 from b2sdk import version
@@ -37,13 +37,13 @@ class TwoWayReplicationCheckGenerator:
     filter_replication_rule_name: Optional[str] = None
     file_name_prefix: Optional[str] = None
 
-    def get_checks(self) -> Generator['ReplicationCheck', None, None]:
+    def iter_checks(self) -> Generator['ReplicationCheck', None, None]:
         source_buckets = self.source_api.list_buckets(bucket_name=self.filter_source_bucket_name)
         for source_bucket in source_buckets:
-            yield from self._get_source_bucket_checks(source_bucket)
+            yield from self._iter_source_bucket_checks(source_bucket)
 
-    def _get_source_bucket_checks(self, source_bucket: Bucket
-                                 ) -> Generator['ReplicationCheck', None, None]:
+    def _iter_source_bucket_checks(self, source_bucket: Bucket
+                                  ) -> Generator['ReplicationCheck', None, None]:
         if not source_bucket.replication:
             return
 
@@ -65,7 +65,7 @@ class TwoWayReplicationCheckGenerator:
                     bucket_id=rule.destination_bucket_id
                 )
                 if not destination_bucket_list:
-                    raise BucketIdNotFound()
+                    raise BucketIdNotFound(rule.destination_bucket_id)
             except (AccessDenied, BucketIdNotFound):
                 yield ReplicationSourceCheck.from_data(source_bucket, rule.name)
                 continue
@@ -155,6 +155,22 @@ class ReplicationCheck:
 
         return result
 
+    def as_dict(self) -> dict:
+        result = {}
+        for field in fields(self):
+            field_value = getattr(self, field.name)
+
+            if isinstance(field_value, ReplicationCheck):
+                # source.key_exists = OK ===> {'source_key_exists': OK}
+                result.update({
+                    f'{field.name}_{key}' if not key[0] == '_' else f'_{field.name}_{key[1:]}': value
+                    for key, value in field_value.as_dict().items()
+                })
+            else:
+                result[field.name] = field_value
+
+        return result
+
 
 @dataclass
 class ReplicationSourceCheck(ReplicationCheck):
@@ -166,6 +182,7 @@ class ReplicationSourceCheck(ReplicationCheck):
     is_enabled: CheckState
 
     _bucket: Bucket
+    _rule_name: str
     _application_key: Union[None, AccessDenied, ApplicationKey]
 
     @classmethod
@@ -178,6 +195,7 @@ class ReplicationSourceCheck(ReplicationCheck):
 
         kwargs = {
             '_bucket': bucket,
+            '_rule_name': rule_name,
             '_application_key': application_key,
             'is_enabled': CheckState.from_bool(rule.is_enabled),
             **cls._check_key(application_key, 'readFiles', rule.file_name_prefix, bucket.id_),

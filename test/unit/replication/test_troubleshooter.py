@@ -24,7 +24,7 @@ def test_troubleshooter_source_bucket_name_filter(api, source_bucket, destinatio
         destination_api=destination_bucket.api,
         filter_source_bucket_name=bucket_name,
     )
-    assert len(list(troubleshooter.get_checks())) == 1
+    assert len(list(troubleshooter.iter_checks())) == 1
 
     # check other name filter
     troubleshooter = TwoWayReplicationCheckGenerator(
@@ -32,7 +32,7 @@ def test_troubleshooter_source_bucket_name_filter(api, source_bucket, destinatio
         destination_api=destination_bucket.api,
         filter_source_bucket_name=bucket_name + '-other',
     )
-    assert len(list(troubleshooter.get_checks())) == 0
+    assert len(list(troubleshooter.iter_checks())) == 0
 
 
 @pytest.mark.apiver(from_ver=2)
@@ -45,7 +45,7 @@ def test_troubleshooter_rule_name_filter(api, source_bucket, destination_bucket)
         destination_api=destination_bucket.api,
         filter_replication_rule_name=rule_name,
     )
-    assert len(list(troubleshooter.get_checks())) == 1
+    assert len(list(troubleshooter.iter_checks())) == 1
 
     # check other name filter
     troubleshooter = TwoWayReplicationCheckGenerator(
@@ -53,12 +53,12 @@ def test_troubleshooter_rule_name_filter(api, source_bucket, destination_bucket)
         destination_api=destination_bucket.api,
         filter_replication_rule_name=rule_name + '-other',
     )
-    assert len(list(troubleshooter.get_checks())) == 0
+    assert len(list(troubleshooter.iter_checks())) == 0
 
 
 @pytest.mark.apiver(from_ver=2)
 def test_troubleshooter_all_ok(api, source_bucket, troubleshooter):
-    check = one(troubleshooter.get_checks())
+    check = one(troubleshooter.iter_checks())
     assert isinstance(check, TwoWayReplicationCheck)
 
     assert check.source.is_enabled == CheckState.OK
@@ -80,7 +80,7 @@ def test_troubleshooter_source_not_enabled(api, source_bucket, troubleshooter):
     replication.rules[0].is_enabled = False
     source_bucket.update(replication=replication)
 
-    check = one(troubleshooter.get_checks())
+    check = one(troubleshooter.iter_checks())
     assert check.source.is_enabled == CheckState.NOT_OK
 
 
@@ -89,5 +89,5 @@ def test_troubleshooter_source_key_does_not_exist(api, source_bucket, source_key
     api.delete_key(source_key)
     assert not api.get_key(source_key.id_)
 
-    check = one(troubleshooter.get_checks())
+    check = one(troubleshooter.iter_checks())
     assert check.source.key_exists == CheckState.NOT_OK

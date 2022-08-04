@@ -233,38 +233,34 @@ class TwoWayReplicationCheck(ReplicationCheck):
         destination_bucket: BucketStructure,
         destination_application_keys: Dict[str, Union[None, ApplicationKey, AccessDenied]],
     ) -> 'TwoWayReplicationCheck':
-        kwargs = {}
-
-        kwargs['source'] = ReplicationSourceCheck.from_data(
-            bucket=source_bucket,
-            rule_name=replication_rule_name,
-        )
 
         destination_application_key_id = destination_bucket.replication and destination_bucket.replication.source_to_destination_key_mapping.get(
             source_bucket.replication.source_key_id
         )
 
-        kwargs['source_key_accepted_in_target_bucket'] = CheckState.from_bool(
-            destination_application_key_id is not None
-        )
-
-        destination_application_key = destination_application_keys.get(
-            destination_application_key_id
-        )
-
-        kwargs['destination'] = ReplicationDestinationCheck.from_data(
-            bucket=destination_bucket,
-            key_id=destination_application_key.id_,
-        )
-
         if destination_bucket.is_file_lock_enabled:
-            kwargs['file_lock_match'] = CheckState.OK
+            file_lock_match = CheckState.OK
         elif source_bucket.is_file_lock_enabled is False:
-            kwargs['file_lock_match'] = CheckState.OK
+            file_lock_match = CheckState.OK
         elif source_bucket.is_file_lock_enabled is None or destination_bucket.is_file_lock_enabled is None:
-            kwargs['file_lock_match'] = CheckState.UNKNOWN
+            file_lock_match = CheckState.UNKNOWN
         else:
-            kwargs['file_lock_match'] = CheckState.NOT_OK
+            file_lock_match = CheckState.NOT_OK
+
+        kwargs = {
+            'source': ReplicationSourceCheck.from_data(
+                bucket=source_bucket,
+                rule_name=replication_rule_name,
+            ),
+            'destination': ReplicationDestinationCheck.from_data(
+                bucket=destination_bucket,
+                key_id=destination_application_key_id,
+            ),
+            'source_key_accepted_in_target_bucket': CheckState.from_bool(
+                destination_application_key_id is not None
+            ),
+            'file_lock_match': file_lock_match,
+        }
 
         return cls(**kwargs)
 
@@ -275,7 +271,7 @@ class OtherPartyReplicationCheckData:
     def __init__(
         self,
         bucket: BucketStructure,
-        keys_mapping: Dict[str, Union[Optional[ApplicationKey], AccessDenied]],
+        keys_mapping: Dict[str, Union[None, ApplicationKey, AccessDenied]],
         b2sdk_version: Optional[str] = None
     ):
 

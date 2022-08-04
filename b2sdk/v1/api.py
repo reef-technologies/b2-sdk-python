@@ -8,7 +8,7 @@
 #
 ######################################################################
 
-from typing import Any, Dict, Optional, overload, Tuple, List
+from typing import Any, Dict, Optional, overload, Tuple, Iterable
 
 from .download_dest import AbstractDownloadDestination
 from b2sdk import v2
@@ -188,7 +188,7 @@ class B2Api(v2.B2Api):
 
     def create_key(
         self,
-        capabilities: List[str],
+        capabilities: Iterable[str],
         key_name: str,
         valid_duration_seconds: Optional[int] = None,
         bucket_id: Optional[str] = None,

@@ -17,6 +17,8 @@ from b2sdk.api import B2Api
 from b2sdk.api import Services
 from b2sdk.bucket import Bucket
 from b2sdk.bucket import BucketFactory
+from b2sdk.bucket import BucketStructure
+from b2sdk.bucket import ValueNotSet
 from b2sdk.raw_api import ALL_CAPABILITIES, REALM_URLS
 
 # encryption
@@ -219,6 +221,12 @@ from b2sdk.replication.setup import ReplicationSetupHelper
 from b2sdk.replication.monitoring import ReplicationScanResult
 from b2sdk.replication.monitoring import ReplicationReport
 from b2sdk.replication.monitoring import ReplicationMonitor
+from b2sdk.replication.check import TwoWayReplicationCheckGenerator
+from b2sdk.replication.check import ReplicationSourceCheck
+from b2sdk.replication.check import ReplicationDestinationCheck
+from b2sdk.replication.check import TwoWayReplicationCheck
+from b2sdk.replication.check import OtherPartyReplicationCheckData
+from b2sdk.replication.check import CheckState
 
 # other
 

@@ -8,11 +8,10 @@
 #
 ######################################################################
 
+from contextlib import contextmanager
+from typing import Optional, Iterable
 import re
 import unittest
-
-from contextlib import contextmanager
-from typing import List, Optional
 
 import apiver_deps
 
@@ -46,7 +45,7 @@ class TestBase(unittest.TestCase):
 
 def create_key(
     api: B2Api,
-    capabilities: List[str],
+    capabilities: Iterable[str],
     key_name: str,
     valid_duration_seconds: Optional[int] = None,
     bucket_id: Optional[str] = None,

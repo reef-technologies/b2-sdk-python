@@ -1645,8 +1645,8 @@ class RawSimulator(AbstractRawApi):
                             next_application_key_id = all_keys_sorted[ind + 1].application_key_id
                         break
 
-        key_dicts = map(lambda key: key.as_key(), keys)
-        return dict(keys=list(key_dicts), nextApplicationKeyId=next_application_key_id)
+        key_dicts = [key.as_key() for key in keys]
+        return dict(keys=key_dicts, nextApplicationKeyId=next_application_key_id)
 
     def list_parts(self, api_url, account_auth_token, file_id, start_part_number, max_part_count):
         bucket_id = self.file_id_to_bucket_id[file_id]

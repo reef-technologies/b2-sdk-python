@@ -162,10 +162,13 @@ class ReplicationCheck:
 
             if isinstance(field_value, ReplicationCheck):
                 # source.key_exists = OK ===> {'source_key_exists': OK}
-                result.update({
-                    f'{field.name}_{key}' if not key[0] == '_' else f'_{field.name}_{key[1:]}': value
-                    for key, value in field_value.as_dict().items()
-                })
+                result.update(
+                    {
+                        f'{field.name}_{key}' if not key[0] == '_' else f'_{field.name}_{key[1:]}':
+                        value
+                        for key, value in field_value.as_dict().items()
+                    }
+                )
             else:
                 result[field.name] = field_value
 

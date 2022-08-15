@@ -18,6 +18,7 @@ from b2sdk import version
 from b2sdk.api import B2Api
 from b2sdk.application_key import ApplicationKey
 from b2sdk.bucket import Bucket, BucketFactory, BucketStructure
+from b2sdk.encryption.types import EncryptionMode
 from b2sdk.exception import AccessDenied, BucketIdNotFound
 
 
@@ -183,6 +184,7 @@ class ReplicationSourceCheck(ReplicationCheck):
     key_name_prefix_match: CheckState
 
     is_enabled: CheckState
+    is_sse_c_disabled: CheckState
 
     _bucket: Bucket
     _rule_name: str
@@ -201,6 +203,7 @@ class ReplicationSourceCheck(ReplicationCheck):
             '_rule_name': rule_name,
             '_application_key': application_key,
             'is_enabled': CheckState.from_bool(rule.is_enabled),
+            'is_sse_c_disabled': CheckState.from_bool(bucket.default_server_side_encryption.mode != EncryptionMode.SSE_C),
             **cls._check_key(application_key, 'readFiles', rule.file_name_prefix, bucket.id_),
         }
 

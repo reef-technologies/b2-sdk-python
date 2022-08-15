@@ -66,7 +66,10 @@ def test_troubleshooter_all_ok(api, source_bucket, troubleshooter):
     assert check.source.key_bucket_match == CheckState.OK
     assert check.source.key_capabilities == CheckState.OK
     assert check.source.key_name_prefix_match == CheckState.OK
+    assert check.source.is_sse_c_disabled == CheckState.OK
+
     assert check.source_key_accepted_in_target_bucket == CheckState.OK
+
     assert check.destination.key_exists == CheckState.OK
     assert check.destination.key_bucket_match == CheckState.OK
     assert check.destination.key_capabilities == CheckState.OK

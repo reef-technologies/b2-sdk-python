@@ -199,11 +199,18 @@ class ReplicationSourceCheck(ReplicationCheck):
         rule = rules[0]
 
         kwargs = {
-            '_bucket': bucket,
-            '_rule_name': rule_name,
-            '_application_key': application_key,
-            'is_enabled': CheckState.from_bool(rule.is_enabled),
-            'is_sse_c_disabled': CheckState.from_bool(bucket.default_server_side_encryption.mode != EncryptionMode.SSE_C),
+            '_bucket':
+                bucket,
+            '_rule_name':
+                rule_name,
+            '_application_key':
+                application_key,
+            'is_enabled':
+                CheckState.from_bool(rule.is_enabled),
+            'is_sse_c_disabled':
+                CheckState.from_bool(
+                    bucket.default_server_side_encryption.mode != EncryptionMode.SSE_C
+                ),
             **cls._check_key(application_key, 'readFiles', rule.file_name_prefix, bucket.id_),
         }
 

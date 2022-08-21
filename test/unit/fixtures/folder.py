@@ -74,9 +74,7 @@ class FakeLocalFolder(LocalFolder):
     def all_files(self, reporter, policies_manager=DEFAULT_SCAN_MANAGER):
         for single_path in self.local_paths:
             if single_path.relative_path.endswith('/'):
-                if policies_manager.should_exclude_b2_directory(
-                    single_path.relative_path
-                ):
+                if policies_manager.should_exclude_b2_directory(single_path.relative_path):
                     continue
             else:
                 if policies_manager.should_exclude_local_path(single_path):

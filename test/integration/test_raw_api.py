@@ -80,9 +80,7 @@ def authorize_raw_api(raw_api):
 
     realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
     realm_url = REALM_URLS.get(realm, realm)
-    auth_dict = raw_api.authorize_account(
-        realm_url, application_key_id, application_key
-    )
+    auth_dict = raw_api.authorize_account(realm_url, application_key_id, application_key)
     return auth_dict
 
 
@@ -249,8 +247,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         )
 
         assert (
-            ReplicationStatus[file_dict['replicationStatus'].upper()]
-            == ReplicationStatus.PENDING
+            ReplicationStatus[file_dict['replicationStatus'].upper()] == ReplicationStatus.PENDING
         )
 
     finally:
@@ -333,9 +330,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     for encryption_setting, default_retention in [
         (
             sse_none,
-            BucketRetentionSetting(
-                mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1)
-            ),
+            BucketRetentionSetting(mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1)),
         ),
         (sse_b2_aes, None),
         (sse_b2_aes, BucketRetentionSetting(RetentionMode.NONE)),
@@ -382,9 +377,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
 
     # b2_list_file_versions
     print('b2_list_file_versions')
-    list_versions_dict = raw_api.list_file_versions(
-        api_url, account_auth_token, bucket_id
-    )
+    list_versions_dict = raw_api.list_file_versions(api_url, account_auth_token, bucket_id)
     assert [file_name] == [f_dict['fileName'] for f_dict in list_versions_dict['files']]
 
     # b2_download_file_by_id with auth
@@ -457,9 +450,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
 
     # b2_get_file_info_by_name
     print('b2_get_file_info_by_name (no auth)')
-    info_headers = raw_api.get_file_info_by_name(
-        download_url, None, bucket_name, file_name
-    )
+    info_headers = raw_api.get_file_info_by_name(download_url, None, bucket_name, file_name)
     assert info_headers['x-bz-file-id'] == file_id
 
     # b2_get_file_info_by_name
@@ -496,9 +487,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
 
     # b2_get_upload_part_url
     print('b2_get_upload_part_url')
-    upload_part_dict = raw_api.get_upload_part_url(
-        api_url, account_auth_token, large_file_id
-    )
+    upload_part_dict = raw_api.get_upload_part_url(api_url, account_auth_token, large_file_id)
     upload_part_url = upload_part_dict['uploadUrl']
     upload_path_auth = upload_part_dict['authorizationToken']
 
@@ -521,24 +510,18 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
 
     # b2_list_parts
     print('b2_list_parts')
-    parts_response = raw_api.list_parts(
-        api_url, account_auth_token, large_file_id, 1, 100
-    )
+    parts_response = raw_api.list_parts(api_url, account_auth_token, large_file_id, 1, 100)
     assert [1, 2] == [part['partNumber'] for part in parts_response['parts']]
 
     # b2_list_unfinished_large_files
-    unfinished_list = raw_api.list_unfinished_large_files(
-        api_url, account_auth_token, bucket_id
-    )
+    unfinished_list = raw_api.list_unfinished_large_files(api_url, account_auth_token, bucket_id)
     assert [file_name] == [f_dict['fileName'] for f_dict in unfinished_list['files']]
     assert file_info == unfinished_list['files'][0]['fileInfo']
 
     # b2_finish_large_file
     print('b2_finish_large_file')
     try:
-        raw_api.finish_large_file(
-            api_url, account_auth_token, large_file_id, [part_sha1]
-        )
+        raw_api.finish_large_file(api_url, account_auth_token, large_file_id, [part_sha1])
         raise Exception('finish should have failed')
     except Exception as e:
         assert 'large files must have at least 2 parts' in str(e)
@@ -560,9 +543,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     assert first_bucket_revision < updated_bucket['revision']
 
     # Clean up this test.
-    _clean_and_delete_bucket(
-        raw_api, api_url, account_auth_token, account_id, bucket_id
-    )
+    _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)
 
     if should_cleanup_old_buckets:
         # Clean up from old tests. Empty and delete any buckets more than an hour old.
@@ -593,9 +574,7 @@ def _cleanup_old_buckets(raw_api, auth_dict, bucket_list_dict):
             )
 
 
-def _clean_and_delete_bucket(
-    raw_api, api_url, account_auth_token, account_id, bucket_id
-):
+def _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id):
     # Delete the files. This test never creates more than a few files,
     # so one call to list_file_versions should get them all.
     versions_dict = raw_api.list_file_versions(api_url, account_auth_token, bucket_id)

@@ -98,9 +98,7 @@ class Synchronizer(v2.Synchronizer):
         :param int now_millis: current time in milliseconds
         :param b2sdk.v1.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
         """
-        dest_path, source_path = make_paths_from_files(
-            dest_file, source_file, sync_type
-        )
+        dest_path, source_path = make_paths_from_files(dest_file, source_file, sync_type)
         return self._make_file_sync_actions(
             sync_type,
             source_path,
@@ -144,9 +142,5 @@ class Synchronizer(v2.Synchronizer):
                 encryption_wrap_if_necessary(encryption_settings_provider),
             )
         except v2_exception.DestFileNewer as ex:
-            dest_file, source_file = make_files_from_paths(
-                ex.dest_path, ex.source_path, sync_type
-            )
-            raise DestFileNewer(
-                dest_file, source_file, ex.dest_prefix, ex.source_prefix
-            )
+            dest_file, source_file = make_files_from_paths(ex.dest_path, ex.source_path, sync_type)
+            raise DestFileNewer(dest_file, source_file, ex.dest_prefix, ex.source_prefix)

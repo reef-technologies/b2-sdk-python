@@ -127,9 +127,7 @@ class PreSeekedDownloadDest(DownloadDestLocalFile):
 
     @contextmanager
     def write_to_local_file_context(self, *args, **kwargs):
-        with super(PreSeekedDownloadDest, self).write_to_local_file_context(
-            *args, **kwargs
-        ) as f:
+        with super(PreSeekedDownloadDest, self).write_to_local_file_context(*args, **kwargs) as f:
             f.seek(self._seek_target)
             yield f
 

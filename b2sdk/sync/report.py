@@ -58,15 +58,12 @@ class SyncReport(ProgressReport):
         time_delta = now - self.start_time
         rate = 0 if time_delta == 0 else int(self.transfer_bytes / time_delta)
         if not self.total_done:
-            message = (
-                ' count: %d files   compare: %d files   updated: %d files   %s   %s'
-                % (
-                    self.total_count,
-                    self.compare_count,
-                    self.transfer_files,
-                    format_and_scale_number(self.transfer_bytes, 'B'),
-                    format_and_scale_number(rate, 'B/s'),
-                )
+            message = ' count: %d files   compare: %d files   updated: %d files   %s   %s' % (
+                self.total_count,
+                self.compare_count,
+                self.transfer_files,
+                format_and_scale_number(self.transfer_bytes, 'B'),
+                format_and_scale_number(rate, 'B/s'),
             )  # yapf: disable
         elif not self.compare_done:
             message = ' compare: %d/%d files   updated: %d files   %s   %s' % (
@@ -82,9 +79,7 @@ class SyncReport(ProgressReport):
                 self.total_count,
                 self.transfer_files,
                 self.total_transfer_files,
-                format_and_scale_fraction(
-                    self.transfer_bytes, self.total_transfer_bytes, 'B'
-                ),
+                format_and_scale_fraction(self.transfer_bytes, self.total_transfer_bytes, 'B'),
                 format_and_scale_number(rate, 'B/s'),
             )  # yapf: disable
         self._print_line(message, False)

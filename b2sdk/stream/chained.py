@@ -75,9 +75,7 @@ class ChainedStream(ReadOnlyStreamMixin, io.IOBase):
         :param int whence: only allowed value is ``0``
         """
         if pos != 0 or whence != 0:
-            raise io.UnsupportedOperation(
-                'Chained stream can only be seeked to beginning'
-            )
+            raise io.UnsupportedOperation('Chained stream can only be seeked to beginning')
 
         self._reset_chain()
 

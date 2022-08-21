@@ -142,8 +142,7 @@ class Synchronizer:
         ):
             raise InvalidArgument(
                 'keep_days',
-                'is required when keep_days_or_delete is %s'
-                % KeepOrDeleteMode.KEEP_BEFORE_DELETE,
+                'is required when keep_days_or_delete is %s' % KeepOrDeleteMode.KEEP_BEFORE_DELETE,
             )
 
         if self.compare_version_mode not in tuple(CompareVersionMode):
@@ -193,16 +192,12 @@ class Synchronizer:
         # when syncing lots of files.
         unbounded_executor = futures.ThreadPoolExecutor(max_workers=self.max_workers)
         queue_limit = self.max_workers + 1000
-        sync_executor = BoundedQueueExecutor(
-            unbounded_executor, queue_limit=queue_limit
-        )
+        sync_executor = BoundedQueueExecutor(unbounded_executor, queue_limit=queue_limit)
 
         if source_type == 'local' and reporter is not None:
             # Start the thread that counts the local files. That's the operation
             # that should be fastest, and it provides scale for the progress reporting.
-            sync_executor.submit(
-                count_files, source_folder, reporter, self.policies_manager
-            )
+            sync_executor.submit(count_files, source_folder, reporter, self.policies_manager)
 
         # Bucket for scheduling actions.
         # For bucket-to-bucket sync, the bucket for the API calls should be the destination.
@@ -253,9 +248,7 @@ class Synchronizer:
             self.keep_days_or_delete == KeepOrDeleteMode.KEEP_BEFORE_DELETE
             and dest_folder.folder_type() == 'local'
         ):
-            raise InvalidArgument(
-                'keep_days_or_delete', 'cannot be used for local files'
-            )
+            raise InvalidArgument('keep_days_or_delete', 'cannot be used for local files')
 
         source_type = source_folder.folder_type()
         dest_type = dest_folder.folder_type()
@@ -274,9 +267,7 @@ class Synchronizer:
             if source_path is None:
                 logger.debug('determined that %s is not present on source', dest_path)
             elif dest_path is None:
-                logger.debug(
-                    'determined that %s is not present on destination', source_path
-                )
+                logger.debug('determined that %s is not present on destination', source_path)
 
             if source_path is not None:
                 if source_type == 'b2':

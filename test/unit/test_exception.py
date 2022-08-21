@@ -91,16 +91,12 @@ class TestInterpretError:
 
     def test_file_or_bucket_not_present(self):
         self._check_one(ResourceNotFound, 404, None, None, {})
-        assert 'No such file, bucket, or endpoint: ' == str(
-            interpret_b2_error(404, None, None, {})
-        )
+        assert 'No such file, bucket, or endpoint: ' == str(interpret_b2_error(404, None, None, {}))
 
     def test_duplicate_bucket_name(self):
         self._check_one(DuplicateBucketName, 400, 'duplicate_bucket_name', '', {})
         assert 'Bucket name is already in use: my-bucket' == str(
-            interpret_b2_error(
-                400, 'duplicate_bucket_name', '', {}, {'bucketName': 'my-bucket'}
-            )
+            interpret_b2_error(400, 'duplicate_bucket_name', '', {}, {'bucketName': 'my-bucket'})
         )
 
     def test_missing_part(self):
@@ -112,9 +108,7 @@ class TestInterpretError:
     def test_part_sha1_mismatch(self):
         self._check_one(PartSha1Mismatch, 400, 'part_sha1_mismatch', '', {})
         assert 'Part number my-file-id has wrong SHA1' == str(
-            interpret_b2_error(
-                400, 'part_sha1_mismatch', '', {}, {'fileId': 'my-file-id'}
-            )
+            interpret_b2_error(400, 'part_sha1_mismatch', '', {}, {'fileId': 'my-file-id'})
         )
 
     def test_unauthorized(self):
@@ -125,9 +119,7 @@ class TestInterpretError:
         self._check_one(InvalidAuthToken, 401, 'expired_auth_token', '', {})
 
     def test_storage_cap_exceeded(self):
-        self._check_one(
-            (CapExceeded, StorageCapExceeded), 403, 'storage_cap_exceeded', '', {}
-        )
+        self._check_one((CapExceeded, StorageCapExceeded), 403, 'storage_cap_exceeded', '', {})
 
     def test_transaction_cap_exceeded(self):
         self._check_one(
@@ -185,8 +177,6 @@ class TestInterpretError:
         response_headers,
         post_params=None,
     ):
-        actual_exception = interpret_b2_error(
-            status, code, message, response_headers, post_params
-        )
+        actual_exception = interpret_b2_error(status, code, message, response_headers, post_params)
         assert isinstance(actual_exception, expected_class)
         return actual_exception

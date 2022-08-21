@@ -143,12 +143,8 @@ class ScanPoliciesManagerWrapper(v2.ScanPoliciesManager):
             return True
         return self.scan_policies_manager.should_exclude_file(local_path.relative_path)
 
-    def should_exclude_b2_file_version(
-        self, file_version: FileVersionInfo, relative_path: str
-    ):
-        if self.scan_policies_manager.should_exclude_file_version(
-            B2FileVersion(file_version)
-        ):
+    def should_exclude_b2_file_version(self, file_version: FileVersionInfo, relative_path: str):
+        if self.scan_policies_manager.should_exclude_file_version(B2FileVersion(file_version)):
             return True
         return self.scan_policies_manager.should_exclude_file(relative_path)
 

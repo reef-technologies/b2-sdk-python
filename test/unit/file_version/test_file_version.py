@@ -45,12 +45,8 @@ class TestFileVersion:
         )
         self.raw_api = self.api.session.raw_api
         (self.application_key_id, self.master_key) = self.raw_api.create_account()
-        self.api.authorize_account(
-            'production', self.application_key_id, self.master_key
-        )
-        self.bucket = self.api.create_bucket(
-            'testbucket', 'allPrivate', is_file_lock_enabled=True
-        )
+        self.api.authorize_account('production', self.application_key_id, self.master_key)
+        self.bucket = self.api.create_bucket('testbucket', 'allPrivate', is_file_lock_enabled=True)
         self.file_version = self.bucket.upload_bytes(b'nothing', 'test_file')
 
     @pytest.mark.apiver(to_ver=1)
@@ -71,9 +67,7 @@ class TestFileVersion:
         )
         fetched_version = self.api.get_file_info(self.file_version.id_)
         if apiver_deps.V <= 1:
-            fetched_version = self.api.file_version_factory.from_api_response(
-                fetched_version
-            )
+            fetched_version = self.api.file_version_factory.from_api_response(fetched_version)
         assert self.file_version.as_dict() != fetched_version.as_dict()
         refreshed_version = self.file_version.get_fresh_state()
         assert isinstance(refreshed_version, VFileVersion)
@@ -125,9 +119,7 @@ class TestFileVersion:
         assert isinstance(new_file_version, VFileVersion)
         assert new_file_version.legal_hold == LegalHold.ON
 
-        download_version = self.api.download_file_by_id(
-            self.file_version.id_
-        ).download_version
+        download_version = self.api.download_file_by_id(self.file_version.id_).download_version
         new_download_version = download_version.update_legal_hold(LegalHold.ON)
         assert isinstance(new_download_version, DownloadVersion)
         assert new_download_version.legal_hold == LegalHold.ON
@@ -139,9 +131,7 @@ class TestFileVersion:
         assert isinstance(new_file_version, VFileVersion)
         assert new_file_version.file_retention == new_retention
 
-        download_version = self.api.download_file_by_id(
-            self.file_version.id_
-        ).download_version
+        download_version = self.api.download_file_by_id(self.file_version.id_).download_version
         new_download_version = download_version.update_retention(new_retention)
         assert isinstance(new_download_version, DownloadVersion)
         assert new_download_version.file_retention == new_retention
@@ -153,9 +143,7 @@ class TestFileVersion:
             self.bucket.get_file_info_by_name(self.file_version.file_name)
 
     def test_delete_download_version(self):
-        download_version = self.api.download_file_by_id(
-            self.file_version.id_
-        ).download_version
+        download_version = self.api.download_file_by_id(self.file_version.id_).download_version
         ret = download_version.delete()
         assert isinstance(ret, FileIdAndName)
         with pytest.raises(FileNotPresent):

@@ -119,9 +119,7 @@ class ParallelDownloader(AbstractDownloader):
         if self._check_hash:
             # we skip hashing if we would not check it - hasher object is actually a EmptyHasher instance
             # but we avoid here reading whole file (except for the first part) from disk again
-            self._finish_hashing(
-                first_part, file, hasher, download_version.content_length
-            )
+            self._finish_hashing(first_part, file, hasher, download_version.content_length)
 
         return bytes_written, hasher.hexdigest()
 

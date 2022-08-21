@@ -41,9 +41,7 @@ class IntegrationTestBase:
 
     @classmethod
     def setup_class(cls):
-        cls.this_run_bucket_name_prefix = GENERAL_BUCKET_NAME_PREFIX + bucket_name_part(
-            8
-        )
+        cls.this_run_bucket_name_prefix = GENERAL_BUCKET_NAME_PREFIX + bucket_name_part(8)
 
     @classmethod
     def teardown_class(cls):

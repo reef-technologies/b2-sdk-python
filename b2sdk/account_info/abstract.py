@@ -109,10 +109,7 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
         :rtype: bool
         """
         try:
-            return (
-                self.get_application_key_id() == application_key_id
-                and self.get_realm() == realm
-            )
+            return self.get_application_key_id() == application_key_id and self.get_realm() == realm
         except exception.MissingAccountData:
             return False
 

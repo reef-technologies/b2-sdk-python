@@ -86,9 +86,7 @@ class Services:
         self.upload_manager = self.UPLOAD_MANAGER_CLASS(
             services=self, max_workers=max_upload_workers
         )
-        self.copy_manager = self.COPY_MANAGER_CLASS(
-            services=self, max_workers=max_copy_workers
-        )
+        self.copy_manager = self.COPY_MANAGER_CLASS(services=self, max_workers=max_copy_workers)
         self.download_manager = self.DOWNLOAD_MANAGER_CLASS(
             services=self,
             max_workers=max_download_workers,

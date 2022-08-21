@@ -167,9 +167,7 @@ class B2Api(v2.B2Api):
         )
         if download_dest is not None:
             try:
-                return download_file_and_return_info_dict(
-                    downloaded_file, download_dest, range_
-                )
+                return download_file_and_return_info_dict(downloaded_file, download_dest, range_)
             except ValueError as ex:
                 if ex.args == ('no strategy suitable for download was found!',):
                     raise AssertionError('no strategy suitable for download was found!')

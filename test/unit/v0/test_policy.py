@@ -62,9 +62,7 @@ class TestMakeB2KeepDaysActions(TestBase):
             ['b2_delete(folder/a, 3, (old version))'],
         )
 
-    def check_one_answer(
-        self, has_source, id_relative_date_action_list, expected_actions
-    ):
+    def check_one_answer(self, has_source, id_relative_date_action_list, expected_actions):
         source_file = LocalSyncPath('a', 'a', 100, 10) if has_source else None
         dest_file_versions = [
             FileVersionInfo(

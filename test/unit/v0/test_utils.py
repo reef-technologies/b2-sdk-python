@@ -127,6 +127,4 @@ class TestFormatAndScaleFraction(TestBase):
         self._check_one('9.4 / 10.0 kB', 9400, 10000)
 
     def _check_one(self, expected, numerator, denominator):
-        self.assertEqual(
-            expected, format_and_scale_fraction(numerator, denominator, 'B')
-        )
+        self.assertEqual(expected, format_and_scale_fraction(numerator, denominator, 'B'))

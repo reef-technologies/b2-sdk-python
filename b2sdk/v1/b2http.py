@@ -42,9 +42,7 @@ class B2Http(v2.B2Http):
     # timeout for HTTP GET/POST requests
     TIMEOUT = 1200  # 20 minutes as server-side copy can take time
 
-    def __init__(
-        self, requests_module=None, install_clock_skew_hook=True, user_agent_append=None
-    ):
+    def __init__(self, requests_module=None, install_clock_skew_hook=True, user_agent_append=None):
         """
         Initialize with a reference to the requests module, which makes
         it easy to mock for testing.

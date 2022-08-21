@@ -26,9 +26,7 @@ class RetentionMode(enum.Enum):
     UNKNOWN = "unknown"  #: the client is not authorized to read retention settings
 
 
-RETENTION_MODES_REQUIRING_PERIODS = frozenset(
-    {RetentionMode.COMPLIANCE, RetentionMode.GOVERNANCE}
-)
+RETENTION_MODES_REQUIRING_PERIODS = frozenset({RetentionMode.COMPLIANCE, RetentionMode.GOVERNANCE})
 
 
 class RetentionPeriod:
@@ -79,9 +77,7 @@ class FileRetentionSetting:
 
     def __init__(self, mode: RetentionMode, retain_until: Optional[int] = None):
         if mode in RETENTION_MODES_REQUIRING_PERIODS and retain_until is None:
-            raise ValueError(
-                'must specify retain_until for retention mode %s' % (mode,)
-            )
+            raise ValueError('must specify retain_until for retention mode %s' % (mode,))
         self.mode = mode
         self.retain_until = retain_until
 
@@ -155,11 +151,9 @@ class FileRetentionSetting:
             else:
                 retain_until = None
             return cls(RetentionMode(headers[retention_mode_header]), retain_until)
-        if (
-            'X-Bz-Client-Unauthorized-To-Read' in headers
-            and retention_mode_header
-            in headers['X-Bz-Client-Unauthorized-To-Read'].split(',')
-        ):
+        if 'X-Bz-Client-Unauthorized-To-Read' in headers and retention_mode_header in headers[
+            'X-Bz-Client-Unauthorized-To-Read'
+        ].split(','):
             return UNKNOWN_FILE_RETENTION_SETTING
         return NO_RETENTION_FILE_SETTING  # the bucket is not file-lock-enabled or the file is has no retention set
 
@@ -242,11 +236,9 @@ class LegalHold(enum.Enum):
         legal_hold_header = 'X-Bz-File-Legal-Hold'
         if legal_hold_header in headers:
             return cls(headers['X-Bz-File-Legal-Hold'])
-        if (
-            'X-Bz-Client-Unauthorized-To-Read' in headers
-            and legal_hold_header
-            in headers['X-Bz-Client-Unauthorized-To-Read'].split(',')
-        ):
+        if 'X-Bz-Client-Unauthorized-To-Read' in headers and legal_hold_header in headers[
+            'X-Bz-Client-Unauthorized-To-Read'
+        ].split(','):
             return cls.UNKNOWN
         return (
             cls.UNSET
@@ -304,9 +296,7 @@ class BucketRetentionSetting:
 
     def serialize_to_json_for_request(self):
         if self.mode == RetentionMode.UNKNOWN:
-            raise ValueError(
-                'cannot use an unknown file lock configuration in requests'
-            )
+            raise ValueError('cannot use an unknown file lock configuration in requests')
         return self.as_dict()
 
     def __eq__(self, other):
@@ -366,9 +356,7 @@ class FileLockConfiguration:
         retention = BucketRetentionSetting.from_bucket_retention_dict(
             bucket_dict['fileLockConfiguration']['value']['defaultRetention']
         )
-        is_file_lock_enabled = bucket_dict['fileLockConfiguration']['value'][
-            'isFileLockEnabled'
-        ]
+        is_file_lock_enabled = bucket_dict['fileLockConfiguration']['value']['isFileLockEnabled']
         return cls(retention, is_file_lock_enabled)
 
     def as_dict(self):

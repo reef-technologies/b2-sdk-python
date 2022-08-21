@@ -174,11 +174,7 @@ class CopyManager(TransferManager, ThreadPoolMixin):
                         'File info can be not set only when content type is not set'
                     )
                 metadata_directive = MetadataDirectiveMode.REPLACE
-            (
-                metadata_directive,
-                file_info,
-                content_type,
-            ) = self.establish_sse_c_file_metadata(
+            (metadata_directive, file_info, content_type,) = self.establish_sse_c_file_metadata(
                 metadata_directive=metadata_directive,
                 destination_file_info=file_info,
                 destination_content_type=content_type,
@@ -200,9 +196,7 @@ class CopyManager(TransferManager, ThreadPoolMixin):
                 legal_hold=legal_hold,
                 file_retention=file_retention,
             )
-            file_version = self.services.api.file_version_factory.from_api_response(
-                response
-            )
+            file_version = self.services.api.file_version_factory.from_api_response(response)
             if progress_listener is not None:
                 progress_listener.bytes_completed(file_version.size)
 
@@ -226,10 +220,8 @@ class CopyManager(TransferManager, ThreadPoolMixin):
 
         if metadata_directive == MetadataDirectiveMode.REPLACE:
             if destination_server_side_encryption:
-                destination_file_info = (
-                    destination_server_side_encryption.add_key_id_to_file_info(
-                        destination_file_info
-                    )
+                destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(
+                    destination_file_info
                 )
             return metadata_directive, destination_file_info, destination_content_type
 
@@ -257,17 +249,14 @@ class CopyManager(TransferManager, ThreadPoolMixin):
             raise SSECKeyIdMismatchInCopy(
                 'attempting to copy file using %s without providing source_file_info '
                 'and source_content_type for differing sse_c_key_ids: source="%s", '
-                'destination="%s"'
-                % (MetadataDirectiveMode.COPY, source_key_id, destination_key_id)
+                'destination="%s"' % (MetadataDirectiveMode.COPY, source_key_id, destination_key_id)
             )
 
         destination_file_info = source_file_info.copy()
         destination_file_info.pop(SSE_C_KEY_ID_FILE_INFO_KEY_NAME, None)
         if destination_server_side_encryption:
-            destination_file_info = (
-                destination_server_side_encryption.add_key_id_to_file_info(
-                    destination_file_info
-                )
+            destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(
+                destination_file_info
             )
         destination_content_type = source_content_type
 

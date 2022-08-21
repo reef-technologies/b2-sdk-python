@@ -67,9 +67,7 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
         """
 
 
-class ServerDefaultSyncEncryptionSettingsProvider(
-    AbstractSyncEncryptionSettingsProvider
-):
+class ServerDefaultSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider):
     """
     Encryption settings provider which assumes setting-less reads
     and a bucket default for writes.
@@ -88,9 +86,7 @@ class ServerDefaultSyncEncryptionSettingsProvider(
         return None
 
 
-SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER = (
-    ServerDefaultSyncEncryptionSettingsProvider()
-)
+SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER = ServerDefaultSyncEncryptionSettingsProvider()
 
 
 class BasicSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider):
@@ -107,9 +103,7 @@ class BasicSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider
         self.read_bucket_settings = read_bucket_settings
         self.write_bucket_settings = write_bucket_settings
 
-    def get_setting_for_upload(
-        self, bucket, *args, **kwargs
-    ) -> Optional[EncryptionSetting]:
+    def get_setting_for_upload(self, bucket, *args, **kwargs) -> Optional[EncryptionSetting]:
         return self.write_bucket_settings.get(bucket.name)
 
     def get_source_setting_for_copy(self, bucket, *args, **kwargs) -> None:

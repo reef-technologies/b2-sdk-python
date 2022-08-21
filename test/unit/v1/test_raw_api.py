@@ -86,9 +86,7 @@ class TestRawAPIFilenames(TestBase):
         # Names with unicode values < 32, and DEL aren't allowed.
         self._should_raise(u'hey' + CHAR_UNDER_32, "contains code.*less than 32")
         # Unicode in the filename shouldn't break the exception message.
-        self._should_raise(
-            TWO_BYTE_UNICHR + CHAR_UNDER_32, "contains code.*less than 32"
-        )
+        self._should_raise(TWO_BYTE_UNICHR + CHAR_UNDER_32, "contains code.*less than 32")
         self._should_raise(DEL_CHAR, "DEL.*not allowed")
 
         # Names can't start or end with '/' or contain '//'
@@ -114,9 +112,7 @@ class TestUpdateBucket(BucketTestBase):
 
     def test_assertion_raises(self):
         with pytest.raises(AssertionError):
-            self.raw_api.update_bucket(
-                'test', 'account_auth_token', 'account_id', 'bucket_id'
-            )
+            self.raw_api.update_bucket('test', 'account_auth_token', 'account_id', 'bucket_id')
 
     @pytest.mark.parametrize(
         'bucket_type,bucket_info,default_retention',
@@ -125,9 +121,7 @@ class TestUpdateBucket(BucketTestBase):
             (
                 'allPublic',
                 None,
-                BucketRetentionSetting(
-                    RetentionMode.COMPLIANCE, RetentionPeriod(years=1)
-                ),
+                BucketRetentionSetting(RetentionMode.COMPLIANCE, RetentionPeriod(years=1)),
             ),
         ),
     )

@@ -43,9 +43,7 @@ DEFAULT_REPLICATION_RESULT = dict(
 def test_iter_pairs(source_bucket, destination_bucket, test_file, monitor):
 
     source_file = source_bucket.upload_local_file(test_file, 'folder/test.txt')
-    source_subfolder_file = source_bucket.upload_local_file(
-        test_file, 'folder/subfolder/test.txt'
-    )
+    source_subfolder_file = source_bucket.upload_local_file(test_file, 'folder/subfolder/test.txt')
 
     destination_subfolder_file = destination_bucket.upload_local_file(
         test_file, 'folder/subfolder/test.txt'
@@ -74,18 +72,12 @@ def test_scan_source(source_bucket, test_file, monitor):
     files = [
         source_bucket.upload_local_file(test_file, 'folder/test-1-1.txt'),
         source_bucket.upload_local_file(test_file, 'folder/test-1-2.txt'),
-        source_bucket.upload_local_file(
-            test_file, 'folder/test-2.txt', encryption=SSE_B2_AES
-        ),
+        source_bucket.upload_local_file(test_file, 'folder/test-2.txt', encryption=SSE_B2_AES),
         source_bucket.upload_local_file(
             test_file, 'not-in-folder.txt'
         ),  # monitor should ignore this
-        source_bucket.upload_local_file(
-            test_file, 'folder/test-3.txt', encryption=SSE_C_AES
-        ),
-        source_bucket.upload_local_file(
-            test_file, 'folder/test-4.txt', encryption=SSE_C_AES
-        ),
+        source_bucket.upload_local_file(test_file, 'folder/test-3.txt', encryption=SSE_C_AES),
+        source_bucket.upload_local_file(test_file, 'folder/test-4.txt', encryption=SSE_C_AES),
         source_bucket.upload_local_file(
             test_file,
             'folder/subfolder/test-5.txt',
@@ -110,10 +102,7 @@ def test_scan_source(source_bucket, test_file, monitor):
     ]
     report = monitor.scan(scan_destination=False)
 
-    assert (
-        report.counter_by_status[ReplicationScanResult(**DEFAULT_REPLICATION_RESULT)]
-        == 2
-    )
+    assert report.counter_by_status[ReplicationScanResult(**DEFAULT_REPLICATION_RESULT)] == 2
 
     assert (
         report.counter_by_status[

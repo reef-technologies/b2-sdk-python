@@ -93,9 +93,7 @@ class TestFolder(TestSync):
         return list(self.prepare_folder().all_files(self.reporter, policies_manager))
 
     def assert_filtered_files(self, scan_results, expected_scan_results):
-        self.assertEqual(
-            expected_scan_results, list(f.relative_path for f in scan_results)
-        )
+        self.assertEqual(expected_scan_results, list(f.relative_path for f in scan_results))
         self.reporter.local_access_error.assert_not_called()
 
     def test_exclusions(self):
@@ -287,9 +285,7 @@ class TestLocalFolder(TestFolder):
         assert not (broken_symlink and invalid_permissions)
 
         if platform.system() == 'Windows':
-            pytest.skip(
-                'on Windows there are some environment issues with test directory creation'
-            )
+            pytest.skip('on Windows there are some environment issues with test directory creation')
 
         if prepare_files:
             for relative_path in self.NAMES:
@@ -318,16 +314,12 @@ class TestLocalFolder(TestFolder):
     def test_slash_sorting(self):
         # '/' should sort between '.' and '0'
         folder = self.prepare_folder()
-        self.assertEqual(
-            self.NAMES, list(f.relative_path for f in folder.all_files(self.reporter))
-        )
+        self.assertEqual(self.NAMES, list(f.relative_path for f in folder.all_files(self.reporter)))
         self.reporter.local_access_error.assert_not_called()
 
     def test_broken_symlink(self):
         folder = self.prepare_folder(broken_symlink=True)
-        self.assertEqual(
-            self.NAMES, list(f.relative_path for f in folder.all_files(self.reporter))
-        )
+        self.assertEqual(self.NAMES, list(f.relative_path for f in folder.all_files(self.reporter)))
         self.reporter.local_access_error.assert_called_once_with(
             os.path.join(self.root_dir, 'bad_symlink')
         )
@@ -361,9 +353,7 @@ class TestLocalFolder(TestFolder):
 
         folder = self.prepare_folder(prepare_files=False)
         for syncable_path, norm_syncable_path in syncable_paths:
-            expected = os.path.join(
-                self.root_dir, norm_syncable_path.replace('/', os.path.sep)
-            )
+            expected = os.path.join(self.root_dir, norm_syncable_path.replace('/', os.path.sep))
             self.assertEqual(expected, folder.make_full_path(syncable_path))
 
     def test_unsyncable_paths(self):
@@ -381,29 +371,21 @@ class TestB2Folder(TestFolder):
     FILE_VERSION_INFOS = {
         os.path.join('inner', 'a.txt'): [
             (
-                FileVersionInfo(
-                    'a2', 'inner/a.txt', 200, 'text/plain', 'sha1', {}, 2000, 'upload'
-                ),
+                FileVersionInfo('a2', 'inner/a.txt', 200, 'text/plain', 'sha1', {}, 2000, 'upload'),
                 '',
             ),
             (
-                FileVersionInfo(
-                    'a1', 'inner/a.txt', 100, 'text/plain', 'sha1', {}, 1000, 'upload'
-                ),
+                FileVersionInfo('a1', 'inner/a.txt', 100, 'text/plain', 'sha1', {}, 1000, 'upload'),
                 '',
             ),
         ],
         os.path.join('inner', 'b.txt'): [
             (
-                FileVersionInfo(
-                    'b2', 'inner/b.txt', 200, 'text/plain', 'sha1', {}, 1999, 'upload'
-                ),
+                FileVersionInfo('b2', 'inner/b.txt', 200, 'text/plain', 'sha1', {}, 1999, 'upload'),
                 '',
             ),
             (
-                FileVersionInfo(
-                    'bs', 'inner/b.txt', 150, 'text/plain', 'sha1', {}, 1500, 'start'
-                ),
+                FileVersionInfo('bs', 'inner/b.txt', 150, 'text/plain', 'sha1', {}, 1500, 'start'),
                 '',
             ),
             (
@@ -511,9 +493,7 @@ class TestB2Folder(TestFolder):
             ["B2Path(inner/b.txt, [('b2', 1999, 'upload'), ('b1', 1001, 'upload')])"],
             [
                 str(f)
-                for f in folder.all_files(
-                    self.reporter, policies_manager=polices_manager
-                )
+                for f in folder.all_files(self.reporter, policies_manager=polices_manager)
                 if f.relative_path in ('inner/a.txt', 'inner/b.txt')
             ],
         )
@@ -589,9 +569,7 @@ class TestB2Folder(TestFolder):
         for filename in filenames_to_test:
             self.bucket.ls.return_value = [
                 (
-                    FileVersionInfo(
-                        'a1', filename, 1, 'text/plain', 'sha1', {}, 1000, 'upload'
-                    ),
+                    FileVersionInfo('a1', filename, 1, 'text/plain', 'sha1', {}, 1000, 'upload'),
                     '',
                 )
             ]
@@ -635,9 +613,7 @@ class TestB2Folder(TestFolder):
         for filename in filenames_to_test:
             self.bucket.ls.return_value = [
                 (
-                    FileVersionInfo(
-                        'a1', filename, 1, 'text/plain', 'sha1', {}, 1000, 'upload'
-                    ),
+                    FileVersionInfo('a1', filename, 1, 'text/plain', 'sha1', {}, 1000, 'upload'),
                     '',
                 )
             ]
@@ -652,9 +628,7 @@ class FakeLocalFolder(LocalFolder):
     def all_files(self, reporter, policies_manager=DEFAULT_SCAN_MANAGER):
         for single_path in self.local_sync_paths:
             if single_path.relative_path.endswith('/'):
-                if policies_manager.should_exclude_b2_directory(
-                    single_path.relative_path
-                ):
+                if policies_manager.should_exclude_b2_directory(single_path.relative_path):
                     continue
             else:
                 if policies_manager.should_exclude_local_path(single_path):
@@ -710,9 +684,7 @@ class FakeB2Folder(B2Folder):
 
 class TestParseSyncFolder(TestBase):
     def test_b2_double_slash(self):
-        self._check_one(
-            'B2Folder(my-bucket, folder/path)', 'b2://my-bucket/folder/path'
-        )
+        self._check_one('B2Folder(my-bucket, folder/path)', 'b2://my-bucket/folder/path')
 
     def test_b2_no_double_slash(self):
         self._check_one('B2Folder(my-bucket, folder/path)', 'b2:my-bucket/folder/path')
@@ -754,9 +726,7 @@ class TestFolderExceptions:
         'exception,msg',
         [
             pytest.param(NotADirectory, '.*', marks=pytest.mark.apiver(from_ver=2)),
-            pytest.param(
-                Exception, 'is not a directory', marks=pytest.mark.apiver(to_ver=1)
-            ),
+            pytest.param(Exception, 'is not a directory', marks=pytest.mark.apiver(to_ver=1)),
         ],
     )
     def test_ensure_present_not_a_dir(self, exception, msg):
@@ -771,9 +741,7 @@ class TestFolderExceptions:
     @pytest.mark.parametrize(
         'exception,msg',
         [
-            pytest.param(
-                UnableToCreateDirectory, '.*', marks=pytest.mark.apiver(from_ver=2)
-            ),
+            pytest.param(UnableToCreateDirectory, '.*', marks=pytest.mark.apiver(from_ver=2)),
             pytest.param(
                 Exception,
                 'unable to create directory',
@@ -834,9 +802,7 @@ class TestZipFolders(TestSync):
         file_a1 = LocalSyncPath("a.txt", "a.txt", 100, 10)
         folder_a = FakeLocalFolder([file_a1])
         folder_b = FakeB2Folder([])
-        self.assertEqual(
-            [(file_a1, None)], list(zip_folders(folder_a, folder_b, self.reporter))
-        )
+        self.assertEqual([(file_a1, None)], list(zip_folders(folder_a, folder_b, self.reporter)))
 
     def test_two(self):
         file_a1 = ("a.txt", 100, 10)
@@ -971,9 +937,7 @@ class TestExclusions(TestSync):
             'b2_upload(/dir/d/d.txt, folder/d/d.txt, 100)',
             'b2_upload(/dir/e/e.incl, folder/e/e.incl, 100)',
         ]
-        self._check_folder_sync(
-            expected_actions, FakeArgs(delete=True, excludeRegex=["b\\.txt"])
-        )
+        self._check_folder_sync(expected_actions, FakeArgs(delete=True, excludeRegex=["b\\.txt"]))
 
     def test_file_exclusions_inclusions_with_delete(self):
         expected_actions = [
@@ -984,9 +948,7 @@ class TestExclusions(TestSync):
             'b2_upload(/dir/e/e.incl, folder/e/e.incl, 100)',
             'b2_upload(/dir/b.txt.incl, folder/b.txt.incl, 100)',
         ]
-        fakeargs = FakeArgs(
-            delete=True, excludeRegex=["b\\.txt"], includeRegex=[".*\\.incl"]
-        )
+        fakeargs = FakeArgs(delete=True, excludeRegex=["b\\.txt"], includeRegex=[".*\\.incl"])
         self._check_folder_sync(expected_actions, fakeargs)
 
 

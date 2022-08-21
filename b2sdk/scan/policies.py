@@ -90,14 +90,10 @@ class IntegerRange:
         self._end = end
 
         if self._begin and self._begin < 0:
-            raise ValueError(
-                'begin time can not be less than 0, use None for the infinity'
-            )
+            raise ValueError('begin time can not be less than 0, use None for the infinity')
 
         if self._end and self._end < 0:
-            raise ValueError(
-                'end time can not be less than 0, use None for the infinity'
-            )
+            raise ValueError('end time can not be less than 0, use None for the infinity')
 
     def __contains__(self, item):
         ge_begin, le_end = True, True
@@ -207,9 +203,7 @@ class ScanPoliciesManager:
             return True
         return self._should_exclude_relative_path(local_path.relative_path)
 
-    def should_exclude_b2_file_version(
-        self, file_version: FileVersion, relative_path: str
-    ):
+    def should_exclude_b2_file_version(self, file_version: FileVersion, relative_path: str):
         """
         Whether a b2 file version should be excluded from the scan or not.
 

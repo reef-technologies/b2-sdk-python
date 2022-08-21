@@ -47,9 +47,7 @@ class TestSynchronizer:
             return synchronizer.make_folder_sync_actions(*args, **kwargs)
         return synchronizer._make_folder_sync_actions(*args, **kwargs)
 
-    def assert_folder_sync_actions(
-        self, synchronizer, src_folder, dst_folder, expected_actions
-    ):
+    def assert_folder_sync_actions(self, synchronizer, src_folder, dst_folder, expected_actions):
         """
         Checks the actions generated for one file.  The file may or may not
         exist at the source, and may or may not exist at the destination.
@@ -144,9 +142,7 @@ class TestSynchronizer:
             ('local', ['b2_upload(/dir/directory/a.txt, folder/directory/a.txt, 100)']),
             (
                 'b2',
-                [
-                    'b2_copy(folder/directory/a.txt, id_d_100, folder/directory/a.txt, 100)'
-                ],
+                ['b2_copy(folder/directory/a.txt, id_d_100, folder/directory/a.txt, 100)'],
             ),
         ],
     )
@@ -166,9 +162,7 @@ class TestSynchronizer:
             ('local', ['b2_upload(/dir/directory/a.txt, folder/directory/a.txt, 100)']),
             (
                 'b2',
-                [
-                    'b2_copy(folder/directory/a.txt, id_d_100, folder/directory/a.txt, 100)'
-                ],
+                ['b2_copy(folder/directory/a.txt, id_d_100, folder/directory/a.txt, 100)'],
             ),
         ],
     )
@@ -252,9 +246,7 @@ class TestSynchronizer:
             keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
         )
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY]))
         expected = [
             'b2_hide(folder/a.txt)',
             'b2_delete(folder/a.txt, id_a_8294400000, (old version))',
@@ -273,9 +265,7 @@ class TestSynchronizer:
             keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2
         )
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [TODAY - 1 * DAY, TODAY - 3 * DAY, TODAY - 5 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [TODAY - 1 * DAY, TODAY - 3 * DAY, TODAY - 5 * DAY]))
         expected = [
             'b2_hide(folder/a.txt)',
             'b2_delete(folder/a.txt, id_a_8208000000, (old version))',
@@ -291,9 +281,7 @@ class TestSynchronizer:
     )
     def test_already_hidden_multiple_versions_keep(self, synchronizer, src_type):
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [-TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [-TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY]))
         self.assert_folder_sync_actions(synchronizer, src, dst, [])
 
     @pytest.mark.parametrize(
@@ -303,16 +291,12 @@ class TestSynchronizer:
             'b2',
         ],
     )
-    def test_already_hidden_multiple_versions_keep_days(
-        self, synchronizer_factory, src_type
-    ):
+    def test_already_hidden_multiple_versions_keep_days(self, synchronizer_factory, src_type):
         synchronizer = synchronizer_factory(
             keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
         )
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [-TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [-TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY]))
         expected = ['b2_delete(folder/a.txt, id_a_8294400000, (old version))']
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
 
@@ -407,14 +391,10 @@ class TestSynchronizer:
             'b2',
         ],
     )
-    def test_already_hidden_multiple_versions_delete(
-        self, synchronizer_factory, src_type
-    ):
+    def test_already_hidden_multiple_versions_delete(self, synchronizer_factory, src_type):
         synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.DELETE)
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [-TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [-TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY]))
         expected = [
             'b2_delete(folder/a.txt, id_a_8640000000, (hide marker))',
             'b2_delete(folder/a.txt, id_a_8467200000, (old version))',
@@ -533,9 +513,7 @@ class TestSynchronizer:
             keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2
         )
         src = self.folder_factory(src_type, ('a.txt', [TODAY]))
-        dst = self.b2_folder_factory(
-            ('a.txt', [TODAY - 1 * DAY, TODAY - 3 * DAY, TODAY - 5 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [TODAY - 1 * DAY, TODAY - 3 * DAY, TODAY - 5 * DAY]))
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
 
     @pytest.mark.parametrize(
@@ -658,9 +636,7 @@ class TestSynchronizer:
         ],
     )
     def test_compare_none_newer(self, synchronizer_factory, src_type, dst_type):
-        synchronizer = synchronizer_factory(
-            compare_version_mode=CompareVersionMode.NONE
-        )
+        synchronizer = synchronizer_factory(compare_version_mode=CompareVersionMode.NONE)
         src = self.folder_factory(src_type, ('a.txt', [200]))
         dst = self.folder_factory(dst_type, ('a.txt', [100]))
         self.assert_folder_sync_actions(synchronizer, src, dst, [])
@@ -674,9 +650,7 @@ class TestSynchronizer:
         ],
     )
     def test_compare_none_older(self, synchronizer_factory, src_type, dst_type):
-        synchronizer = synchronizer_factory(
-            compare_version_mode=CompareVersionMode.NONE
-        )
+        synchronizer = synchronizer_factory(compare_version_mode=CompareVersionMode.NONE)
         src = self.folder_factory(src_type, ('a.txt', [100]))
         dst = self.folder_factory(dst_type, ('a.txt', [200]))
         self.assert_folder_sync_actions(synchronizer, src, dst, [])
@@ -690,9 +664,7 @@ class TestSynchronizer:
         ],
     )
     def test_compare_size_equal(self, synchronizer_factory, src_type, dst_type):
-        synchronizer = synchronizer_factory(
-            compare_version_mode=CompareVersionMode.SIZE
-        )
+        synchronizer = synchronizer_factory(compare_version_mode=CompareVersionMode.SIZE)
         src = self.folder_factory(src_type, ('a.txt', [200], 10))
         dst = self.folder_factory(dst_type, ('a.txt', [100], 10))
         self.assert_folder_sync_actions(synchronizer, src, dst, [])
@@ -705,12 +677,8 @@ class TestSynchronizer:
             ('b2', 'b2', ['b2_copy(folder/a.txt, id_a_200, folder/a.txt, 200)']),
         ],
     )
-    def test_compare_size_not_equal(
-        self, synchronizer_factory, src_type, dst_type, expected
-    ):
-        synchronizer = synchronizer_factory(
-            compare_version_mode=CompareVersionMode.SIZE
-        )
+    def test_compare_size_not_equal(self, synchronizer_factory, src_type, dst_type, expected):
+        synchronizer = synchronizer_factory(compare_version_mode=CompareVersionMode.SIZE)
         src = self.folder_factory(src_type, ('a.txt', [200], 11))
         dst = self.folder_factory(dst_type, ('a.txt', [100], 10))
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
@@ -854,9 +822,7 @@ class TestSynchronizer:
         source_encryption = object()
         destination_encryption = object()
         bucket = mock.MagicMock()
-        provider = TstEncryptionSettingsProvider(
-            source_encryption, destination_encryption
-        )
+        provider = TstEncryptionSettingsProvider(source_encryption, destination_encryption)
         copy_action = next(
             iter(
                 self._make_folder_sync_actions(

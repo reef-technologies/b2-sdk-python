@@ -78,8 +78,7 @@ class ReplicationScanResult(AbstractScanResult):
                     'source_has_large_metadata': source_file_version.has_large_header,
                     'source_has_file_retention': source_file_version.file_retention
                     is not NO_RETENTION_FILE_SETTING,
-                    'source_has_legal_hold': source_file_version.legal_hold
-                    is LegalHold.ON,
+                    'source_has_legal_hold': source_file_version.legal_hold is LegalHold.ON,
                 }
             )
 
@@ -96,14 +95,9 @@ class ReplicationScanResult(AbstractScanResult):
 
             params.update(
                 {
-                    'metadata_differs': source_version.file_info
-                    != destination_version.file_info,
-                    'hash_differs': (
-                        source_version.content_md5 != destination_version.content_md5
-                    )
-                    or (
-                        source_version.content_sha1 != destination_version.content_sha1
-                    ),
+                    'metadata_differs': source_version.file_info != destination_version.file_info,
+                    'hash_differs': (source_version.content_md5 != destination_version.content_md5)
+                    or (source_version.content_sha1 != destination_version.content_sha1),
                 }
             )
 
@@ -135,12 +129,8 @@ class ReplicationMonitor:
 
     bucket: Bucket
     rule: ReplicationRule
-    destination_api: Optional[
-        B2Api
-    ] = None  # if None -> will use `api` of source (bucket)
-    report: ProgressReport = field(
-        default_factory=lambda: ProgressReport(sys.stdout, False)
-    )
+    destination_api: Optional[B2Api] = None  # if None -> will use `api` of source (bucket)
+    report: ProgressReport = field(default_factory=lambda: ProgressReport(sys.stdout, False))
     scan_policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER
 
     REPORT_CLASS: ClassVar[AbstractScanReport] = ReplicationReport

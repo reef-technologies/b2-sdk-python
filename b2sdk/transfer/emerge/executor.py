@@ -245,10 +245,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         legal_hold: Optional[LegalHold] = None,
         emerge_parts_dict=None,
     ):
-        if (
-            'listFiles'
-            not in self.services.session.account_info.get_allowed()['capabilities']
-        ):
+        if 'listFiles' not in self.services.session.account_info.get_allowed()['capabilities']:
             return None, {}
 
         unfinished_file = None
@@ -336,10 +333,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
                     # so we want to skip this large file because it is broken
                     finished_parts = None
                     break
-                if (
-                    emerge_part.is_hashable()
-                    and emerge_part.get_sha1() != part.content_sha1
-                ):
+                if emerge_part.is_hashable() and emerge_part.get_sha1() != part.content_sha1:
                     continue  # auto-healing - `plan_id` matches but part.sha1 doesn't - so we reupload
                 finished_parts[part.part_number] = part
             if finished_parts is None:
@@ -435,9 +429,7 @@ class BaseExecutionStepFactory(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def create_upload_execution_step(
-        self, stream_opener, stream_length=None, stream_sha1=None
-    ):
+    def create_upload_execution_step(self, stream_opener, stream_length=None, stream_sha1=None):
         pass
 
     def get_execution_step(self):
@@ -448,9 +440,7 @@ class SmallFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
     def create_copy_execution_step(self, copy_range):
         return CopyFileExecutionStep(self.emerge_execution, copy_range)
 
-    def create_upload_execution_step(
-        self, stream_opener, stream_length=None, stream_sha1=None
-    ):
+    def create_upload_execution_step(self, stream_opener, stream_length=None, stream_sha1=None):
         return UploadFileExecutionStep(
             self.emerge_execution,
             stream_opener,
@@ -469,9 +459,7 @@ class LargeFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
         large_file_upload_state,
         finished_parts=None,
     ):
-        super(LargeFileEmergeExecutionStepFactory, self).__init__(
-            emerge_execution, emerge_part
-        )
+        super(LargeFileEmergeExecutionStepFactory, self).__init__(emerge_execution, emerge_part)
         self.part_number = part_number
         self.large_file_id = large_file_id
         self.large_file_upload_state = large_file_upload_state
@@ -486,9 +474,7 @@ class LargeFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
             self.large_file_upload_state,
         )
 
-    def create_upload_execution_step(
-        self, stream_opener, stream_length=None, stream_sha1=None
-    ):
+    def create_upload_execution_step(self, stream_opener, stream_length=None, stream_sha1=None):
         return UploadPartExecutionStep(
             self.emerge_execution,
             stream_opener,
@@ -568,9 +554,7 @@ class CopyPartExecutionStep(BaseExecutionStep):
 
 
 class UploadFileExecutionStep(BaseExecutionStep):
-    def __init__(
-        self, emerge_execution, stream_opener, stream_length=None, stream_sha1=None
-    ):
+    def __init__(self, emerge_execution, stream_opener, stream_length=None, stream_sha1=None):
         super().__init__(emerge_execution)
         self.stream_opener = stream_opener
         self.stream_length = stream_length

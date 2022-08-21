@@ -364,11 +364,7 @@ class B2Folder(AbstractFolder):
 
             self._validate_file_name(file_name)
 
-            if (
-                current_name != file_name
-                and current_name is not None
-                and current_versions
-            ):
+            if current_name != file_name and current_name is not None and current_versions:
                 yield B2Path(
                     relative_path=current_name,
                     selected_version=current_versions[0],

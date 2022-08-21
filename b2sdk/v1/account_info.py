@@ -174,9 +174,7 @@ class AbstractAccountInfo(OldAccountInfoMethods, v2.AbstractAccountInfo):
         # Keep the old signature
 
 
-class InMemoryAccountInfo(
-    MinimumPartSizeTranslator, OldAccountInfoMethods, v2.InMemoryAccountInfo
-):
+class InMemoryAccountInfo(MinimumPartSizeTranslator, OldAccountInfoMethods, v2.InMemoryAccountInfo):
     pass
 
 
@@ -184,9 +182,7 @@ class UrlPoolAccountInfo(OldAccountInfoMethods, v2.UrlPoolAccountInfo):
     pass
 
 
-class SqliteAccountInfo(
-    MinimumPartSizeTranslator, OldAccountInfoMethods, v2.SqliteAccountInfo
-):
+class SqliteAccountInfo(MinimumPartSizeTranslator, OldAccountInfoMethods, v2.SqliteAccountInfo):
     def __init__(self, file_name=None, last_upgrade_to_run=None):
         """
         If ``file_name`` argument is empty or ``None``, path from ``B2_ACCOUNT_INFO`` environment variable is used. If that is not available, a default of ``~/.b2_account_info`` is used.
@@ -201,7 +197,5 @@ class SqliteAccountInfo(
         super().__init__(file_name=file_name, last_upgrade_to_run=last_upgrade_to_run)
 
 
-class StubAccountInfo(
-    MinimumPartSizeTranslator, OldAccountInfoMethods, v2.StubAccountInfo
-):
+class StubAccountInfo(MinimumPartSizeTranslator, OldAccountInfoMethods, v2.StubAccountInfo):
     REALM_URLS = {'production': 'http://production.example.com'}

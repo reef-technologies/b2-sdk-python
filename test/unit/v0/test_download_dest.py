@@ -63,9 +63,7 @@ class TestDownloadDestLocalFile(TestBase):
                     raise Exception('test error')
             except Exception as e:
                 self.assertEqual('test error', str(e))
-            self.assertFalse(
-                os.path.exists(file_path), msg='failed download should be deleted'
-            )
+            self.assertFalse(os.path.exists(file_path), msg='failed download should be deleted')
 
 
 class TestPreSeekedDownloadDest(TestDownloadDestLocalFile):
@@ -91,9 +89,7 @@ class TestDownloadDestProgressWrapper(TestBase):
             file_path = os.path.join(temp_dir, "test.txt")
             download_local_file = DownloadDestLocalFile(file_path)
             progress_listener = ProgressListenerForTest()
-            download_dest = DownloadDestProgressWrapper(
-                download_local_file, progress_listener
-            )
+            download_dest = DownloadDestProgressWrapper(download_local_file, progress_listener)
             with download_dest.make_file_context(
                 "file_id", "file_name", 100, "content_type", "sha1", {}, mod_time
             ) as f:

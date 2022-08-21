@@ -76,8 +76,6 @@ class WriteIntent:
         current_position = 0
         for outbound_source in outbound_sources_iterator:
             length = outbound_source.get_content_length()
-            write_intent = WriteIntent(
-                outbound_source, destination_offset=current_position
-            )
+            write_intent = WriteIntent(outbound_source, destination_offset=current_position)
             current_position += length
             yield write_intent

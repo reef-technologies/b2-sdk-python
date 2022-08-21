@@ -109,9 +109,7 @@ def lint(session):
     # TODO: use flake8 instead of pyflakes
     session.log('pyflakes b2sdk')
     output = (
-        subprocess.run(
-            'pyflakes b2sdk', shell=True, check=False, stdout=subprocess.PIPE
-        )
+        subprocess.run('pyflakes b2sdk', shell=True, check=False, stdout=subprocess.PIPE)
         .stdout.decode()
         .strip()
     )
@@ -176,9 +174,7 @@ def test(session):
 def cover(session):
     """Perform coverage analysis."""
     session.install('coverage')
-    session.run(
-        'coverage', 'report', '--fail-under=75', '--show-missing', '--skip-covered'
-    )
+    session.run('coverage', 'report', '--fail-under=75', '--show-missing', '--skip-covered')
     session.run('coverage', 'erase')
 
 

@@ -270,9 +270,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def list_parts(
-        self, api_url, account_auth_token, file_id, start_part_number, max_part_count
-    ):
+    def list_parts(self, api_url, account_auth_token, file_id, start_part_number, max_part_count):
         pass
 
     @abstractmethod
@@ -453,9 +451,7 @@ class B2RawHTTPApi(AbstractRawApi):
         return self._post_json(realm_url, 'b2_authorize_account', auth)
 
     def cancel_large_file(self, api_url, account_auth_token, file_id):
-        return self._post_json(
-            api_url, 'b2_cancel_large_file', account_auth_token, fileId=file_id
-        )
+        return self._post_json(api_url, 'b2_cancel_large_file', account_auth_token, fileId=file_id)
 
     def create_bucket(
         self,
@@ -484,18 +480,14 @@ class B2RawHTTPApi(AbstractRawApi):
             kwargs['lifecycleRules'] = lifecycle_rules
         if default_server_side_encryption is not None:
             if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
-                raise WrongEncryptionModeForBucketDefault(
-                    default_server_side_encryption.mode
-                )
+                raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs[
                 'defaultServerSideEncryption'
             ] = default_server_side_encryption.serialize_to_json_for_request()
         if is_file_lock_enabled is not None:
             kwargs['fileLockEnabled'] = is_file_lock_enabled
         if replication is not None:
-            kwargs[
-                'replicationConfiguration'
-            ] = replication.serialize_to_json_for_request()
+            kwargs['replicationConfiguration'] = replication.serialize_to_json_for_request()
         return self._post_json(
             api_url,
             'b2_create_bucket',
@@ -615,9 +607,7 @@ class B2RawHTTPApi(AbstractRawApi):
     def get_file_info_by_id(
         self, api_url: str, account_auth_token: str, file_id: str
     ) -> Dict[str, Any]:
-        return self._post_json(
-            api_url, 'b2_get_file_info', account_auth_token, fileId=file_id
-        )
+        return self._post_json(api_url, 'b2_get_file_info', account_auth_token, fileId=file_id)
 
     def get_file_info_by_name(
         self,
@@ -626,9 +616,7 @@ class B2RawHTTPApi(AbstractRawApi):
         bucket_name: str,
         file_name: str,
     ) -> Dict[str, Any]:
-        download_url = self.get_download_url_by_name(
-            download_url, bucket_name, file_name
-        )
+        download_url = self.get_download_url_by_name(download_url, bucket_name, file_name)
         try:
             response = self.b2_http.head_content(
                 download_url, headers={"Authorization": account_auth_token}
@@ -639,9 +627,7 @@ class B2RawHTTPApi(AbstractRawApi):
             raise FileOrBucketNotFound(bucket_name, file_name)
 
     def get_upload_url(self, api_url, account_auth_token, bucket_id):
-        return self._post_json(
-            api_url, 'b2_get_upload_url', account_auth_token, bucketId=bucket_id
-        )
+        return self._post_json(api_url, 'b2_get_upload_url', account_auth_token, bucketId=bucket_id)
 
     def get_upload_part_url(self, api_url, account_auth_token, file_id):
         return self._post_json(
@@ -732,9 +718,7 @@ class B2RawHTTPApi(AbstractRawApi):
             startApplicationKeyId=start_application_key_id,
         )
 
-    def list_parts(
-        self, api_url, account_auth_token, file_id, start_part_number, max_part_count
-    ):
+    def list_parts(self, api_url, account_auth_token, file_id, start_part_number, max_part_count):
         return self._post_json(
             api_url,
             'b2_list_parts',
@@ -782,9 +766,7 @@ class B2RawHTTPApi(AbstractRawApi):
                 EncryptionMode.SSE_B2,
                 EncryptionMode.SSE_C,
             )
-            kwargs[
-                'serverSideEncryption'
-            ] = server_side_encryption.serialize_to_json_for_request()
+            kwargs['serverSideEncryption'] = server_side_encryption.serialize_to_json_for_request()
 
         if legal_hold is not None:
             kwargs['legalHold'] = legal_hold.to_server()
@@ -831,20 +813,14 @@ class B2RawHTTPApi(AbstractRawApi):
             kwargs['lifecycleRules'] = lifecycle_rules
         if default_server_side_encryption is not None:
             if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
-                raise WrongEncryptionModeForBucketDefault(
-                    default_server_side_encryption.mode
-                )
+                raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs[
                 'defaultServerSideEncryption'
             ] = default_server_side_encryption.serialize_to_json_for_request()
         if default_retention is not None:
-            kwargs[
-                'defaultRetention'
-            ] = default_retention.serialize_to_json_for_request()
+            kwargs['defaultRetention'] = default_retention.serialize_to_json_for_request()
         if replication is not None:
-            kwargs[
-                'replicationConfiguration'
-            ] = replication.serialize_to_json_for_request()
+            kwargs['replicationConfiguration'] = replication.serialize_to_json_for_request()
 
         assert kwargs
 
@@ -946,13 +922,9 @@ class B2RawHTTPApi(AbstractRawApi):
             raise UnusableFileName("Filename may not start or end with '/'.")
         if '//' in filename:
             raise UnusableFileName("Filename may not contain \"//\".")
-        long_segment = max(
-            [len(segment.encode('utf-8')) for segment in filename.split('/')]
-        )
+        long_segment = max([len(segment.encode('utf-8')) for segment in filename.split('/')])
         if long_segment > 250:
-            raise UnusableFileName(
-                "Filename segment too long (maximum 250 bytes in utf-8)."
-            )
+            raise UnusableFileName("Filename segment too long (maximum 250 bytes in utf-8).")
 
     def upload_file(
         self,
@@ -1052,10 +1024,7 @@ class B2RawHTTPApi(AbstractRawApi):
                 raise InvalidMetadataDirective(
                     'content_type and file_info should be None when metadata_directive is COPY'
                 )
-            elif (
-                metadata_directive is MetadataDirectiveMode.REPLACE
-                and content_type is None
-            ):
+            elif metadata_directive is MetadataDirectiveMode.REPLACE and content_type is None:
                 raise InvalidMetadataDirective(
                     'content_type cannot be None when metadata_directive is REPLACE'
                 )

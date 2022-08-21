@@ -20,9 +20,7 @@ UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE = re.compile(
     r'^more than one upload using auth token (?P<token>[^)]+)$'
 )
 
-COPY_SOURCE_TOO_BIG_ERROR_MESSAGE_RE = re.compile(
-    r'^Copy source too big: (?P<size>[\d]+)$'
-)
+COPY_SOURCE_TOO_BIG_ERROR_MESSAGE_RE = re.compile(r'^Copy source too big: (?P<size>[\d]+)$')
 
 logger = logging.getLogger(__name__)
 
@@ -249,12 +247,8 @@ class FileOrBucketNotFound(ResourceNotFound):
         self.file_id_or_name = file_id_or_name
 
     def __str__(self):
-        file_str = (
-            ('file [%s]' % self.file_id_or_name) if self.file_id_or_name else 'a file'
-        )
-        bucket_str = (
-            ('bucket [%s]' % self.bucket_name) if self.bucket_name else 'a bucket'
-        )
+        file_str = ('file [%s]' % self.file_id_or_name) if self.file_id_or_name else 'a file'
+        bucket_str = ('bucket [%s]' % self.bucket_name) if self.bucket_name else 'a bucket'
         return 'Could not find %s within %s' % (file_str, bucket_str)
 
 
@@ -276,9 +270,7 @@ class FileNameNotAllowed(NotAllowedByAppKeyError):
 
 class FileNotPresent(FileOrBucketNotFound):
     def __str__(self):  # overridden to retain message across prev versions
-        return "File not present%s" % (
-            ': ' + self.file_id_or_name if self.file_id_or_name else ""
-        )
+        return "File not present%s" % (': ' + self.file_id_or_name if self.file_id_or_name else "")
 
 
 class UnusableFileName(B2SimpleError):
@@ -398,9 +390,7 @@ class MaxRetriesExceeded(B2Error):
         self.exception_info_list = exception_info_list
 
     def __str__(self):
-        exceptions = '\n'.join(
-            str(wrapped_error) for wrapped_error in self.exception_info_list
-        )
+        exceptions = '\n'.join(str(wrapped_error) for wrapped_error in self.exception_info_list)
         return 'FAILED to upload after %s tries. Encountered exceptions: %s' % (
             self.limit,
             exceptions,
@@ -413,9 +403,7 @@ class MissingPart(B2SimpleError):
 
 class NonExistentBucket(FileOrBucketNotFound):
     def __str__(self):  # overridden to retain message across prev versions
-        return "No such bucket%s" % (
-            ': ' + self.bucket_name if self.bucket_name else ""
-        )
+        return "No such bucket%s" % (': ' + self.bucket_name if self.bucket_name else "")
 
 
 class FileSha1Mismatch(B2SimpleError):

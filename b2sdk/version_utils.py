@@ -20,9 +20,7 @@ from b2sdk.version import VERSION
 class AbstractVersionDecorator(metaclass=ABCMeta):
     WHAT = NotImplemented  # 'function', 'method', 'class' etc
 
-    def __init__(
-        self, changed_version, cutoff_version=None, reason='', current_version=None
-    ):
+    def __init__(self, changed_version, cutoff_version=None, reason='', current_version=None):
         """
         Changed_version, cutoff_version and current_version are version strings.
         """
@@ -126,14 +124,14 @@ class rename_argument(AbstractDeprecator):
                 % (self.target,)
             )
             signature = inspect.getfullargspec(func)
-            assert (
-                self.target in signature.args or self.target in signature.kwonlyargs
-            ), message
+            assert self.target in signature.args or self.target in signature.kwonlyargs, message
 
             if self.source in kwargs:
-                assert self.target not in kwargs, (
-                    'both argument names were provided: %r (deprecated) and %r (new)'
-                    % (self.source, self.target)
+                assert (
+                    self.target not in kwargs
+                ), 'both argument names were provided: %r (deprecated) and %r (new)' % (
+                    self.source,
+                    self.target,
                 )
                 kwargs[self.target] = kwargs[self.source]
                 del kwargs[self.source]

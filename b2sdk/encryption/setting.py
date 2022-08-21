@@ -47,9 +47,7 @@ class EncryptionKey:
 
     SECRET_REPR = '******'
 
-    def __init__(
-        self, secret: Optional[bytes], key_id: Union[str, None, _UnknownKeyId]
-    ):
+    def __init__(self, secret: Optional[bytes], key_id: Union[str, None, _UnknownKeyId]):
         self.secret = secret
         self.key_id = key_id
 
@@ -109,16 +107,9 @@ class EncryptionSetting:
         self.algorithm = algorithm
         self.key = key
         if self.mode == EncryptionMode.NONE and (self.algorithm or self.key):
-            raise ValueError(
-                "cannot specify algorithm or key for 'plaintext' encryption mode"
-            )
-        if (
-            self.mode in ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM
-            and not self.algorithm
-        ):
-            raise ValueError(
-                'must specify algorithm for encryption mode %s' % (self.mode,)
-            )
+            raise ValueError("cannot specify algorithm or key for 'plaintext' encryption mode")
+        if self.mode in ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM and not self.algorithm:
+            raise ValueError('must specify algorithm for encryption mode %s' % (self.mode,))
         if self.mode in ENCRYPTION_MODES_WITH_MANDATORY_KEY and not self.key:
             raise ValueError(
                 'must specify key for encryption mode %s and algorithm %s'
@@ -127,13 +118,9 @@ class EncryptionSetting:
 
     def __eq__(self, other):
         if other is None:
-            raise ValueError(
-                'cannot compare a known encryption setting to an unknown one'
-            )
+            raise ValueError('cannot compare a known encryption setting to an unknown one')
         return (
-            self.mode == other.mode
-            and self.algorithm == other.algorithm
-            and self.key == other.key
+            self.mode == other.mode and self.algorithm == other.algorithm and self.key == other.key
         )
 
     def serialize_to_json_for_request(self):
@@ -188,10 +175,7 @@ class EncryptionSetting:
             self._add_sse_c_headers(headers)
             if self.key.key_id is not None:
                 header = SSE_C_KEY_ID_HEADER
-                if (
-                    headers.get(header) is not None
-                    and headers[header] != self.key.key_id
-                ):
+                if headers.get(header) is not None and headers[header] != self.key.key_id:
                     raise ValueError(
                         'Ambiguous key id set: "%s" in headers and "%s" in %s'
                         % (headers[header], self.key.key_id, self.__class__.__name__)

@@ -134,9 +134,7 @@ class Bucket(v2.Bucket):
             encryption=encryption,
         )
         try:
-            return download_file_and_return_info_dict(
-                downloaded_file, download_dest, range_
-            )
+            return download_file_and_return_info_dict(downloaded_file, download_dest, range_)
         except ValueError as ex:
             if ex.args == ('no strategy suitable for download was found!',):
                 raise AssertionError('no strategy suitable for download was found!')
@@ -196,9 +194,7 @@ class Bucket(v2.Bucket):
         )
 
     def get_file_info_by_name(self, file_name: str) -> FileVersionInfo:
-        return file_version_info_from_download_version(
-            super().get_file_info_by_name(file_name)
-        )
+        return file_version_info_from_download_version(super().get_file_info_by_name(file_name))
 
     def get_file_info_by_id(self, file_id: str) -> FileVersionInfo:
         """
@@ -206,9 +202,7 @@ class Bucket(v2.Bucket):
 
         :param str file_id: the id of the file.
         """
-        return self.api.file_version_factory.from_api_response(
-            self.api.get_file_info(file_id)
-        )
+        return self.api.file_version_factory.from_api_response(self.api.get_file_info(file_id))
 
     def update(
         self,
@@ -303,9 +297,7 @@ def download_file_and_return_info_dict(
         range_=range_,
     ) as file:
         downloaded_file.save(file)
-        return FileMetadata.from_download_version(
-            downloaded_file.download_version
-        ).as_info_dict()
+        return FileMetadata.from_download_version(downloaded_file.download_version).as_info_dict()
 
 
 class BucketFactory(v2.BucketFactory):

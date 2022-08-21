@@ -40,9 +40,7 @@ class StreamWithHash(ReadOnlyStreamMixin, StreamWithLengthWrapper):
         :param int pos: position in the stream
         """
         if pos != 0 or whence != 0:
-            raise io.UnsupportedOperation(
-                'Stream with hash can only be seeked to beginning'
-            )
+            raise io.UnsupportedOperation('Stream with hash can only be seeked to beginning')
         self.digest = self.get_digest()
         self.hash = None
         self.hash_read = 0

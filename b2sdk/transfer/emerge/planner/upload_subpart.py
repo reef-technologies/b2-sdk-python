@@ -57,22 +57,16 @@ class RemoteSourceUploadSubpart(BaseUploadSubpart):
 
     def get_stream_opener(self, emerge_execution=None):
         if emerge_execution is None:
-            raise RuntimeError(
-                'Cannot open remote source without emerge execution instance.'
-            )
+            raise RuntimeError('Cannot open remote source without emerge execution instance.')
         return CachedBytesStreamOpener(partial(self._download, emerge_execution))
 
     def _download(self, emerge_execution):
-        url = emerge_execution.services.session.get_download_url_by_id(
-            self.outbound_source.file_id
-        )
+        url = emerge_execution.services.session.get_download_url_by_id(self.outbound_source.file_id)
         absolute_offset = self.outbound_source.offset + self.relative_offset
         range_ = (absolute_offset, absolute_offset + self.length - 1)
         with io.BytesIO() as bytes_io:
-            downloaded_file = (
-                emerge_execution.services.download_manager.download_file_from_url(
-                    url, range_=range_, encryption=self.outbound_source.encryption
-                )
+            downloaded_file = emerge_execution.services.download_manager.download_file_from_url(
+                url, range_=range_, encryption=self.outbound_source.encryption
             )
             downloaded_file.save(bytes_io)
             return bytes_io.getvalue()

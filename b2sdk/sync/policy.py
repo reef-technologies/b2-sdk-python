@@ -41,9 +41,7 @@ class NewerFileSyncMode(Enum):
     """Mode of handling files newer on destination than on source"""
 
     SKIP = 101  #: skip syncing such file
-    REPLACE = (
-        102  #: replace the file on the destination with the (older) file on source
-    )
+    REPLACE = 102  #: replace the file on the destination with the (older) file on source
     RAISE_ERROR = 103  #: raise a non-transient error, failing the sync operation
 
 

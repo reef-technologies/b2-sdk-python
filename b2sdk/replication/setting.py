@@ -191,9 +191,7 @@ class ReplicationConfiguration:
                 for rule_dict in source_dict.get('replicationRules', [])
             ],
             source_key_id=source_dict.get('sourceApplicationKeyId'),
-            source_to_destination_key_mapping=destination_dict.get(
-                'sourceToDestinationKeyMapping'
-            )
+            source_to_destination_key_mapping=destination_dict.get('sourceToDestinationKeyMapping')
             or {},
         )
 
@@ -213,8 +211,6 @@ class ReplicationConfigurationFactory:
         value_dict = replication_dict.get('value') or {}
 
         return cls(
-            is_client_authorized_to_read=replication_dict.get(
-                'isClientAuthorizedToRead', True
-            ),
+            is_client_authorized_to_read=replication_dict.get('isClientAuthorizedToRead', True),
             value=ReplicationConfiguration.from_dict(value_dict),
         )

@@ -78,9 +78,7 @@ class BaseFileVersion:
         self.file_name = file_name
         self.size = size
         self.content_type = content_type
-        self.content_sha1, self.content_sha1_verified = self._decode_content_sha1(
-            content_sha1
-        )
+        self.content_sha1, self.content_sha1_verified = self._decode_content_sha1(content_sha1)
         self.file_info = file_info or {}
         self.upload_timestamp = upload_timestamp
         self.server_side_encryption = server_side_encryption
@@ -152,9 +150,7 @@ class BaseFileVersion:
             result['contentSha1'] = self._encode_content_sha1(
                 self.content_sha1, self.content_sha1_verified
             )
-        result['replicationStatus'] = (
-            self.replication_status and self.replication_status.value
-        )
+        result['replicationStatus'] = self.replication_status and self.replication_status.value
 
         return result
 
@@ -182,9 +178,7 @@ class BaseFileVersion:
         return self.api.delete_file_version(self.id_, self.file_name)
 
     def update_legal_hold(self, legal_hold: LegalHold) -> 'BaseFileVersion':
-        legal_hold = self.api.update_file_legal_hold(
-            self.id_, self.file_name, legal_hold
-        )
+        legal_hold = self.api.update_file_legal_hold(self.id_, self.file_name, legal_hold)
         return self._clone(legal_hold=legal_hold)
 
     def update_retention(
@@ -496,17 +490,14 @@ class FileVersionFactory:
         content_sha1 = file_version_dict.get('contentSha1')
         content_md5 = file_version_dict.get('contentMd5')
         file_info = file_version_dict.get('fileInfo')
-        server_side_encryption = EncryptionSettingFactory.from_file_version_dict(
-            file_version_dict
-        )
+        server_side_encryption = EncryptionSettingFactory.from_file_version_dict(file_version_dict)
         file_retention = FileRetentionSetting.from_file_version_dict(file_version_dict)
 
         legal_hold = LegalHold.from_file_version_dict(file_version_dict)
 
         replication_status_value = file_version_dict.get('replicationStatus')
         replication_status = (
-            replication_status_value
-            and ReplicationStatus[replication_status_value.upper()]
+            replication_status_value and ReplicationStatus[replication_status_value.upper()]
         )
 
         return self.FILE_VERSION_CLASS(
@@ -573,9 +564,7 @@ class DownloadVersionFactory:
             content_sha1=headers['x-bz-content-sha1'],
             file_info=file_info,
             upload_timestamp=int(headers['x-bz-upload-timestamp']),
-            server_side_encryption=EncryptionSettingFactory.from_response_headers(
-                headers
-            ),
+            server_side_encryption=EncryptionSettingFactory.from_response_headers(headers),
             range_=range_,
             content_disposition=headers.get('Content-Disposition'),
             content_length=content_length,

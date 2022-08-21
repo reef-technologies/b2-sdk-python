@@ -176,9 +176,7 @@ class ProgressReport:
         :param path: file path
         :type path: str
         """
-        self.warnings.append(
-            'WARNING: %s could not be accessed (broken symlink?)' % (path,)
-        )
+        self.warnings.append('WARNING: %s could not be accessed (broken symlink?)' % (path,))
 
     def local_permission_error(self, path):
         """

@@ -106,7 +106,9 @@ class TestTranslateErrors(TestBase):
         response = MagicMock()
         response.status_code = 429
         response.headers = {'retry-after': 1}
-        response.content = b'{"status": 429, "code": "Too Many requests", "message": "retry after some time"}'
+        response.content = (
+            b'{"status": 429, "code": "Too Many requests", "message": "retry after some time"}'
+        )
         with self.assertRaises(TooManyRequests):
             B2Http._translate_errors(lambda: response)
 
@@ -231,9 +233,7 @@ class TestB2Http(TestBase):
         self.session.post.return_value = self.response
         self.response.status_code = 200
         self.response.content = b'{"color": "blue"}'
-        response_dict = self.b2_http.post_json_return_json(
-            self.URL, self.HEADERS, self.PARAMS
-        )
+        response_dict = self.b2_http.post_json_return_json(self.URL, self.HEADERS, self.PARAMS)
         self.assertEqual({'color': 'blue'}, response_dict)
         (pos_args, kw_args) = self.session.post.call_args
         self.assertEqual(self.URL, pos_args[0])
@@ -251,9 +251,7 @@ class TestB2Http(TestBase):
         self.response.status_code = 200
         self.response.content = b'{"color": "blue"}'
         self.b2_http.post_json_return_json(self.URL, self.HEADERS, self.PARAMS)
-        callback.pre_request.assert_called_with(
-            'POST', 'http://example.com', self.EXPECTED_HEADERS
-        )
+        callback.pre_request.assert_called_with('POST', 'http://example.com', self.EXPECTED_HEADERS)
         callback.post_request.assert_called_with(
             'POST', 'http://example.com', self.EXPECTED_HEADERS, self.response
         )

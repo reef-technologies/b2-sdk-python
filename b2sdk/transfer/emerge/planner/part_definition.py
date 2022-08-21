@@ -66,10 +66,7 @@ class UploadEmergePartDefinition(BaseEmergePartDefinition):
 
     def get_sha1(self):
         if self._sha1 is None:
-            if (
-                self.relative_offset == 0
-                and self.length == self.upload_source.get_content_length()
-            ):
+            if self.relative_offset == 0 and self.length == self.upload_source.get_content_length():
                 # this is part is equal to whole upload source - so we use `get_content_sha1()`
                 # and if sha1 is already given, we skip computing it again
                 self._sha1 = self.upload_source.get_content_sha1()

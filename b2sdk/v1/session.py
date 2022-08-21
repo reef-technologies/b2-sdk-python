@@ -48,9 +48,7 @@ class B2Session(v2.B2Session):
         """
         # Authorize
         realm_url = self.account_info.REALM_URLS.get(realm, realm)
-        response = self.raw_api.authorize_account(
-            realm_url, application_key_id, application_key
-        )
+        response = self.raw_api.authorize_account(realm_url, application_key_id, application_key)
         account_id = response['accountId']
         allowed = response['allowed']
 

@@ -368,9 +368,7 @@ class Bucket(metaclass=B2TraceMeta):
         session = self.api.session
         while True:
             if latest_only:
-                response = session.list_file_names(
-                    self.id_, start_file_name, fetch_count, prefix
-                )
+                response = session.list_file_names(self.id_, start_file_name, fetch_count, prefix)
             else:
                 response = session.list_file_versions(
                     self.id_, start_file_name, start_file_id, fetch_count, prefix
@@ -417,9 +415,7 @@ class Bucket(metaclass=B2TraceMeta):
                     prefix + current_dir[:-1] + '0',
                 )
 
-    def list_unfinished_large_files(
-        self, start_file_id=None, batch_size=None, prefix=None
-    ):
+    def list_unfinished_large_files(self, start_file_id=None, batch_size=None, prefix=None):
         """
         A generator that yields an :py:class:`b2sdk.v2.UnfinishedLargeFile` for each
         unfinished large file in the bucket, starting at the given file, filtering by prefix.
@@ -505,9 +501,7 @@ class Bucket(metaclass=B2TraceMeta):
         :param bool legal_hold: legal hold setting
         :rtype: b2sdk.v2.FileVersion
         """
-        upload_source = UploadSourceLocalFile(
-            local_path=local_file, content_sha1=sha1_sum
-        )
+        upload_source = UploadSourceLocalFile(local_path=local_file, content_sha1=sha1_sum)
         return self.upload(
             upload_source,
             file_name,
@@ -962,9 +956,7 @@ class Bucket(metaclass=B2TraceMeta):
         result['lifecycleRules'] = self.lifecycle_rules
         result['revision'] = self.revision
         result['options'] = self.options_set
-        result[
-            'defaultServerSideEncryption'
-        ] = self.default_server_side_encryption.as_dict()
+        result['defaultServerSideEncryption'] = self.default_server_side_encryption.as_dict()
         result['isFileLockEnabled'] = self.is_file_lock_enabled
         result['defaultRetention'] = self.default_retention.as_dict()
         result['replication'] = self.replication and self.replication.as_dict()
@@ -991,10 +983,7 @@ class BucketFactory:
         :param requests.Response response: response object
         :rtype: b2sdk.v2.Bucket
         """
-        return [
-            cls.from_api_bucket_dict(api, bucket_dict)
-            for bucket_dict in response['buckets']
-        ]
+        return [cls.from_api_bucket_dict(api, bucket_dict) for bucket_dict in response['buckets']]
 
     @classmethod
     def from_api_bucket_dict(cls, api, bucket_dict):
@@ -1081,16 +1070,10 @@ class BucketFactory:
         options = set(bucket_dict['options'])
 
         if 'defaultServerSideEncryption' not in bucket_dict:
-            raise UnexpectedCloudBehaviour(
-                'server did not provide `defaultServerSideEncryption`'
-            )
-        default_server_side_encryption = EncryptionSettingFactory.from_bucket_dict(
-            bucket_dict
-        )
+            raise UnexpectedCloudBehaviour('server did not provide `defaultServerSideEncryption`')
+        default_server_side_encryption = EncryptionSettingFactory.from_bucket_dict(bucket_dict)
         file_lock_configuration = FileLockConfiguration.from_bucket_dict(bucket_dict)
-        replication = ReplicationConfigurationFactory.from_bucket_dict(
-            bucket_dict
-        ).value
+        replication = ReplicationConfigurationFactory.from_bucket_dict(bucket_dict).value
         return cls.BUCKET_CLASS(
             api,
             bucket_id,

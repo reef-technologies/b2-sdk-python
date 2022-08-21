@@ -44,9 +44,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
     completed.
     """
 
-    def __init__(
-        self, file_name=None, last_upgrade_to_run=None, profile: Optional[str] = None
-    ):
+    def __init__(self, file_name=None, last_upgrade_to_run=None, profile: Optional[str] = None):
         """
         Initialize SqliteAccountInfo.
 
@@ -76,9 +74,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         """
         self.thread_local = threading.local()
 
-        self.filename = self._get_user_account_info_path(
-            file_name=file_name, profile=profile
-        )
+        self.filename = self._get_user_account_info_path(file_name=file_name, profile=profile)
         logger.debug('%s file path to use: %s', self.__class__.__name__, self.filename)
 
         self._validate_database(last_upgrade_to_run)
@@ -109,15 +105,10 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         elif B2_ACCOUNT_INFO_ENV_VAR in os.environ:
             if profile:
                 raise ValueError(
-                    'Provide either {} env var or profile, not both'.format(
-                        B2_ACCOUNT_INFO_ENV_VAR
-                    )
+                    'Provide either {} env var or profile, not both'.format(B2_ACCOUNT_INFO_ENV_VAR)
                 )
             user_account_info_path = os.environ[B2_ACCOUNT_INFO_ENV_VAR]
-        elif (
-            os.path.exists(os.path.expanduser(B2_ACCOUNT_INFO_DEFAULT_FILE))
-            and not profile
-        ):
+        elif os.path.exists(os.path.expanduser(B2_ACCOUNT_INFO_DEFAULT_FILE)) and not profile:
             user_account_info_path = B2_ACCOUNT_INFO_DEFAULT_FILE
         elif XDG_CONFIG_HOME_ENV_VAR in os.environ:
             config_home = os.environ[XDG_CONFIG_HOME_ENV_VAR]
@@ -126,9 +117,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             if not os.path.exists(os.path.join(config_home, 'b2')):
                 os.makedirs(os.path.join(config_home, 'b2'), mode=0o755)
         elif profile:
-            user_account_info_path = B2_ACCOUNT_INFO_PROFILE_FILE.format(
-                profile=profile
-            )
+            user_account_info_path = B2_ACCOUNT_INFO_PROFILE_FILE.format(profile=profile)
         else:
             user_account_info_path = B2_ACCOUNT_INFO_DEFAULT_FILE
 
@@ -614,9 +603,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         )
 
     def get_bucket_name_or_none_from_bucket_id(self, bucket_id: str) -> Optional[str]:
-        return self._safe_query(
-            'SELECT bucket_name FROM bucket WHERE bucket_id = ?;', (bucket_id,)
-        )
+        return self._safe_query('SELECT bucket_name FROM bucket WHERE bucket_id = ?;', (bucket_id,))
 
     def _safe_query(self, query, params):
         try:

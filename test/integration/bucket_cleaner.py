@@ -56,10 +56,7 @@ class BucketCleaner:
                 file_versions = bucket.ls(latest_only=False, recursive=True)
                 for file_version_info, _ in file_versions:
                     if file_version_info.file_retention:
-                        if (
-                            file_version_info.file_retention.mode
-                            == RetentionMode.GOVERNANCE
-                        ):
+                        if file_version_info.file_retention.mode == RetentionMode.GOVERNANCE:
                             print(
                                 'Removing retention from file version:',
                                 file_version_info.id_,
@@ -70,10 +67,7 @@ class BucketCleaner:
                                 NO_RETENTION_FILE_SETTING,
                                 True,
                             )
-                        elif (
-                            file_version_info.file_retention.mode
-                            == RetentionMode.COMPLIANCE
-                        ):
+                        elif file_version_info.file_retention.mode == RetentionMode.COMPLIANCE:
                             if (
                                 file_version_info.file_retention.retain_until
                                 > current_time_millis()
@@ -84,9 +78,7 @@ class BucketCleaner:
                                 )
                                 files_leftover = True
                                 continue
-                        elif (
-                            file_version_info.file_retention.mode == RetentionMode.NONE
-                        ):
+                        elif file_version_info.file_retention.mode == RetentionMode.NONE:
                             pass
                         else:
                             raise ValueError(
@@ -104,9 +96,7 @@ class BucketCleaner:
                             LegalHold.OFF,
                         )
                     print('Removing file version:', file_version_info.id_)
-                    b2_api.delete_file_version(
-                        file_version_info.id_, file_version_info.file_name
-                    )
+                    b2_api.delete_file_version(file_version_info.id_, file_version_info.file_name)
 
                 if files_leftover:
                     print('Unable to remove bucket because some retained files remain')

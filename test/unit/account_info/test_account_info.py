@@ -216,18 +216,14 @@ class AccountInfoBase(metaclass=ABCMeta):
 
     def test_clear_bucket_upload_data(self):
         account_info = self._make_info()
-        account_info.put_bucket_upload_url(
-            'bucket-0', 'http://bucket-0', 'bucket-0_auth'
-        )
+        account_info.put_bucket_upload_url('bucket-0', 'http://bucket-0', 'bucket-0_auth')
         account_info.clear_bucket_upload_data('bucket-0')
         assert (None, None) == account_info.take_bucket_upload_url('bucket-0')
 
     def test_large_file_upload_urls(self):
         account_info = self._make_info()
         account_info.put_large_file_upload_url('file_0', 'http://file_0', 'auth_0')
-        assert ('http://file_0', 'auth_0') == account_info.take_large_file_upload_url(
-            'file_0'
-        )
+        assert ('http://file_0', 'auth_0') == account_info.take_large_file_upload_url('file_0')
         assert (None, None) == account_info.take_large_file_upload_url('file_0')
 
     def test_clear_large_file_upload_urls(self):
@@ -244,33 +240,21 @@ class AccountInfoBase(metaclass=ABCMeta):
         assert account_info.get_bucket_id_or_none_from_bucket_name('my-bucket') is None
         assert account_info.get_bucket_name_or_none_from_bucket_id('bucket-0') is None
         account_info.save_bucket(bucket)
-        assert 'bucket-0' == account_info.get_bucket_id_or_none_from_bucket_name(
-            'my-bucket'
-        )
-        assert 'my-bucket' == account_info.get_bucket_name_or_none_from_bucket_id(
-            'bucket-0'
-        )
+        assert 'bucket-0' == account_info.get_bucket_id_or_none_from_bucket_name('my-bucket')
+        assert 'my-bucket' == account_info.get_bucket_name_or_none_from_bucket_id('bucket-0')
         if self.PERSISTENCE:
-            assert (
-                'bucket-0'
-                == self._make_info().get_bucket_id_or_none_from_bucket_name('my-bucket')
-            )
-            assert (
+            assert 'bucket-0' == self._make_info().get_bucket_id_or_none_from_bucket_name(
                 'my-bucket'
-                == self._make_info().get_bucket_name_or_none_from_bucket_id('bucket-0')
+            )
+            assert 'my-bucket' == self._make_info().get_bucket_name_or_none_from_bucket_id(
+                'bucket-0'
             )
         account_info.remove_bucket_name('my-bucket')
         assert account_info.get_bucket_id_or_none_from_bucket_name('my-bucket') is None
         assert account_info.get_bucket_name_or_none_from_bucket_id('bucket-0') is None
         if self.PERSISTENCE:
-            assert (
-                self._make_info().get_bucket_id_or_none_from_bucket_name('my-bucket')
-                is None
-            )
-            assert (
-                self._make_info().get_bucket_name_or_none_from_bucket_id('bucket-0')
-                is None
-            )
+            assert self._make_info().get_bucket_id_or_none_from_bucket_name('my-bucket') is None
+            assert self._make_info().get_bucket_name_or_none_from_bucket_id('bucket-0') is None
 
     def test_refresh_bucket(self):
         account_info = self._make_info()
@@ -281,13 +265,8 @@ class AccountInfoBase(metaclass=ABCMeta):
         assert 'bucket-0' == account_info.get_bucket_id_or_none_from_bucket_name('a')
         assert 'a' == account_info.get_bucket_name_or_none_from_bucket_id('bucket-0')
         if self.PERSISTENCE:
-            assert (
-                'bucket-0'
-                == self._make_info().get_bucket_id_or_none_from_bucket_name('a')
-            )
-            assert 'a' == self._make_info().get_bucket_name_or_none_from_bucket_id(
-                'bucket-0'
-            )
+            assert 'bucket-0' == self._make_info().get_bucket_id_or_none_from_bucket_name('a')
+            assert 'a' == self._make_info().get_bucket_name_or_none_from_bucket_id('bucket-0')
 
     @pytest.mark.apiver(to_ver=1)
     def test_account_info_up_to_v1(self):
@@ -468,9 +447,7 @@ class TestSqliteAccountInfo(AccountInfoBase):
                 }
             )
             if apiver in ['v0', 'v1']:
-                expected_path = os.path.abspath(
-                    os.path.join(self.test_home, '.b2_account_info')
-                )
+                expected_path = os.path.abspath(os.path.join(self.test_home, '.b2_account_info'))
             else:
                 assert os.path.exists(os.path.join(d, 'b2'))
                 expected_path = os.path.abspath(os.path.join(d, 'b2', 'account_info'))

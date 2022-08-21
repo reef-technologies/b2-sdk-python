@@ -62,9 +62,7 @@ class TestAuthorizeAccount:
             'http://api.backblazeb2.xyz:8180', '123', '456'
         )
         assert self.b2_session.cache.clear.called is False
-        self.b2_session.account_info.set_auth_data.assert_called_once_with(
-            **authorize_call_kwargs
-        )
+        self.b2_session.account_info.set_auth_data.assert_called_once_with(**authorize_call_kwargs)
 
     def test_clear_cache(self):
         self.b2_session.account_info.is_same_account.return_value = False

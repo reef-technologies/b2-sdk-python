@@ -40,9 +40,7 @@ class AbstractPath(ABC):
 class LocalPath(AbstractPath):
     __slots__ = ['absolute_path', 'relative_path', 'mod_time', 'size']
 
-    def __init__(
-        self, absolute_path: str, relative_path: str, mod_time: int, size: int
-    ):
+    def __init__(self, absolute_path: str, relative_path: str, mod_time: int, size: int):
         self.absolute_path = absolute_path
         super().__init__(relative_path, mod_time, size)
 

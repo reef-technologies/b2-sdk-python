@@ -46,9 +46,7 @@ class IntegrationTestBase:
     @classmethod
     def teardown_class(cls):
         BucketCleaner(
-            cls.dont_cleanup_old_buckets,
-            *cls.b2_auth_data,
-            current_run_prefix=cls.this_run_bucket_name_prefix
+            cls.dont_cleanup_old_buckets, *cls.b2_auth_data, current_run_prefix=cls.this_run_bucket_name_prefix
         ).cleanup_buckets()
 
     @pytest.fixture(autouse=True)

@@ -269,9 +269,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             self._ensure_update(1, ['ALTER TABLE account ADD COLUMN allowed TEXT;'])
         # Add the 'account_id_or_app_key_id' column if it hasn't been yet
         if 2 <= last_upgrade_to_run:
-            self._ensure_update(
-                2, ['ALTER TABLE account ADD COLUMN account_id_or_app_key_id TEXT;']
-            )
+            self._ensure_update(2, ['ALTER TABLE account ADD COLUMN account_id_or_app_key_id TEXT;'])
         # Add the 's3_api_url' column if it hasn't been yet
         if 3 <= last_upgrade_to_run:
             self._ensure_update(3, ['ALTER TABLE account ADD COLUMN s3_api_url TEXT;'])
@@ -598,9 +596,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             conn.execute('DELETE FROM bucket WHERE bucket_name = ?;', (bucket_name,))
 
     def get_bucket_id_or_none_from_bucket_name(self, bucket_name):
-        return self._safe_query(
-            'SELECT bucket_id FROM bucket WHERE bucket_name = ?;', (bucket_name,)
-        )
+        return self._safe_query('SELECT bucket_id FROM bucket WHERE bucket_name = ?;', (bucket_name,))
 
     def get_bucket_name_or_none_from_bucket_id(self, bucket_id: str) -> Optional[str]:
         return self._safe_query('SELECT bucket_name FROM bucket WHERE bucket_id = ?;', (bucket_id,))

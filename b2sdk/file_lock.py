@@ -124,9 +124,7 @@ class FileRetentionSetting:
         return cls.from_file_retention_value_dict(file_retention_dict['value'])
 
     @classmethod
-    def from_file_retention_value_dict(
-        cls, file_retention_value_dict: dict
-    ) -> 'FileRetentionSetting':
+    def from_file_retention_value_dict(cls, file_retention_value_dict: dict) -> 'FileRetentionSetting':
 
         mode = file_retention_value_dict['mode']
         if mode is None:
@@ -172,9 +170,7 @@ class FileRetentionSetting:
         if self.mode is RetentionMode.UNKNOWN:
             raise ValueError('cannot use an unknown file retention setting in requests')
 
-        headers['X-Bz-File-Retention-Mode'] = str(
-            self.mode.value
-        )  # mode = NONE is not supported by the server at the
+        headers['X-Bz-File-Retention-Mode'] = str(self.mode.value)  # mode = NONE is not supported by the server at the
         # moment, but it should be
         headers['X-Bz-File-Retention-Retain-Until-Timestamp'] = str(self.retain_until)
 

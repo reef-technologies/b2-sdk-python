@@ -146,14 +146,10 @@ class TestSynchronizer:
             ),
         ],
     )
-    def test_dir_not_there_b2_keepdays(
-        self, synchronizer_factory, src_type, expected
-    ):  # reproduces issue 220
+    def test_dir_not_there_b2_keepdays(self, synchronizer_factory, src_type, expected):  # reproduces issue 220
         src = self.folder_factory(src_type, ('directory/a.txt', [100]))
         dst = self.b2_folder_factory()
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
-        )
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1)
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
 
     @pytest.mark.parametrize(
@@ -166,9 +162,7 @@ class TestSynchronizer:
             ),
         ],
     )
-    def test_dir_not_there_b2_delete(
-        self, synchronizer_factory, src_type, expected
-    ):  # reproduces issue 220
+    def test_dir_not_there_b2_delete(self, synchronizer_factory, src_type, expected):  # reproduces issue 220
         src = self.folder_factory(src_type, ('directory/a.txt', [100]))
         dst = self.b2_folder_factory()
         synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.DELETE)
@@ -242,9 +236,7 @@ class TestSynchronizer:
         ],
     )
     def test_delete_hide_b2_multiple_versions(self, synchronizer_factory, src_type):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
-        )
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1)
         src = self.folder_factory(src_type)
         dst = self.b2_folder_factory(('a.txt', [TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY]))
         expected = [
@@ -261,9 +253,7 @@ class TestSynchronizer:
         ],
     )
     def test_delete_hide_b2_multiple_versions_old(self, synchronizer_factory, src_type):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2
-        )
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2)
         src = self.folder_factory(src_type)
         dst = self.b2_folder_factory(('a.txt', [TODAY - 1 * DAY, TODAY - 3 * DAY, TODAY - 5 * DAY]))
         expected = [
@@ -292,9 +282,7 @@ class TestSynchronizer:
         ],
     )
     def test_already_hidden_multiple_versions_keep_days(self, synchronizer_factory, src_type):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
-        )
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1)
         src = self.folder_factory(src_type)
         dst = self.b2_folder_factory(('a.txt', [-TODAY, TODAY - 2 * DAY, TODAY - 4 * DAY]))
         expected = ['b2_delete(folder/a.txt, id_a_8294400000, (old version))']
@@ -307,16 +295,10 @@ class TestSynchronizer:
             'b2',
         ],
     )
-    def test_already_hidden_multiple_versions_keep_days_one_old(
-        self, synchronizer_factory, src_type
-    ):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=5
-        )
+    def test_already_hidden_multiple_versions_keep_days_one_old(self, synchronizer_factory, src_type):
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=5)
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [-(TODAY - 2 * DAY), TODAY - 4 * DAY, TODAY - 6 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [-(TODAY - 2 * DAY), TODAY - 4 * DAY, TODAY - 6 * DAY]))
         self.assert_folder_sync_actions(synchronizer, src, dst, [])
 
     @pytest.mark.parametrize(
@@ -326,16 +308,10 @@ class TestSynchronizer:
             'b2',
         ],
     )
-    def test_already_hidden_multiple_versions_keep_days_two_old(
-        self, synchronizer_factory, src_type
-    ):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2
-        )
+    def test_already_hidden_multiple_versions_keep_days_two_old(self, synchronizer_factory, src_type):
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2)
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [-(TODAY - 2 * DAY), TODAY - 4 * DAY, TODAY - 6 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [-(TODAY - 2 * DAY), TODAY - 4 * DAY, TODAY - 6 * DAY]))
         expected = ['b2_delete(folder/a.txt, id_a_8121600000, (old version))']
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
 
@@ -346,16 +322,10 @@ class TestSynchronizer:
             'b2',
         ],
     )
-    def test_already_hidden_multiple_versions_keep_days_delete_hide_marker(
-        self, synchronizer_factory, src_type
-    ):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
-        )
+    def test_already_hidden_multiple_versions_keep_days_delete_hide_marker(self, synchronizer_factory, src_type):
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1)
         src = self.folder_factory(src_type)
-        dst = self.b2_folder_factory(
-            ('a.txt', [-(TODAY - 2 * DAY), TODAY - 4 * DAY, TODAY - 6 * DAY])
-        )
+        dst = self.b2_folder_factory(('a.txt', [-(TODAY - 2 * DAY), TODAY - 4 * DAY, TODAY - 6 * DAY]))
         expected = [
             'b2_delete(folder/a.txt, id_a_8467200000, (hide marker))',
             'b2_delete(folder/a.txt, id_a_8294400000, (old version))',
@@ -370,12 +340,8 @@ class TestSynchronizer:
             'b2',
         ],
     )
-    def test_already_hidden_multiple_versions_keep_days_old_delete(
-        self, synchronizer_factory, src_type
-    ):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
-        )
+    def test_already_hidden_multiple_versions_keep_days_old_delete(self, synchronizer_factory, src_type):
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1)
         src = self.folder_factory(src_type)
         dst = self.b2_folder_factory(('a.txt', [-TODAY + 2 * DAY, TODAY - 4 * DAY]))
         expected = [
@@ -437,9 +403,7 @@ class TestSynchronizer:
         ],
     )
     def test_same_clean_old_version(self, synchronizer_factory, src_type):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
-        )
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1)
         src = self.folder_factory(src_type, ('a.txt', [TODAY - 3 * DAY]))
         dst = self.b2_folder_factory(('a.txt', [TODAY - 3 * DAY, TODAY - 4 * DAY]))
         expected = ['b2_delete(folder/a.txt, id_a_8294400000, (old version))']
@@ -453,9 +417,7 @@ class TestSynchronizer:
         ],
     )
     def test_keep_days_no_change_with_old_file(self, synchronizer_factory, src_type):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1
-        )
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=1)
         src = self.folder_factory(src_type, ('a.txt', [TODAY - 3 * DAY]))
         dst = self.b2_folder_factory(('a.txt', [TODAY - 3 * DAY]))
         self.assert_folder_sync_actions(synchronizer, src, dst, [])
@@ -509,9 +471,7 @@ class TestSynchronizer:
         ],
     )
     def test_newer_clean_old_versions(self, synchronizer_factory, src_type, expected):
-        synchronizer = synchronizer_factory(
-            keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2
-        )
+        synchronizer = synchronizer_factory(keep_days_or_delete=KeepOrDeleteMode.KEEP_BEFORE_DELETE, keep_days=2)
         src = self.folder_factory(src_type, ('a.txt', [TODAY]))
         dst = self.b2_folder_factory(('a.txt', [TODAY - 1 * DAY, TODAY - 3 * DAY, TODAY - 5 * DAY]))
         self.assert_folder_sync_actions(synchronizer, src, dst, expected)
@@ -705,9 +665,7 @@ class TestSynchronizer:
             ),
         ],
     )
-    def test_compare_size_not_equal_delete(
-        self, synchronizer_factory, src_type, dst_type, expected
-    ):
+    def test_compare_size_not_equal_delete(self, synchronizer_factory, src_type, dst_type, expected):
         synchronizer = synchronizer_factory(
             compare_version_mode=CompareVersionMode.SIZE,
             keep_days_or_delete=KeepOrDeleteMode.DELETE,
@@ -895,18 +853,12 @@ class TestSynchronizer:
 
 class TstEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider):
     def __init__(self, source_encryption_setting, destination_encryption_setting):
-        self.get_setting_for_upload = mock.MagicMock(
-            side_effect=lambda *a, **kw: destination_encryption_setting
-        )
-        self.get_source_setting_for_copy = mock.MagicMock(
-            side_effect=lambda *a, **kw: source_encryption_setting
-        )
+        self.get_setting_for_upload = mock.MagicMock(side_effect=lambda *a, **kw: destination_encryption_setting)
+        self.get_source_setting_for_copy = mock.MagicMock(side_effect=lambda *a, **kw: source_encryption_setting)
         self.get_destination_setting_for_copy = mock.MagicMock(
             side_effect=lambda *a, **kw: destination_encryption_setting
         )
-        self.get_setting_for_download = mock.MagicMock(
-            side_effect=lambda *a, **kw: source_encryption_setting
-        )
+        self.get_setting_for_download = mock.MagicMock(side_effect=lambda *a, **kw: source_encryption_setting)
 
     def get_setting_for_upload(self, *a, **kw):
         """overwritten in __init__"""

@@ -72,9 +72,7 @@ def make_paths_from_files(
 def _translate_b2_file_to_path(file: B2File) -> v2.AbstractSyncPath:
     versions = [file_version.file_version_info for file_version in file.versions]
 
-    return v2.B2SyncPath(
-        relative_path=file.name, selected_version=versions[0], all_versions=versions
-    )
+    return v2.B2SyncPath(relative_path=file.name, selected_version=versions[0], all_versions=versions)
 
 
 def _translate_local_file_to_path(file: File) -> v2.AbstractSyncPath:

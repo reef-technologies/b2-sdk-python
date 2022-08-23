@@ -89,9 +89,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
             range_=range_,
             encryption=encryption,
         ) as response:
-            download_version = self.services.api.download_version_factory.from_response_headers(
-                response.headers
-            )
+            download_version = self.services.api.download_version_factory.from_response_headers(response.headers)
             if range_ is not None:
                 # 2021-05-20: unfortunately for a read of a complete object server does not return the 'Content-Range' header
                 if (range_[1] - range_[0] + 1) != download_version.content_length:

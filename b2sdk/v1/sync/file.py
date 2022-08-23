@@ -106,9 +106,7 @@ class FileVersion:
 
 
 class B2FileVersion(FileVersion):
-    __slots__ = [
-        'file_version_info'
-    ]  # in a typical use case there is a lot of these object in memory, hence __slots__
+    __slots__ = ['file_version_info']  # in a typical use case there is a lot of these object in memory, hence __slots__
 
     # and properties
 

@@ -314,9 +314,7 @@ class DownAndDeletePolicy(DownPolicy):
     def _get_hide_delete_actions(self):
         for action in super(DownAndDeletePolicy, self)._get_hide_delete_actions():
             yield action
-        if self._dest_path is not None and (
-            self._source_path is None or not self._source_path.is_visible()
-        ):
+        if self._dest_path is not None and (self._source_path is None or not self._source_path.is_visible()):
             yield LocalDeleteAction(
                 self._dest_path.relative_path,
                 self._dest_folder.make_full_path(self._dest_path.relative_path),

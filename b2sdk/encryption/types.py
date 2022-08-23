@@ -39,8 +39,6 @@ class EncryptionMode(Enum):
         return self in BUCKET_DEFAULT_ENCRYPTION_MODES
 
 
-ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM = frozenset(
-    (EncryptionMode.SSE_B2, EncryptionMode.SSE_C)
-)  # yapf: off
+ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM = frozenset((EncryptionMode.SSE_B2, EncryptionMode.SSE_C))  # yapf: off
 ENCRYPTION_MODES_WITH_MANDATORY_KEY = frozenset((EncryptionMode.SSE_C,))  # yapf: off
 BUCKET_DEFAULT_ENCRYPTION_MODES = frozenset((EncryptionMode.NONE, EncryptionMode.SSE_B2))

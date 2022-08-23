@@ -164,15 +164,11 @@ class CopyManager(TransferManager, ThreadPoolMixin):
 
             if content_type is None:
                 if file_info is not None:
-                    raise CopyArgumentsMismatch(
-                        'File info can be set only when content type is set'
-                    )
+                    raise CopyArgumentsMismatch('File info can be set only when content type is set')
                 metadata_directive = MetadataDirectiveMode.COPY
             else:
                 if file_info is None:
-                    raise CopyArgumentsMismatch(
-                        'File info can be not set only when content type is not set'
-                    )
+                    raise CopyArgumentsMismatch('File info can be not set only when content type is not set')
                 metadata_directive = MetadataDirectiveMode.REPLACE
             (metadata_directive, file_info, content_type,) = self.establish_sse_c_file_metadata(
                 metadata_directive=metadata_directive,
@@ -255,9 +251,7 @@ class CopyManager(TransferManager, ThreadPoolMixin):
         destination_file_info = source_file_info.copy()
         destination_file_info.pop(SSE_C_KEY_ID_FILE_INFO_KEY_NAME, None)
         if destination_server_side_encryption:
-            destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(
-                destination_file_info
-            )
+            destination_file_info = destination_server_side_encryption.add_key_id_to_file_info(destination_file_info)
         destination_content_type = source_content_type
 
         return (

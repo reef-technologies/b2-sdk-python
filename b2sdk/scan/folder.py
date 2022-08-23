@@ -229,9 +229,7 @@ class LocalFolder(AbstractFolder):
                 )
 
             local_path = os.path.join(local_dir, name)
-            relative_file_path = join_b2_path(
-                relative_dir_path, name
-            )  # file path relative to the scan point
+            relative_file_path = join_b2_path(relative_dir_path, name)  # file path relative to the scan point
 
             # Skip broken symlinks or other inaccessible files
             if not is_file_readable(local_path, reporter):
@@ -399,14 +397,10 @@ class B2Folder(AbstractFolder):
             )
         # Do not allow absolute paths in file names
         if ABSOLUTE_PATH_MATCHER.search(file_name):
-            raise UnsupportedFilename(
-                "scan does not support file names with absolute paths", file_name
-            )
+            raise UnsupportedFilename("scan does not support file names with absolute paths", file_name)
         # On Windows, do not allow drive letters in file names
         if platform.system() == "Windows" and DRIVE_MATCHER.search(file_name):
-            raise UnsupportedFilename(
-                "scan does not support file names with drive letters", file_name
-            )
+            raise UnsupportedFilename("scan does not support file names with drive letters", file_name)
 
     def folder_type(self):
         """

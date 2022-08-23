@@ -172,13 +172,9 @@ class ClockSkew(B2HttpCallbackPostRequestException):
 
     def __str__(self):
         if self.clock_skew_seconds < 0:
-            return 'ClockSkew: local clock is %d seconds behind server' % (
-                -self.clock_skew_seconds,
-            )
+            return 'ClockSkew: local clock is %d seconds behind server' % (-self.clock_skew_seconds,)
         else:
-            return 'ClockSkew; local clock is %d seconds ahead of server' % (
-                self.clock_skew_seconds,
-            )
+            return 'ClockSkew; local clock is %d seconds ahead of server' % (self.clock_skew_seconds,)
 
 
 class Conflict(B2SimpleError):
@@ -548,9 +544,7 @@ def interpret_b2_error(
         # get_file_info returns 404 and "not_found"
         # download_file_by_name/download_file_by_id return 404 and "not_found"
         # but don't have post_params
-        return FileNotPresent(
-            file_id_or_name=post_params.get('fileId') or post_params.get('fileName')
-        )
+        return FileNotPresent(file_id_or_name=post_params.get('fileId') or post_params.get('fileName'))
     elif status == 404:
         # often times backblaze will return cryptic error messages on invalid URLs.
         # We should ideally only reach that case on programming error or outdated

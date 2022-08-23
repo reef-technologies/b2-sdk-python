@@ -148,9 +148,7 @@ class EmergePlanner:
 
     def _get_emerge_plan(self, write_intent_iterator, plan_class):
         return plan_class(
-            self._get_emerge_parts(
-                self._select_intent_fragments(self._validatation_iterator(write_intent_iterator))
-            )
+            self._get_emerge_parts(self._select_intent_fragments(self._validatation_iterator(write_intent_iterator)))
         )
 
     def _get_emerge_parts(self, intent_fragments_iterator):
@@ -207,9 +205,7 @@ class EmergePlanner:
                     if missing_length > 0:
                         # we "borrow" a fragment of current intent to upload buffer
                         # to fill it to minimum part size
-                        upload_buffer.append(
-                            current_intent, upload_buffer.end_offset + missing_length
-                        )
+                        upload_buffer.append(current_intent, upload_buffer.end_offset + missing_length)
                     # completely flush the upload buffer
                     for upload_buffer_part in self._buff_split(upload_buffer):
                         yield self._get_upload_part(upload_buffer_part)
@@ -291,9 +287,7 @@ class EmergePlanner:
                 part_count += 1
             base_part_size = int(fragment_length / part_count)
             size_remainder = fragment_length % part_count
-            part_sizes = [
-                base_part_size + (1 if i < size_remainder else 0) for i in range(part_count)
-            ]
+            part_sizes = [base_part_size + (1 if i < size_remainder else 0) for i in range(part_count)]
 
         copy_source = copy_intent.outbound_source
         relative_offset = start_offset - copy_intent.destination_offset
@@ -334,9 +328,7 @@ class EmergePlanner:
             if candidate_size > self.recommended_upload_part_size:
                 right_fragment_size = candidate_size - self.recommended_upload_part_size
                 left_buff.append(intent, fragment_end - right_fragment_size)
-                return left_buff, upload_buffer.get_slice(
-                    start_idx=idx, start_offset=left_buff.end_offset
-                )
+                return left_buff, upload_buffer.get_slice(start_idx=idx, start_offset=left_buff.end_offset)
             else:
                 left_buff.append(intent, fragment_end)
                 if candidate_size == self.recommended_upload_part_size:
@@ -372,9 +364,7 @@ class EmergePlanner:
             else:
                 incoming_offset = incoming_intent.destination_offset
 
-            upload_intents = list(
-                upload_intents_state.state_update(last_sent_offset, incoming_offset)
-            )
+            upload_intents = list(upload_intents_state.state_update(last_sent_offset, incoming_offset))
             copy_intents = list(copy_intents_state.state_update(last_sent_offset, incoming_offset))
 
             intent_fragments = self._merge_intent_fragments(
@@ -542,9 +532,7 @@ class IntentsState:
                 self._set_current_intent(self._next_intent, last_sent_offset)
                 self._set_next_intent(None)
             else:
-                remaining_len = self.protected_intent_length - (
-                    last_sent_offset - self._current_intent_start
-                )
+                remaining_len = self.protected_intent_length - (last_sent_offset - self._current_intent_start)
                 if remaining_len > 0:
                     last_sent_offset += remaining_len
                     if not self._can_be_protected(last_sent_offset, self._next_intent_end):

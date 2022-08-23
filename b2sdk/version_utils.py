@@ -25,13 +25,13 @@ class AbstractVersionDecorator(metaclass=ABCMeta):
         Changed_version, cutoff_version and current_version are version strings.
         """
         if current_version is None:  # this is for tests only
-            current_version = VERSION  # TODO autodetect by going up the qualname tree and trying getattr(part, '__version__')
+            current_version = (
+                VERSION  # TODO autodetect by going up the qualname tree and trying getattr(part, '__version__')
+            )
         self.current_version = parse_version(current_version)  #: current version
         self.reason = reason
 
-        self.changed_version = parse_version(
-            changed_version
-        )  #: version in which the decorator was added
+        self.changed_version = parse_version(changed_version)  #: version in which the decorator was added
         self.cutoff_version = self._parse_if_not_none(
             cutoff_version
         )  #: version in which the decorator (and something?) shall be removed

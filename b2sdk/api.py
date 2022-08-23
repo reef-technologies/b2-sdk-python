@@ -83,9 +83,7 @@ class Services:
         self.api = api
         self.session = api.session
         self.large_file = LargeFileServices(self)
-        self.upload_manager = self.UPLOAD_MANAGER_CLASS(
-            services=self, max_workers=max_upload_workers
-        )
+        self.upload_manager = self.UPLOAD_MANAGER_CLASS(services=self, max_workers=max_upload_workers)
         self.copy_manager = self.COPY_MANAGER_CLASS(services=self, max_workers=max_copy_workers)
         self.download_manager = self.DOWNLOAD_MANAGER_CLASS(
             services=self,
@@ -152,9 +150,7 @@ class B2Api(metaclass=B2TraceMeta):
         :param save_to_buffer_size: buffer size to use when writing files using DownloadedFile.save_to
         :param check_download_hash: whether to check hash of downloaded files. Can be disabled for files with internal checksums, for example, or to forcefully retrieve objects with corrupted payload or hash value
         """
-        self.session = self.SESSION_CLASS(
-            account_info=account_info, cache=cache, api_config=api_config
-        )
+        self.session = self.SESSION_CLASS(account_info=account_info, cache=cache, api_config=api_config)
         self.api_config = api_config
         self.file_version_factory = self.FILE_VERSION_FACTORY_CLASS(self)
         self.download_version_factory = self.DOWNLOAD_VERSION_FACTORY_CLASS(self)
@@ -400,9 +396,7 @@ class B2Api(metaclass=B2TraceMeta):
 
         account_id = self.account_info.get_account_id()
 
-        response = self.session.list_buckets(
-            account_id, bucket_name=bucket_name, bucket_id=bucket_id
-        )
+        response = self.session.list_buckets(account_id, bucket_name=bucket_name, bucket_id=bucket_id)
         buckets = self.BUCKET_FACTORY_CLASS.from_api_response(self, response)
 
         if bucket_name or bucket_id:
@@ -425,9 +419,7 @@ class B2Api(metaclass=B2TraceMeta):
         :param int batch_size: the number of parts to fetch at a time from the server
         :rtype: generator
         """
-        return self.services.large_file.list_parts(
-            file_id, start_part_number=start_part_number, batch_size=batch_size
-        )
+        return self.services.large_file.list_parts(file_id, start_part_number=start_part_number, batch_size=batch_size)
 
     # delete/cancel
     def cancel_large_file(self, file_id: str) -> FileIdAndName:
@@ -565,9 +557,7 @@ class B2Api(metaclass=B2TraceMeta):
 
         :param str file_id: the id of the file whose info will be retrieved.
         """
-        return self.file_version_factory.from_api_response(
-            self.session.get_file_info_by_id(file_id)
-        )
+        return self.file_version_factory.from_api_response(self.session.get_file_info_by_id(file_id))
 
     def check_bucket_name_restrictions(self, bucket_name: str):
         """

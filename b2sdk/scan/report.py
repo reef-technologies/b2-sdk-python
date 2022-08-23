@@ -185,9 +185,7 @@ class ProgressReport:
         :param path: file path
         :type path: str
         """
-        self.warnings.append(
-            'WARNING: %s could not be accessed (no permissions to read?)' % (path,)
-        )
+        self.warnings.append('WARNING: %s could not be accessed (no permissions to read?)' % (path,))
 
     def symlink_skipped(self, path):
         pass

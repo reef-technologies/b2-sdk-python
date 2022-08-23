@@ -74,15 +74,9 @@ class ScanPoliciesManager(v2.ScanPoliciesManager):
         self._exclude_file_set = v2.RegexSet(exclude_file_regexes)
         self._include_file_set = v2.RegexSet(include_file_regexes)
         self.exclude_all_symlinks = exclude_all_symlinks
-        self._include_mod_time_range = v2.IntegerRange(
-            exclude_modified_before, exclude_modified_after
-        )
-        with v2_exception.check_invalid_argument(
-            'exclude_uploaded_before,exclude_uploaded_after', '', ValueError
-        ):
-            self._include_upload_time_range = v2.IntegerRange(
-                exclude_uploaded_before, exclude_uploaded_after
-            )
+        self._include_mod_time_range = v2.IntegerRange(exclude_modified_before, exclude_modified_after)
+        with v2_exception.check_invalid_argument('exclude_uploaded_before,exclude_uploaded_after', '', ValueError):
+            self._include_upload_time_range = v2.IntegerRange(exclude_uploaded_before, exclude_uploaded_after)
 
     def should_exclude_file(self, file_path):
         """

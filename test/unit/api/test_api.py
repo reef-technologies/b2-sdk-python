@@ -274,9 +274,7 @@ class TestApi:
         created_file = bucket.upload_bytes(b'hello world', 'file')
         assert created_file.file_retention == NO_RETENTION_FILE_SETTING
         new_retention = FileRetentionSetting(RetentionMode.COMPLIANCE, 100)
-        read_file_retention = self.api.update_file_retention(
-            created_file.id_, created_file.file_name, new_retention
-        )
+        read_file_retention = self.api.update_file_retention(created_file.id_, created_file.file_name, new_retention)
         assert new_retention == read_file_retention
         if apiver_deps.V <= 1:
             file_version = bucket.get_file_info_by_id(created_file.id_)
@@ -290,9 +288,7 @@ class TestApi:
         created_file = bucket.upload_bytes(b'hello world', 'file')
         assert created_file.legal_hold == LegalHold.UNSET
         new_legal_hold = LegalHold.ON
-        read_legal_hold = self.api.update_file_legal_hold(
-            created_file.id_, created_file.file_name, new_legal_hold
-        )
+        read_legal_hold = self.api.update_file_legal_hold(created_file.id_, created_file.file_name, new_legal_hold)
         assert new_legal_hold == read_legal_hold
         if apiver_deps.V <= 1:
             file_version = bucket.get_file_info_by_id(created_file.id_)
@@ -304,9 +300,7 @@ class TestApi:
     def test_cancel_large_file_v2(self):
         self._authorize_account()
         bucket = self.api.create_bucket('bucket1', 'allPrivate')
-        unfinished_large_file = self.api.services.large_file.start_large_file(
-            bucket.id_, 'a_large_file'
-        )
+        unfinished_large_file = self.api.services.large_file.start_large_file(bucket.id_, 'a_large_file')
         cancel_result = self.api.cancel_large_file(unfinished_large_file.file_id)
         assert cancel_result == FileIdAndName('9999', 'a_large_file')
 
@@ -314,9 +308,7 @@ class TestApi:
     def test_cancel_large_file_v1(self):
         self._authorize_account()
         bucket = self.api.create_bucket('bucket1', 'allPrivate')
-        unfinished_large_file = self.api.services.large_file.start_large_file(
-            bucket.id_, 'a_large_file'
-        )
+        unfinished_large_file = self.api.services.large_file.start_large_file(bucket.id_, 'a_large_file')
         cancel_result = self.api.cancel_large_file(unfinished_large_file.file_id)
         assert cancel_result == VFileVersion(
             id_='9999',

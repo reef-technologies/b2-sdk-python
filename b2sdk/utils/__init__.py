@@ -107,9 +107,7 @@ def hex_sha1_of_stream(input_stream, content_length):
         to_read = min(remaining, block_size)
         data = input_stream.read(to_read)
         if len(data) != to_read:
-            raise ValueError(
-                'content_length(%s) is more than the size of the file' % content_length
-            )
+            raise ValueError('content_length(%s) is more than the size of the file' % content_length)
         digest.update(data)
         remaining -= to_read
     return digest.hexdigest()

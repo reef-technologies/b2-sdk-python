@@ -320,9 +320,7 @@ class B2Http:
         # Do the HTTP GET.
         def do_get():
             self._run_pre_request_hooks('GET', url, request_headers)
-            response = self.session.get(
-                url, headers=request_headers, stream=True, timeout=self.TIMEOUT
-            )
+            response = self.session.get(url, headers=request_headers, stream=True, timeout=self.TIMEOUT)
             self._run_post_request_hooks('GET', url, request_headers, response)
             return response
 
@@ -363,9 +361,7 @@ class B2Http:
         # Do the HTTP HEAD.
         def do_head():
             self._run_pre_request_hooks('HEAD', url, request_headers)
-            response = self.session.head(
-                url, headers=request_headers, stream=True, timeout=self.TIMEOUT
-            )
+            response = self.session.head(url, headers=request_headers, stream=True, timeout=self.TIMEOUT)
             self._run_post_request_hooks('HEAD', url, request_headers, response)
             return response
 
@@ -524,27 +520,21 @@ def test_http():
     # Error from B2
     print('TEST: error object from B2')
     try:
-        b2_http.post_json_return_json(
-            'https://api.backblazeb2.com/b2api/v1/b2_get_file_info', {}, {}
-        )
+        b2_http.post_json_return_json('https://api.backblazeb2.com/b2api/v1/b2_get_file_info', {}, {})
         assert False, 'should have failed with bad json'
     except BadJson as e:
         assert str(e) == 'Bad request: required field fileId is missing'
 
     # Successful get
     print('TEST: get')
-    with b2_http.get_content(
-        'https://api.backblazeb2.com/test/echo_zeros?length=10', {}
-    ) as response:
+    with b2_http.get_content('https://api.backblazeb2.com/test/echo_zeros?length=10', {}) as response:
         assert response.status_code == 200
         response_data = b''.join(response.iter_content())
         assert response_data == b'\x00' * 10
 
     # Successful post
     print('TEST: post')
-    response_dict = b2_http.post_json_return_json(
-        'https://api.backblazeb2.com/api/build_version', {}, {}
-    )
+    response_dict = b2_http.post_json_return_json('https://api.backblazeb2.com/api/build_version', {}, {})
     assert 'timestamp' in response_dict
 
     # Unknown host

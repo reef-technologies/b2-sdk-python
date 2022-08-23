@@ -191,9 +191,7 @@ class B2Session:
     def delete_file_version(self, file_id, file_name):
         return self._wrap_default_token(self.raw_api.delete_file_version, file_id, file_name)
 
-    def download_file_from_url(
-        self, url, range_=None, encryption: Optional[EncryptionSetting] = None
-    ):
+    def download_file_from_url(self, url, range_=None, encryption: Optional[EncryptionSetting] = None):
         return self._wrap_token(
             self.raw_api.download_file_from_url,
             TokenType.API_TOKEN_ONLY,
@@ -277,9 +275,7 @@ class B2Session:
         )
 
     def list_parts(self, file_id, start_part_number, max_part_count):
-        return self._wrap_default_token(
-            self.raw_api.list_parts, file_id, start_part_number, max_part_count
-        )
+        return self._wrap_default_token(self.raw_api.list_parts, file_id, start_part_number, max_part_count)
 
     def list_unfinished_large_files(
         self,
@@ -396,9 +392,7 @@ class B2Session:
         return self.raw_api.get_download_url_by_id(self.account_info.get_download_url(), file_id)
 
     def get_download_url_by_name(self, bucket_name, file_name):
-        return self.raw_api.get_download_url_by_name(
-            self.account_info.get_download_url(), bucket_name, file_name
-        )
+        return self.raw_api.get_download_url_by_name(self.account_info.get_download_url(), bucket_name, file_name)
 
     def copy_file(
         self,

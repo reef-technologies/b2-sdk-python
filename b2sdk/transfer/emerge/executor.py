@@ -258,12 +258,9 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
                 prefix=file_name,
             )
             if unfinished_file.file_info != file_info:
-                raise ValueError(
-                    'Cannot manually resume unfinished large file with different file_info'
-                )
+                raise ValueError('Cannot manually resume unfinished large file with different file_info')
             finished_parts = {
-                part.part_number: part
-                for part in self.services.large_file.list_parts(continue_large_file_id)
+                part.part_number: part for part in self.services.large_file.list_parts(continue_large_file_id)
             }
         elif 'plan_id' in file_info:
             assert emerge_parts_dict is not None
@@ -303,9 +300,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         best_match_file = None
         best_match_parts = {}
         best_match_parts_len = 0
-        for file_ in self.services.large_file.list_unfinished_large_files(
-            bucket_id, prefix=file_name
-        ):
+        for file_ in self.services.large_file.list_unfinished_large_files(bucket_id, prefix=file_name):
             if file_.file_info != file_info:
                 continue
             # FIXME: encryption is None ???
@@ -363,9 +358,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         This is only possible if the application key being used allows ``listFiles`` access.
         """
         file_retention = file_retention or NO_RETENTION_FILE_SETTING
-        for file_ in self.services.large_file.list_unfinished_large_files(
-            bucket_id, prefix=file_name
-        ):
+        for file_ in self.services.large_file.list_unfinished_large_files(bucket_id, prefix=file_name):
             if file_.file_name != file_name:
                 continue
             if file_.file_info != file_info:

@@ -60,9 +60,7 @@ class TestDatabseMigrations:
         new_account_info = self.sqlite_account_info_factory(file_name=old_account_info.filename)
 
         with new_account_info._get_connection() as conn:
-            sizes = conn.execute(
-                "SELECT recommended_part_size, absolute_minimum_part_size from account"
-            ).fetchone()
+            sizes = conn.execute("SELECT recommended_part_size, absolute_minimum_part_size from account").fetchone()
         assert (100, 5000000) == sizes
 
 
@@ -88,18 +86,14 @@ class TestSqliteAccountProfileFileLocation:
     def test_profile_and_xdg_config_env_var(self, monkeypatch):
         monkeypatch.setenv(XDG_CONFIG_HOME_ENV_VAR, os.path.join('~', 'custom'))
         account_info_path = SqliteAccountInfo._get_user_account_info_path(profile='secondary')
-        assert account_info_path == os.path.expanduser(
-            os.path.join('~', 'custom', 'b2', 'db-secondary.sqlite')
-        )
+        assert account_info_path == os.path.expanduser(os.path.join('~', 'custom', 'b2', 'db-secondary.sqlite'))
 
     def test_profile(self):
         account_info_path = SqliteAccountInfo._get_user_account_info_path(profile='foo')
         assert account_info_path == os.path.expanduser(os.path.join('~', '.b2db-foo.sqlite'))
 
     def test_file_name(self):
-        account_info_path = SqliteAccountInfo._get_user_account_info_path(
-            file_name=os.path.join('~', 'foo')
-        )
+        account_info_path = SqliteAccountInfo._get_user_account_info_path(file_name=os.path.join('~', 'foo'))
         assert account_info_path == os.path.expanduser(os.path.join('~', 'foo'))
 
     def test_env_var(self, monkeypatch):
@@ -121,9 +115,7 @@ class TestSqliteAccountProfileFileLocation:
     def test_xdg_config_env_var(self, monkeypatch):
         monkeypatch.setenv(XDG_CONFIG_HOME_ENV_VAR, os.path.join('~', 'custom'))
         account_info_path = SqliteAccountInfo._get_user_account_info_path()
-        assert account_info_path == os.path.expanduser(
-            os.path.join('~', 'custom', 'b2', 'account_info')
-        )
+        assert account_info_path == os.path.expanduser(os.path.join('~', 'custom', 'b2', 'account_info'))
 
     def test_default_file(self):
         account_info_path = SqliteAccountInfo._get_user_account_info_path()

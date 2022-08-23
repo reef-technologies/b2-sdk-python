@@ -39,9 +39,7 @@ class LargeFileServices:
             if start_part_number is None:
                 break
 
-    def list_unfinished_large_files(
-        self, bucket_id, start_file_id=None, batch_size=None, prefix=None
-    ):
+    def list_unfinished_large_files(self, bucket_id, start_file_id=None, batch_size=None, prefix=None):
         """
         A generator that yields an :py:class:`b2sdk.v2.UnfinishedLargeFile` for each
         unfinished large file in the bucket, starting at the given file, filtering by prefix.
@@ -54,9 +52,7 @@ class LargeFileServices:
         """
         batch_size = batch_size or 100
         while True:
-            batch = self.services.session.list_unfinished_large_files(
-                bucket_id, start_file_id, batch_size, prefix
-            )
+            batch = self.services.session.list_unfinished_large_files(bucket_id, start_file_id, batch_size, prefix)
             for file_dict in batch['files']:
                 yield UnfinishedLargeFile(file_dict)
             start_file_id = batch.get('nextFileId')
@@ -65,9 +61,7 @@ class LargeFileServices:
 
     def get_unfinished_large_file(self, bucket_id, large_file_id, prefix=None):
         result = list(
-            self.list_unfinished_large_files(
-                bucket_id, start_file_id=large_file_id, batch_size=1, prefix=prefix
-            )
+            self.list_unfinished_large_files(bucket_id, start_file_id=large_file_id, batch_size=1, prefix=prefix)
         )
         if not result:
             return None

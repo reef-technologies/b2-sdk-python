@@ -127,9 +127,7 @@ class StubProgressListener(AbstractProgressListener):
         valid, _ = self.is_valid_reason(**kwargs)
         return valid
 
-    def is_valid_reason(
-        self, check_closed=True, check_progress=True, check_monotonic_progress=False
-    ):
+    def is_valid_reason(self, check_closed=True, check_progress=True, check_monotonic_progress=False):
         progress_end = -1
         if self.history[progress_end] == 'closed':
             progress_end = -2
@@ -187,8 +185,7 @@ class TestCaseWithBucket(TestBase):
         *args and **kwargs are passed to self.bucket.ls()
         """
         actual = [
-            (info.file_name, info.size, info.action, folder)
-            for (info, folder) in self.bucket.ls(*args, **kwargs)
+            (info.file_name, info.size, info.action, folder) for (info, folder) in self.bucket.ls(*args, **kwargs)
         ]
         self.assertEqual(expected, actual)
 
@@ -339,9 +336,7 @@ class TestGetFileInfo(TestCaseWithBucket):
         self.assertEqual(expected, actual)
 
     def test_version_by_name_file_lock(self):
-        bucket = self.api.create_bucket(
-            'my-bucket-with-file-lock', 'allPublic', is_file_lock_enabled=True
-        )
+        bucket = self.api.create_bucket('my-bucket-with-file-lock', 'allPublic', is_file_lock_enabled=True)
         data = b'hello world'
         legal_hold = LegalHold.ON
         file_retention = FileRetentionSetting(RetentionMode.COMPLIANCE, 100)
@@ -613,8 +608,7 @@ class TestCopyFile(TestCaseWithBucket):
 
         def ls(bucket):
             return [
-                (info.file_name, info.size, info.action, folder)
-                for (info, folder) in bucket.ls(show_versions=True)
+                (info.file_name, info.size, info.action, folder) for (info, folder) in bucket.ls(show_versions=True)
             ]
 
         expected = [('hello.txt', 11, 'upload', None)]
@@ -793,9 +787,7 @@ class TestUpload(TestCaseWithBucket):
     def test_upload_bytes_file_retention(self):
         data = b'hello world'
         retention = FileRetentionSetting(RetentionMode.COMPLIANCE, 150)
-        file_info = self.bucket.upload_bytes(
-            data, 'file1', file_retention=retention, legal_hold=LegalHold.ON
-        )
+        file_info = self.bucket.upload_bytes(data, 'file1', file_retention=retention, legal_hold=LegalHold.ON)
         self._check_file_contents('file1', data)
         self.assertEqual(retention, file_info.file_retention)
         self.assertEqual(LegalHold.ON, file_info.legal_hold)
@@ -1006,9 +998,7 @@ class TestUpload(TestCaseWithBucket):
 
     def _upload_part(self, large_file_id, part_number, part_data):
         part_stream = BytesIO(part_data)
-        upload_info = self.simulator.get_upload_part_url(
-            self.api_url, self.account_auth_token, large_file_id
-        )
+        upload_info = self.simulator.get_upload_part_url(self.api_url, self.account_auth_token, large_file_id)
         self.simulator.upload_part(
             upload_info['uploadUrl'],
             upload_info['authorizationToken'],
@@ -1120,9 +1110,7 @@ class DownloadTests:
     def setUp(self):
         super(DownloadTests, self).setUp()
         self.file_info = self.bucket.upload_bytes(self.DATA.encode(), 'file1')
-        self.encrypted_file_info = self.bucket.upload_bytes(
-            self.DATA.encode(), 'enc_file1', encryption=SSE_C_AES
-        )
+        self.encrypted_file_info = self.bucket.upload_bytes(self.DATA.encode(), 'enc_file1', encryption=SSE_C_AES)
         self.download_dest = DownloadDestBytes()
         self.progress_listener = StubProgressListener()
 
@@ -1149,9 +1137,7 @@ class DownloadTests:
         self._verify(self.DATA)
 
     def test_download_by_id_progress(self):
-        self.bucket.download_file_by_id(
-            self.file_info.id_, self.download_dest, self.progress_listener
-        )
+        self.bucket.download_file_by_id(self.file_info.id_, self.download_dest, self.progress_listener)
         self._verify(self.DATA)
 
     def test_download_by_id_progress_partial(self):
@@ -1242,16 +1228,12 @@ class DownloadTests:
             self._check_local_file_contents(path, b'1234567defghij567890')
 
     def test_download_by_id_no_progress_encryption(self):
-        self.bucket.download_file_by_id(
-            self.encrypted_file_info.id_, self.download_dest, encryption=SSE_C_AES
-        )
+        self.bucket.download_file_by_id(self.encrypted_file_info.id_, self.download_dest, encryption=SSE_C_AES)
         self._verify(self.DATA, check_progress_listener=False)
 
     def test_download_by_id_no_progress_wrong_encryption(self):
         with self.assertRaises(SSECKeyError):
-            self.bucket.download_file_by_id(
-                self.encrypted_file_info.id_, self.download_dest, encryption=SSE_C_AES_2
-            )
+            self.bucket.download_file_by_id(self.encrypted_file_info.id_, self.download_dest, encryption=SSE_C_AES_2)
 
     def _check_local_file_contents(self, path, expected_contents):
         with open(path, 'rb') as f:

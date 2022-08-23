@@ -152,9 +152,7 @@ class TestInterpretError:
         from_ver=3
     )  # previous apivers throw this as well, but BucketIdNotFound is a different class in them
     def test_bad_bucket_id(self):
-        error = self._check_one(
-            BucketIdNotFound, 400, 'bad_bucket_id', '', {}, {'bucketId': '1001'}
-        )
+        error = self._check_one(BucketIdNotFound, 400, 'bad_bucket_id', '', {}, {'bucketId': '1001'})
         assert error.bucket_id == '1001'
 
     def test_service_error(self):

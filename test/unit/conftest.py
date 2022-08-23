@@ -18,9 +18,7 @@ pytest.register_assert_rewrite('test.unit')
 
 
 def get_api_versions():
-    return [
-        str(Path(p).parent.name) for p in sorted(glob(str(Path(__file__).parent / 'v*/apiver/')))
-    ]
+    return [str(Path(p).parent.name) for p in sorted(glob(str(Path(__file__).parent / 'v*/apiver/')))]
 
 
 API_VERSIONS = get_api_versions()

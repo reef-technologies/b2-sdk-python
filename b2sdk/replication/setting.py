@@ -72,9 +72,7 @@ class ReplicationRule:
             ('is_enabled', 'isEnabled'),
             ('priority', 'priority'),
         ):
-            value = value_dict.get(
-                protocolField
-            )  # refactor to := when dropping Python 3.7, maybe even dict expression
+            value = value_dict.get(protocolField)  # refactor to := when dropping Python 3.7, maybe even dict expression
             if value is not None:
                 kwargs[field_] = value
         return cls(**kwargs)
@@ -186,13 +184,9 @@ class ReplicationConfiguration:
         destination_dict = value_dict.get('asReplicationDestination') or {}
 
         return cls(
-            rules=[
-                ReplicationRule.from_dict(rule_dict)
-                for rule_dict in source_dict.get('replicationRules', [])
-            ],
+            rules=[ReplicationRule.from_dict(rule_dict) for rule_dict in source_dict.get('replicationRules', [])],
             source_key_id=source_dict.get('sourceApplicationKeyId'),
-            source_to_destination_key_mapping=destination_dict.get('sourceToDestinationKeyMapping')
-            or {},
+            source_to_destination_key_mapping=destination_dict.get('sourceToDestinationKeyMapping') or {},
         )
 
 

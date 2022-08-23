@@ -73,9 +73,7 @@ class SimpleDownloader(AbstractDownloader):
                 new_range.as_tuple(),
                 encryption=encryption,
             ) as followup_response:
-                for data in followup_response.iter_content(
-                    chunk_size=self._get_chunk_size(actual_size)
-                ):
+                for data in followup_response.iter_content(chunk_size=self._get_chunk_size(actual_size)):
                     file.write(data)
                     digest.update(data)
                     bytes_read += len(data)
@@ -90,7 +88,5 @@ class SimpleDownloader(AbstractDownloader):
         session: B2Session,
         encryption: Optional[EncryptionSetting] = None,
     ):
-        future = self._thread_pool.submit(
-            self._download, file, response, download_version, session, encryption
-        )
+        future = self._thread_pool.submit(self._download, file, response, download_version, session, encryption)
         return future.result()

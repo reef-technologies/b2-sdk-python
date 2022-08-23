@@ -46,11 +46,7 @@ class TestRawAPIFilenames(TestBase):
         :param filename: unicode (or str) that doesn't follow the rules
         :param exception_message: regexp that matches the exception's detailed message
         """
-        print(
-            u"Filename \"{0}\" should raise UnusableFileName(\".*{1}.*\").".format(
-                filename, exception_message
-            )
-        )
+        print(u"Filename \"{0}\" should raise UnusableFileName(\".*{1}.*\").".format(filename, exception_message))
         with self.assertRaisesRegexp(UnusableFileName, exception_message):
             self.raw_api.check_b2_filename(filename)
 

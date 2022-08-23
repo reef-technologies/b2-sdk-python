@@ -47,9 +47,7 @@ class SyncEncryptionSettingsProviderWrapper(v2.AbstractSyncEncryptionSettingsPro
         bucket: Bucket,
         source_file_version: v2.FileVersion,
     ) -> Optional[v2.EncryptionSetting]:
-        return self.provider.get_source_setting_for_copy(
-            bucket=bucket, source_file_version_info=source_file_version
-        )
+        return self.provider.get_source_setting_for_copy(bucket=bucket, source_file_version_info=source_file_version)
 
     def get_destination_setting_for_copy(
         self,

@@ -61,9 +61,7 @@ class CopySource(OutboundTransferSource):
         if not self.length:
             if self.offset > 0:
                 # auto mode should get file info and create correct copy source (with length)
-                raise ValueError(
-                    'cannot return bytes range for non zero offset and unknown or zero length'
-                )
+                raise ValueError('cannot return bytes range for non zero offset and unknown or zero length')
             return None
 
         return self.offset, self.offset + self.length - 1

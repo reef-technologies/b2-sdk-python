@@ -28,9 +28,7 @@ class B2Session(v2.B2Session):
         api_config: Optional[v2.B2HttpApiConfig] = None,
     ):
         if raw_api is not None and api_config is not None:
-            raise InvalidArgument(
-                'raw_api,api_config', 'Provide at most one of: raw_api, api_config'
-            )
+            raise InvalidArgument('raw_api,api_config', 'Provide at most one of: raw_api, api_config')
 
         if api_config is None:
             api_config = v2.DEFAULT_HTTP_API_CONFIG

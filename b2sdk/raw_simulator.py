@@ -290,9 +290,7 @@ class FileSimulator:
             ):
                 pass
             else:
-                raise ValueError(
-                    'Unsupported encryption mode: %s' % (self.server_side_encryption.mode,)
-                )
+                raise ValueError('Unsupported encryption mode: %s' % (self.server_side_encryption.mode,))
 
         if range_ is not None:
             headers['Content-Range'] = 'bytes %d-%d/%d' % (
@@ -410,16 +408,10 @@ class FileSimulator:
         for part_number in range(1, last_part_number + 1):
             if self.parts[part_number] is None:
                 raise MissingPart(part_number)
-        my_part_sha1_array = [
-            self.parts[part_number].content_sha1 for part_number in range(1, last_part_number + 1)
-        ]
+        my_part_sha1_array = [self.parts[part_number].content_sha1 for part_number in range(1, last_part_number + 1)]
         if part_sha1_array != my_part_sha1_array:
-            raise ChecksumMismatch(
-                'sha1', expected=str(part_sha1_array), actual=str(my_part_sha1_array)
-            )
-        self.data_bytes = b''.join(
-            self.parts[part_number].part_data for part_number in range(1, last_part_number + 1)
-        )
+            raise ChecksumMismatch('sha1', expected=str(part_sha1_array), actual=str(my_part_sha1_array))
+        self.data_bytes = b''.join(self.parts[part_number].part_data for part_number in range(1, last_part_number + 1))
         self.content_length = len(self.data_bytes)
         self.action = 'upload'
 
@@ -801,16 +793,12 @@ class BucketSimulator:
     ):
         if metadata_directive is not None:
             assert metadata_directive in tuple(MetadataDirectiveMode), metadata_directive
-            if metadata_directive is MetadataDirectiveMode.COPY and (
-                content_type is not None or file_info is not None
-            ):
+            if metadata_directive is MetadataDirectiveMode.COPY and (content_type is not None or file_info is not None):
                 raise InvalidMetadataDirective(
                     'content_type and file_info should be None when metadata_directive is COPY'
                 )
             elif metadata_directive is MetadataDirectiveMode.REPLACE and content_type is None:
-                raise InvalidMetadataDirective(
-                    'content_type cannot be None when metadata_directive is REPLACE'
-                )
+                raise InvalidMetadataDirective('content_type cannot be None when metadata_directive is REPLACE')
 
         file_sim = self.file_id_to_file[file_id]
         file_sim.check_encryption(source_server_side_encryption)
@@ -947,9 +935,7 @@ class BucketSimulator:
         file_sim = self.file_id_to_file[file_id]
         return file_sim.list_parts(start_part_number, max_part_count)
 
-    def list_unfinished_large_files(
-        self, account_auth_token, start_file_id=None, max_file_count=None, prefix=None
-    ):
+    def list_unfinished_large_files(self, account_auth_token, start_file_id=None, max_file_count=None, prefix=None):
         start_file_id = start_file_id or self.FIRST_FILE_ID
         max_file_count = max_file_count or 100
         all_unfinished_ids = set(
@@ -963,9 +949,7 @@ class BucketSimulator:
 
         file_dict_list = [
             file_sim.as_start_large_file_result(account_auth_token)
-            for file_sim in (
-                self.file_id_to_file[file_id] for file_id in ids_in_order[:max_file_count]
-            )
+            for file_sim in (self.file_id_to_file[file_id] for file_id in ids_in_order[:max_file_count])
         ]  # yapf: disable
         next_file_id = None
         if len(file_dict_list) == max_file_count:
@@ -1355,9 +1339,7 @@ class RawSimulator(AbstractRawApi):
             raise BadJson('illegal key name: ' + key_name)
         if valid_duration_seconds is not None:
             if valid_duration_seconds < 1 or valid_duration_seconds > self.MAX_DURATION_IN_SECONDS:
-                raise BadJson(
-                    'valid duration must be greater than 0, and less than 1000 days in seconds'
-                )
+                raise BadJson('valid duration must be greater than 0, and less than 1000 days in seconds')
         self._assert_account_auth(api_url, account_auth_token, account_id, 'writeKeys')
 
         if valid_duration_seconds is None:
@@ -1624,22 +1606,16 @@ class RawSimulator(AbstractRawApi):
             server_side_encryption=destination_server_side_encryption,
         )
 
-    def list_buckets(
-        self, api_url, account_auth_token, account_id, bucket_id=None, bucket_name=None
-    ):
+    def list_buckets(self, api_url, account_auth_token, account_id, bucket_id=None, bucket_name=None):
         # First, map the bucket name to a bucket_id, so that we can check auth.
         if bucket_name is None:
             bucket_id_for_auth = bucket_id
         else:
             bucket_id_for_auth = self._get_bucket_id_or_none_for_bucket_name(bucket_name)
-        self._assert_account_auth(
-            api_url, account_auth_token, account_id, 'listBuckets', bucket_id_for_auth
-        )
+        self._assert_account_auth(api_url, account_auth_token, account_id, 'listBuckets', bucket_id_for_auth)
 
         # Do the query
-        sorted_buckets = [
-            self.bucket_name_to_bucket[name] for name in sorted(self.bucket_name_to_bucket)
-        ]
+        sorted_buckets = [self.bucket_name_to_bucket[name] for name in sorted(self.bucket_name_to_bucket)]
         bucket_list = [
             bucket.bucket_dict(account_auth_token)
             for bucket in sorted_buckets
@@ -1759,9 +1735,7 @@ class RawSimulator(AbstractRawApi):
         )
         start_file_id = start_file_id or ''
         max_file_count = max_file_count or 100
-        return bucket.list_unfinished_large_files(
-            account_auth_token, start_file_id, max_file_count, prefix
-        )
+        return bucket.list_unfinished_large_files(account_auth_token, start_file_id, max_file_count, prefix)
 
     def start_large_file(
         self,
@@ -1874,9 +1848,7 @@ class RawSimulator(AbstractRawApi):
         file_retention: Optional[FileRetentionSetting] = None,
         legal_hold: Optional[LegalHold] = None,
     ):
-        with ConcurrentUsedAuthTokenGuard(
-            self.currently_used_auth_tokens[upload_auth_token], upload_auth_token
-        ):
+        with ConcurrentUsedAuthTokenGuard(self.currently_used_auth_tokens[upload_auth_token], upload_auth_token):
             assert upload_url == upload_auth_token
             url_match = self.UPLOAD_URL_MATCHER.match(upload_url)
             if url_match is None:
@@ -1935,9 +1907,7 @@ class RawSimulator(AbstractRawApi):
         input_stream,
         server_side_encryption: Optional[EncryptionSetting] = None,
     ):
-        with ConcurrentUsedAuthTokenGuard(
-            self.currently_used_auth_tokens[upload_auth_token], upload_auth_token
-        ):
+        with ConcurrentUsedAuthTokenGuard(self.currently_used_auth_tokens[upload_auth_token], upload_auth_token):
             url_match = self.UPLOAD_PART_MATCHER.match(upload_url)
             if url_match is None:
                 raise BadUploadUrl(upload_url)

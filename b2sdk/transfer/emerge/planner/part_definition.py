@@ -46,8 +46,7 @@ class UploadEmergePartDefinition(BaseEmergePartDefinition):
 
     def __repr__(self):
         return (
-            '<{classname} upload_source={upload_source} relative_offset={relative_offset} '
-            'length={length}>'
+            '<{classname} upload_source={upload_source} relative_offset={relative_offset} ' 'length={length}>'
         ).format(
             classname=self.__class__.__name__,
             upload_source=repr(self.upload_source),
@@ -134,10 +133,7 @@ class UploadSubpartsEmergePartDefinition(BaseEmergePartDefinition):
 
     def _get_stream(self, emerge_execution=None):
         return ChainedStream(
-            [
-                subpart.get_stream_opener(emerge_execution=emerge_execution)
-                for subpart in self.upload_subparts
-            ]
+            [subpart.get_stream_opener(emerge_execution=emerge_execution) for subpart in self.upload_subparts]
         )
 
 
@@ -148,10 +144,7 @@ class CopyEmergePartDefinition(BaseEmergePartDefinition):
         self.length = length
 
     def __repr__(self):
-        return (
-            '<{classname} copy_source={copy_source} relative_offset={relative_offset} '
-            'length={length}>'
-        ).format(
+        return ('<{classname} copy_source={copy_source} relative_offset={relative_offset} ' 'length={length}>').format(
             classname=self.__class__.__name__,
             copy_source=repr(self.copy_source),
             relative_offset=self.relative_offset,

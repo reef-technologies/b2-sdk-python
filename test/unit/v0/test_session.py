@@ -57,9 +57,7 @@ class TestB2Session(TestBase):
             namePrefix=None,
         )
         self.raw_api.get_file_info_by_id.side_effect = Unauthorized('no_go', 'code')
-        with self.assertRaisesRegexp(
-            Unauthorized, r'no_go for application key with no restrictions \(code\)'
-        ):
+        with self.assertRaisesRegexp(Unauthorized, r'no_go for application key with no restrictions \(code\)'):
             self.session.get_file_info_by_id(None)
 
     def test_app_key_info_no_info_no_message(self):

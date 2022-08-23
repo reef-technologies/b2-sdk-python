@@ -58,9 +58,7 @@ class TestTranslateErrors(TestBase):
     def test_broken_pipe(self):
         def fcn():
             raise requests.ConnectionError(
-                requests.packages.urllib3.exceptions.ProtocolError(
-                    "dummy", socket.error(20, 'Broken pipe')
-                )
+                requests.packages.urllib3.exceptions.ProtocolError("dummy", socket.error(20, 'Broken pipe'))
             )
 
         with self.assertRaises(BrokenPipe):
@@ -252,9 +250,7 @@ class TestB2Http(TestBase):
         self.response.content = b'{"color": "blue"}'
         self.b2_http.post_json_return_json(self.URL, self.HEADERS, self.PARAMS)
         callback.pre_request.assert_called_with('POST', 'http://example.com', self.EXPECTED_HEADERS)
-        callback.post_request.assert_called_with(
-            'POST', 'http://example.com', self.EXPECTED_HEADERS, self.response
-        )
+        callback.post_request.assert_called_with('POST', 'http://example.com', self.EXPECTED_HEADERS, self.response)
 
     def test_get_content(self):
         self.session.get.return_value = self.response

@@ -191,9 +191,7 @@ class SqliteAccountInfo(MinimumPartSizeTranslator, OldAccountInfoMethods, v2.Sql
         :param int last_upgrade_to_run: For testing only, override the auto-update on the db.
         """
         # use legacy env var resolution, XDG not supported
-        file_name = file_name or os.environ.get(
-            v2.B2_ACCOUNT_INFO_ENV_VAR, v2.B2_ACCOUNT_INFO_DEFAULT_FILE
-        )
+        file_name = file_name or os.environ.get(v2.B2_ACCOUNT_INFO_ENV_VAR, v2.B2_ACCOUNT_INFO_DEFAULT_FILE)
         super().__init__(file_name=file_name, last_upgrade_to_run=last_upgrade_to_run)
 
 

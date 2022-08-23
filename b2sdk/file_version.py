@@ -147,9 +147,7 @@ class BaseFileVersion:
         if self.content_type is not None:
             result['contentType'] = self.content_type
         if self.content_sha1 is not None:
-            result['contentSha1'] = self._encode_content_sha1(
-                self.content_sha1, self.content_sha1_verified
-            )
+            result['contentSha1'] = self._encode_content_sha1(self.content_sha1, self.content_sha1_verified)
         result['replicationStatus'] = self.replication_status and self.replication_status.value
 
         return result
@@ -186,9 +184,7 @@ class BaseFileVersion:
         file_retention: FileRetentionSetting,
         bypass_governance: bool = False,
     ) -> 'BaseFileVersion':
-        file_retention = self.api.update_file_retention(
-            self.id_, self.file_name, file_retention, bypass_governance
-        )
+        file_retention = self.api.update_file_retention(self.id_, self.file_name, file_retention, bypass_governance)
         return self._clone(file_retention=file_retention)
 
     def _type(self):
@@ -335,9 +331,7 @@ class FileVersion(BaseFileVersion):
             legal_hold=self.legal_hold,
         )
 
-        headers_str = ''.join(
-            f'{key}{value}' for key, value in headers.items() if value is not None
-        )
+        headers_str = ''.join(f'{key}{value}' for key, value in headers.items() if value is not None)
         return headers_str.encode('utf8')
 
     @property
@@ -393,8 +387,12 @@ class DownloadVersion(BaseFileVersion):
         self.content_disposition = content_disposition
         self.content_length = content_length
         self.content_language = content_language
-        self._expires = expires  # TODO: parse the string representation of this timestamp to datetime in DownloadVersionFactory
-        self._cache_control = cache_control  # TODO: parse the string representation of this mapping to dict in DownloadVersionFactory
+        self._expires = (
+            expires  # TODO: parse the string representation of this timestamp to datetime in DownloadVersionFactory
+        )
+        self._cache_control = (
+            cache_control  # TODO: parse the string representation of this mapping to dict in DownloadVersionFactory
+        )
         self.content_encoding = content_encoding
 
         super().__init__(

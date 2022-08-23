@@ -445,9 +445,7 @@ class B2RawHTTPApi(AbstractRawApi):
         return self.b2_http.post_json_return_json(url, headers, params)
 
     def authorize_account(self, realm_url, application_key_id, application_key):
-        auth = b'Basic ' + base64.b64encode(
-            ('%s:%s' % (application_key_id, application_key)).encode()
-        )
+        auth = b'Basic ' + base64.b64encode(('%s:%s' % (application_key_id, application_key)).encode())
         return self._post_json(realm_url, 'b2_authorize_account', auth)
 
     def cancel_large_file(self, api_url, account_auth_token, file_id):
@@ -618,9 +616,7 @@ class B2RawHTTPApi(AbstractRawApi):
     ) -> Dict[str, Any]:
         download_url = self.get_download_url_by_name(download_url, bucket_name, file_name)
         try:
-            response = self.b2_http.head_content(
-                download_url, headers={"Authorization": account_auth_token}
-            )
+            response = self.b2_http.head_content(download_url, headers={"Authorization": account_auth_token})
             return response.headers
         except ResourceNotFound:
             logger.debug("Resource Not Found: %s" % download_url)
@@ -630,9 +626,7 @@ class B2RawHTTPApi(AbstractRawApi):
         return self._post_json(api_url, 'b2_get_upload_url', account_auth_token, bucketId=bucket_id)
 
     def get_upload_part_url(self, api_url, account_auth_token, file_id):
-        return self._post_json(
-            api_url, 'b2_get_upload_part_url', account_auth_token, fileId=file_id
-        )
+        return self._post_json(api_url, 'b2_get_upload_part_url', account_auth_token, fileId=file_id)
 
     def hide_file(self, api_url, account_auth_token, bucket_id, file_name):
         return self._post_json(
@@ -1018,16 +1012,12 @@ class B2RawHTTPApi(AbstractRawApi):
 
         if metadata_directive is not None:
             assert metadata_directive in tuple(MetadataDirectiveMode)
-            if metadata_directive is MetadataDirectiveMode.COPY and (
-                content_type is not None or file_info is not None
-            ):
+            if metadata_directive is MetadataDirectiveMode.COPY and (content_type is not None or file_info is not None):
                 raise InvalidMetadataDirective(
                     'content_type and file_info should be None when metadata_directive is COPY'
                 )
             elif metadata_directive is MetadataDirectiveMode.REPLACE and content_type is None:
-                raise InvalidMetadataDirective(
-                    'content_type cannot be None when metadata_directive is REPLACE'
-                )
+                raise InvalidMetadataDirective('content_type cannot be None when metadata_directive is REPLACE')
             kwargs['metadataDirective'] = metadata_directive.name
 
         if content_type is not None:

@@ -410,9 +410,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
 
     # b2_get_download_authorization
     print('b2_get_download_authorization')
-    download_auth = raw_api.get_download_authorization(
-        api_url, account_auth_token, bucket_id, file_name[:-2], 12345
-    )
+    download_auth = raw_api.get_download_authorization(api_url, account_auth_token, bucket_id, file_name[:-2], 12345)
     download_auth_token = download_auth['authorizationToken']
 
     # b2_download_file_by_name with download auth
@@ -455,16 +453,12 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
 
     # b2_get_file_info_by_name
     print('b2_get_file_info_by_name (auth)')
-    info_headers = raw_api.get_file_info_by_name(
-        download_url, account_auth_token, bucket_name, file_name
-    )
+    info_headers = raw_api.get_file_info_by_name(download_url, account_auth_token, bucket_name, file_name)
     assert info_headers['x-bz-file-id'] == file_id
 
     # b2_get_file_info_by_name
     print('b2_get_file_info_by_name (download auth)')
-    info_headers = raw_api.get_file_info_by_name(
-        download_url, download_auth_token, bucket_name, file_name
-    )
+    info_headers = raw_api.get_file_info_by_name(download_url, download_auth_token, bucket_name, file_name)
     assert info_headers['x-bz-file-id'] == file_id
 
     # b2_hide_file
@@ -536,9 +530,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         bucket_id,
         'allPrivate',
         bucket_info={'color': 'blue'},
-        default_retention=BucketRetentionSetting(
-            mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1)
-        ),
+        default_retention=BucketRetentionSetting(mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1)),
     )
     assert first_bucket_revision < updated_bucket['revision']
 

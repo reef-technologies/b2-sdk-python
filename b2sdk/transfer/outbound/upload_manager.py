@@ -139,9 +139,7 @@ class UploadManager(TransferManager, ThreadPoolMixin):
             try:
                 with part_upload_source.open() as part_stream:
                     content_length = part_upload_source.get_content_length()
-                    input_stream = ReadingStreamWithProgress(
-                        part_stream, part_progress_listener, length=content_length
-                    )
+                    input_stream = ReadingStreamWithProgress(part_stream, part_progress_listener, length=content_length)
                     if part_upload_source.is_sha1_known():
                         content_sha1 = part_upload_source.get_content_sha1()
                     else:
@@ -189,15 +187,11 @@ class UploadManager(TransferManager, ThreadPoolMixin):
             for _ in range(self.MAX_UPLOAD_ATTEMPTS):
                 try:
                     with upload_source.open() as file:
-                        input_stream = ReadingStreamWithProgress(
-                            file, progress_listener, length=content_length
-                        )
+                        input_stream = ReadingStreamWithProgress(file, progress_listener, length=content_length)
                         if upload_source.is_sha1_known():
                             content_sha1 = upload_source.get_content_sha1()
                         else:
-                            input_stream = StreamWithHash(
-                                input_stream, stream_length=content_length
-                            )
+                            input_stream = StreamWithHash(input_stream, stream_length=content_length)
                             content_sha1 = HEX_DIGITS_AT_END
                         # it is important that `len()` works on `input_stream`
                         response = self.services.session.upload_file(

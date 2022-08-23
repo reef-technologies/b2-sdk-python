@@ -70,9 +70,7 @@ class Bucket(metaclass=B2TraceMeta):
         revision=None,
         bucket_dict=None,
         options_set=None,
-        default_server_side_encryption: EncryptionSetting = EncryptionSetting(
-            EncryptionMode.UNKNOWN
-        ),
+        default_server_side_encryption: EncryptionSetting = EncryptionSetting(EncryptionMode.UNKNOWN),
         default_retention: BucketRetentionSetting = UNKNOWN_BUCKET_RETENTION,
         is_file_lock_enabled: Optional[bool] = None,
         replication: Optional[ReplicationConfiguration] = None,
@@ -273,9 +271,7 @@ class Bucket(metaclass=B2TraceMeta):
         :param str file_name_prefix: a file name prefix, only files that match it could be downloaded
         :param int valid_duration_in_seconds: a token is valid only during this amount of seconds
         """
-        response = self.api.session.get_download_authorization(
-            self.id_, file_name_prefix, valid_duration_in_seconds
-        )
+        response = self.api.session.get_download_authorization(self.id_, file_name_prefix, valid_duration_in_seconds)
         return response['authorizationToken']
 
     def list_parts(self, file_id, start_part_number=None, batch_size=None):
@@ -303,9 +299,7 @@ class Bucket(metaclass=B2TraceMeta):
         start_file_id = None
         session = self.api.session
         while 1:
-            response = session.list_file_versions(
-                self.id_, start_file_name, start_file_id, fetch_count, file_name
-            )
+            response = session.list_file_versions(self.id_, start_file_name, start_file_id, fetch_count, file_name)
 
             for entry in response['files']:
                 file_version = self.api.file_version_factory.from_api_response(entry)
@@ -370,9 +364,7 @@ class Bucket(metaclass=B2TraceMeta):
             if latest_only:
                 response = session.list_file_names(self.id_, start_file_name, fetch_count, prefix)
             else:
-                response = session.list_file_versions(
-                    self.id_, start_file_name, start_file_id, fetch_count, prefix
-                )
+                response = session.list_file_versions(self.id_, start_file_name, start_file_id, fetch_count, prefix)
             for entry in response['files']:
                 file_version = self.api.file_version_factory.from_api_response(entry)
                 if not file_version.file_name.startswith(prefix):

@@ -101,12 +101,8 @@ class CountAndSampleScanReport(AbstractScanReport):
     """
 
     counter_by_status: Counter = field(default_factory=Counter)
-    samples_by_status_first: Dict[AbstractScanResult, Tuple[FileVersion, ...]] = field(
-        default_factory=dict
-    )
-    samples_by_status_last: Dict[AbstractScanResult, Tuple[FileVersion, ...]] = field(
-        default_factory=dict
-    )
+    samples_by_status_first: Dict[AbstractScanResult, Tuple[FileVersion, ...]] = field(default_factory=dict)
+    samples_by_status_last: Dict[AbstractScanResult, Tuple[FileVersion, ...]] = field(default_factory=dict)
 
     def add(self, *files: Optional[AbstractPath]) -> None:
         status = self.SCAN_RESULT_CLASS.from_files(*files)

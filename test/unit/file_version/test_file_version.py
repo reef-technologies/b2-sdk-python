@@ -51,9 +51,7 @@ class TestFileVersion:
 
     @pytest.mark.apiver(to_ver=1)
     def test_format_ls_entry(self):
-        file_version_info = VFileVersion(
-            'a2', 'inner/a.txt', 200, 'text/plain', 'sha1', {}, 2000, 'upload'
-        )
+        file_version_info = VFileVersion('a2', 'inner/a.txt', 200, 'text/plain', 'sha1', {}, 2000, 'upload')
         expected_entry = (
             '                                                       '
             '                          a2  upload  1970-01-01  '
@@ -62,9 +60,7 @@ class TestFileVersion:
         assert expected_entry == file_version_info.format_ls_entry()
 
     def test_get_fresh_state(self):
-        self.api.update_file_legal_hold(
-            self.file_version.id_, self.file_version.file_name, LegalHold.ON
-        )
+        self.api.update_file_legal_hold(self.file_version.id_, self.file_version.file_name, LegalHold.ON)
         fetched_version = self.api.get_file_info(self.file_version.id_)
         if apiver_deps.V <= 1:
             fetched_version = self.api.file_version_factory.from_api_response(fetched_version)

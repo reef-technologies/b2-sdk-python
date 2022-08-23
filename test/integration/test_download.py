@@ -58,9 +58,7 @@ class TestDownload(IntegrationTestBase):
                         f.download_version.content_sha1_verified
                     )  # large files don't have sha1, lets not check
 
-    def _file_helper(
-        self, bucket, sha1_sum=None, bytes_to_write: Optional[int] = None
-    ) -> DownloadVersion:
+    def _file_helper(self, bucket, sha1_sum=None, bytes_to_write: Optional[int] = None) -> DownloadVersion:
         bytes_to_write = bytes_to_write or int(self.info.get_absolute_minimum_part_size()) * 2 + 1
         with TempDir() as temp_dir:
             temp_dir = pathlib.Path(temp_dir)
@@ -109,20 +107,14 @@ class TestDownload(IntegrationTestBase):
                 'gzipped_file',
                 file_infos={'b2-content-encoding': 'gzip'},
             )
-            self.b2_api.download_file_by_id(file_id=file_version.id_).save_to(
-                str(downloaded_compressed_file)
-            )
+            self.b2_api.download_file_by_id(file_id=file_version.id_).save_to(str(downloaded_compressed_file))
             with open(downloaded_compressed_file, 'rb') as dcf:
                 downloaded_data = dcf.read()
                 with open(source_file, 'rb') as sf:
                     source_data = sf.read()
                     assert downloaded_data == source_data
 
-            decompressing_api, _ = authorize(
-                self.b2_auth_data, B2HttpApiConfig(decode_content=True)
-            )
-            decompressing_api.download_file_by_id(file_id=file_version.id_).save_to(
-                str(downloaded_uncompressed_file)
-            )
+            decompressing_api, _ = authorize(self.b2_auth_data, B2HttpApiConfig(decode_content=True))
+            decompressing_api.download_file_by_id(file_id=file_version.id_).save_to(str(downloaded_uncompressed_file))
             with open(downloaded_uncompressed_file, 'rb') as duf:
                 assert duf.read() == data_to_write

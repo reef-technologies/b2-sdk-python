@@ -353,9 +353,7 @@ class EncryptionSettingFactory:
             return EncryptionSetting(mode, algorithm)
         if 'X-Bz-Server-Side-Encryption-Customer-Algorithm' in headers:
             mode = EncryptionMode.SSE_C
-            algorithm = EncryptionAlgorithm(
-                headers['X-Bz-Server-Side-Encryption-Customer-Algorithm']
-            )
+            algorithm = EncryptionAlgorithm(headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'])
             key_id = headers.get(SSE_C_KEY_ID_HEADER)
             key = EncryptionKey(secret=None, key_id=key_id)
             return EncryptionSetting(mode, algorithm, key)

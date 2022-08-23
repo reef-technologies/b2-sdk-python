@@ -175,18 +175,10 @@ class ScanPoliciesManager:
         ):
             self._include_file_set = RegexSet(include_file_regexes)
         self.exclude_all_symlinks = exclude_all_symlinks
-        with check_invalid_argument(
-            'exclude_modified_before,exclude_modified_after', '', ValueError
-        ):
-            self._include_mod_time_range = IntegerRange(
-                exclude_modified_before, exclude_modified_after
-            )
-        with check_invalid_argument(
-            'exclude_uploaded_before,exclude_uploaded_after', '', ValueError
-        ):
-            self._include_upload_time_range = IntegerRange(
-                exclude_uploaded_before, exclude_uploaded_after
-            )
+        with check_invalid_argument('exclude_modified_before,exclude_modified_after', '', ValueError):
+            self._include_mod_time_range = IntegerRange(exclude_modified_before, exclude_modified_after)
+        with check_invalid_argument('exclude_uploaded_before,exclude_uploaded_after', '', ValueError):
+            self._include_upload_time_range = IntegerRange(exclude_uploaded_before, exclude_uploaded_after)
 
     def _should_exclude_relative_path(self, relative_path: str):
         if self._include_file_set.matches(relative_path):

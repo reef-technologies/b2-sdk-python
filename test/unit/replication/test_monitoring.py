@@ -45,12 +45,8 @@ def test_iter_pairs(source_bucket, destination_bucket, test_file, monitor):
     source_file = source_bucket.upload_local_file(test_file, 'folder/test.txt')
     source_subfolder_file = source_bucket.upload_local_file(test_file, 'folder/subfolder/test.txt')
 
-    destination_subfolder_file = destination_bucket.upload_local_file(
-        test_file, 'folder/subfolder/test.txt'
-    )
-    destination_other_file = destination_bucket.upload_local_file(
-        test_file, 'folder/subfolder/test2.txt'
-    )
+    destination_subfolder_file = destination_bucket.upload_local_file(test_file, 'folder/subfolder/test.txt')
+    destination_other_file = destination_bucket.upload_local_file(test_file, 'folder/subfolder/test2.txt')
 
     pairs = [
         (
@@ -187,9 +183,7 @@ def test_scan_source(source_bucket, test_file, monitor):
     )
 
 
-def test_scan_source_and_destination(
-    source_bucket, destination_bucket, test_file, test_file_reversed, monitor
-):
+def test_scan_source_and_destination(source_bucket, destination_bucket, test_file, test_file_reversed, monitor):
     _ = [
         # match
         source_bucket.upload_local_file(test_file, 'folder/test-1.txt'),

@@ -320,9 +320,7 @@ class TestLocalFolder(TestFolder):
     def test_broken_symlink(self):
         folder = self.prepare_folder(broken_symlink=True)
         self.assertEqual(self.NAMES, list(f.relative_path for f in folder.all_files(self.reporter)))
-        self.reporter.local_access_error.assert_called_once_with(
-            os.path.join(self.root_dir, 'bad_symlink')
-        )
+        self.reporter.local_access_error.assert_called_once_with(os.path.join(self.root_dir, 'bad_symlink'))
 
     def test_invalid_permissions(self):
         folder = self.prepare_folder(invalid_permissions=True)
@@ -485,9 +483,7 @@ class TestB2Folder(TestFolder):
         )
 
     def test_exclude_modified_multiple_versions(self):
-        polices_manager = ScanPoliciesManager(
-            exclude_modified_before=1001, exclude_modified_after=1999
-        )
+        polices_manager = ScanPoliciesManager(exclude_modified_before=1001, exclude_modified_after=1999)
         folder = self.prepare_folder(use_file_versions_info=True)
         self.assertEqual(
             ["B2Path(inner/b.txt, [('b2', 1999, 'upload'), ('b1', 1001, 'upload')])"],
@@ -499,13 +495,9 @@ class TestB2Folder(TestFolder):
         )
 
     def test_exclude_modified_all_versions(self):
-        polices_manager = ScanPoliciesManager(
-            exclude_modified_before=1500, exclude_modified_after=1500
-        )
+        polices_manager = ScanPoliciesManager(exclude_modified_before=1500, exclude_modified_after=1500)
         folder = self.prepare_folder(use_file_versions_info=True)
-        self.assertEqual(
-            [], list(folder.all_files(self.reporter, policies_manager=polices_manager))
-        )
+        self.assertEqual([], list(folder.all_files(self.reporter, policies_manager=polices_manager)))
 
     # Path names not allowed to be sync'd on Windows
     NOT_SYNCD_ON_WINDOWS = [
@@ -906,9 +898,7 @@ class TestExclusions(TestSync):
         # only remote
         file_c = ('c.txt', 100)
 
-        local_folder = FakeLocalFolder(
-            [local_file(*f) for f in (file_a, file_b, file_d, file_e, file_bi, file_z)]
-        )
+        local_folder = FakeLocalFolder([local_file(*f) for f in (file_a, file_b, file_d, file_e, file_bi, file_z)])
         b2_folder = FakeB2Folder([file_bi, file_c, file_z])
 
         policies_manager = ScanPoliciesManager(

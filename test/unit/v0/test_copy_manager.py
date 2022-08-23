@@ -12,13 +12,7 @@ from ..test_base import TestBase
 
 from .deps_exception import SSECKeyIdMismatchInCopy
 from .deps import MetadataDirectiveMode
-from .deps import (
-    EncryptionAlgorithm,
-    EncryptionSetting,
-    EncryptionMode,
-    EncryptionKey,
-    SSE_B2_AES,
-)
+from .deps import EncryptionAlgorithm, EncryptionSetting, EncryptionMode, EncryptionKey, SSE_B2_AES
 from b2sdk.transfer.outbound.copy_manager import CopyManager
 from b2sdk.http_constants import SSE_C_KEY_ID_FILE_INFO_KEY_NAME
 
@@ -38,11 +32,7 @@ class TestCopyManager(TestBase):
     def test_establish_sse_c_replace(self):
         file_info = {'some_key': 'some_value'}
         content_type = 'text/plain'
-        (
-            metadata_directive,
-            new_file_info,
-            new_content_type,
-        ) = CopyManager.establish_sse_c_file_metadata(
+        (metadata_directive, new_file_info, new_content_type) = CopyManager.establish_sse_c_file_metadata(
             MetadataDirectiveMode.REPLACE,
             destination_file_info=file_info,
             destination_content_type=content_type,
@@ -63,11 +53,7 @@ class TestCopyManager(TestBase):
     def test_establish_sse_c_copy_no_enc(self):
         file_info = {}
         content_type = 'text/plain'
-        (
-            metadata_directive,
-            new_file_info,
-            new_content_type,
-        ) = CopyManager.establish_sse_c_file_metadata(
+        (metadata_directive, new_file_info, new_content_type) = CopyManager.establish_sse_c_file_metadata(
             MetadataDirectiveMode.COPY,
             destination_file_info=file_info,
             destination_content_type=content_type,
@@ -77,18 +63,13 @@ class TestCopyManager(TestBase):
             source_content_type=None,
         )
         self.assertEqual(
-            (MetadataDirectiveMode.COPY, {}, content_type),
-            (metadata_directive, new_file_info, new_content_type),
+            (MetadataDirectiveMode.COPY, {}, content_type), (metadata_directive, new_file_info, new_content_type)
         )
 
     def test_establish_sse_c_copy_b2(self):
         file_info = {}
         content_type = 'text/plain'
-        (
-            metadata_directive,
-            new_file_info,
-            new_content_type,
-        ) = CopyManager.establish_sse_c_file_metadata(
+        (metadata_directive, new_file_info, new_content_type) = CopyManager.establish_sse_c_file_metadata(
             MetadataDirectiveMode.COPY,
             destination_file_info=file_info,
             destination_content_type=content_type,
@@ -98,18 +79,13 @@ class TestCopyManager(TestBase):
             source_content_type=None,
         )
         self.assertEqual(
-            (MetadataDirectiveMode.COPY, {}, content_type),
-            (metadata_directive, new_file_info, new_content_type),
+            (MetadataDirectiveMode.COPY, {}, content_type), (metadata_directive, new_file_info, new_content_type)
         )
 
     def test_establish_sse_c_copy_same_key_id(self):
         file_info = None
         content_type = 'text/plain'
-        (
-            metadata_directive,
-            new_file_info,
-            new_content_type,
-        ) = CopyManager.establish_sse_c_file_metadata(
+        (metadata_directive, new_file_info, new_content_type) = CopyManager.establish_sse_c_file_metadata(
             MetadataDirectiveMode.COPY,
             destination_file_info=file_info,
             destination_content_type=content_type,
@@ -119,25 +95,17 @@ class TestCopyManager(TestBase):
             source_content_type=None,
         )
         self.assertEqual(
-            (MetadataDirectiveMode.COPY, None, content_type),
-            (metadata_directive, new_file_info, new_content_type),
+            (MetadataDirectiveMode.COPY, None, content_type), (metadata_directive, new_file_info, new_content_type)
         )
 
     def test_establish_sse_c_copy_sources_given(self):
-        (
-            metadata_directive,
-            new_file_info,
-            new_content_type,
-        ) = CopyManager.establish_sse_c_file_metadata(
+        (metadata_directive, new_file_info, new_content_type) = CopyManager.establish_sse_c_file_metadata(
             MetadataDirectiveMode.COPY,
             destination_file_info=None,
             destination_content_type=None,
             destination_server_side_encryption=SSE_C_AES,
             source_server_side_encryption=SSE_C_AES_2,
-            source_file_info={
-                'some_key': 'some_value',
-                SSE_C_KEY_ID_FILE_INFO_KEY_NAME: 'some-id-2',
-            },
+            source_file_info={'some_key': 'some_value', SSE_C_KEY_ID_FILE_INFO_KEY_NAME: 'some-id-2'},
             source_content_type='text/plain',
         )
         self.assertEqual(
@@ -150,15 +118,8 @@ class TestCopyManager(TestBase):
         )
 
     def test_establish_sse_c_copy_sources_unknown(self):
-        for source_file_info, source_content_type in [
-            (None, None),
-            ({'a': 'b'}, None),
-            (None, 'text/plain'),
-        ]:
-            with self.subTest(
-                source_file_info=source_file_info,
-                source_content_type=source_content_type,
-            ):
+        for source_file_info, source_content_type in [(None, None), ({'a': 'b'}, None), (None, 'text/plain')]:
+            with self.subTest(source_file_info=source_file_info, source_content_type=source_content_type):
                 with self.assertRaises(
                     SSECKeyIdMismatchInCopy,
                     'attempting to copy file using MetadataDirectiveMode.COPY without providing source_file_info '

@@ -37,10 +37,7 @@ class BucketCleaner:
             return False
         if bucket.name.startswith(GENERAL_BUCKET_NAME_PREFIX):
             if BUCKET_CREATED_AT_MILLIS in bucket.bucket_info:
-                if (
-                    int(bucket.bucket_info[BUCKET_CREATED_AT_MILLIS])
-                    < current_time_millis() - ONE_HOUR_MILLIS
-                ):
+                if int(bucket.bucket_info[BUCKET_CREATED_AT_MILLIS]) < current_time_millis() - ONE_HOUR_MILLIS:
                     return True
         return False
 
@@ -57,21 +54,12 @@ class BucketCleaner:
                 for file_version_info, _ in file_versions:
                     if file_version_info.file_retention:
                         if file_version_info.file_retention.mode == RetentionMode.GOVERNANCE:
-                            print(
-                                'Removing retention from file version:',
-                                file_version_info.id_,
-                            )
+                            print('Removing retention from file version:', file_version_info.id_)
                             b2_api.update_file_retention(
-                                file_version_info.id_,
-                                file_version_info.file_name,
-                                NO_RETENTION_FILE_SETTING,
-                                True,
+                                file_version_info.id_, file_version_info.file_name, NO_RETENTION_FILE_SETTING, True
                             )
                         elif file_version_info.file_retention.mode == RetentionMode.COMPLIANCE:
-                            if (
-                                file_version_info.file_retention.retain_until
-                                > current_time_millis()
-                            ):  # yapf: disable
+                            if file_version_info.file_retention.retain_until > current_time_millis():  # yapf: disable
                                 print(
                                     'File version: %s cannot be removed due to compliance mode retention'
                                     % (file_version_info.id_,)
@@ -81,20 +69,10 @@ class BucketCleaner:
                         elif file_version_info.file_retention.mode == RetentionMode.NONE:
                             pass
                         else:
-                            raise ValueError(
-                                'Unknown retention mode: %s'
-                                % (file_version_info.file_retention.mode,)
-                            )
+                            raise ValueError('Unknown retention mode: %s' % (file_version_info.file_retention.mode,))
                     if file_version_info.legal_hold.is_on():
-                        print(
-                            'Removing legal hold from file version:',
-                            file_version_info.id_,
-                        )
-                        b2_api.update_file_legal_hold(
-                            file_version_info.id_,
-                            file_version_info.file_name,
-                            LegalHold.OFF,
-                        )
+                        print('Removing legal hold from file version:', file_version_info.id_)
+                        b2_api.update_file_legal_hold(file_version_info.id_, file_version_info.file_name, LegalHold.OFF)
                     print('Removing file version:', file_version_info.id_)
                     b2_api.delete_file_version(file_version_info.id_, file_version_info.file_name)
 

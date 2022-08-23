@@ -44,11 +44,7 @@ class TestApi:
     def setUp(self):
         self.account_info = InMemoryAccountInfo()
         self.cache = DummyCache()
-        self.api = B2Api(
-            self.account_info,
-            self.cache,
-            api_config=B2HttpApiConfig(_raw_api_class=RawSimulator),
-        )
+        self.api = B2Api(self.account_info, self.cache, api_config=B2HttpApiConfig(_raw_api_class=RawSimulator))
         self.raw_api = self.api.session.raw_api
         (self.application_key_id, self.master_key) = self.raw_api.create_account()
 
@@ -73,10 +69,7 @@ class TestApi:
                 'fileId': '9999',
                 'fileInfo': {},
                 'fileName': 'file',
-                'fileRetention': {
-                    'isClientAuthorizedToRead': True,
-                    'value': {'mode': None},
-                },
+                'fileRetention': {'isClientAuthorizedToRead': True, 'value': {'mode': None}},
                 'legalHold': {'isClientAuthorizedToRead': True, 'value': None},
                 'serverSideEncryption': {'mode': 'none'},
                 'uploadTimestamp': 5000,
@@ -100,16 +93,10 @@ class TestApi:
                     'lifecycleRules': [],
                     'options': set(),
                     'revision': 1,
-                    'defaultServerSideEncryption': {
-                        'isClientAuthorizedToRead': True,
-                        'value': {'mode': 'none'},
-                    },
+                    'defaultServerSideEncryption': {'isClientAuthorizedToRead': True, 'value': {'mode': 'none'}},
                     'fileLockConfiguration': {
                         'isClientAuthorizedToRead': True,
-                        'value': {
-                            'defaultRetention': {'mode': None, 'period': None},
-                            'isFileLockEnabled': None,
-                        },
+                        'value': {'defaultRetention': {'mode': None, 'period': None}, 'isFileLockEnabled': None},
                     },
                 },
                 marks=pytest.mark.apiver(to_ver=0),
@@ -136,22 +123,11 @@ class TestApi:
 
     def test_buckets_with_encryption(self):
         self._authorize_account()
-        sse_b2_aes = EncryptionSetting(
-            mode=EncryptionMode.SSE_B2,
-            algorithm=EncryptionAlgorithm.AES256,
-        )
-        no_encryption = EncryptionSetting(
-            mode=EncryptionMode.NONE,
-        )
-        unknown_encryption = EncryptionSetting(
-            mode=EncryptionMode.UNKNOWN,
-        )
+        sse_b2_aes = EncryptionSetting(mode=EncryptionMode.SSE_B2, algorithm=EncryptionAlgorithm.AES256)
+        no_encryption = EncryptionSetting(mode=EncryptionMode.NONE)
+        unknown_encryption = EncryptionSetting(mode=EncryptionMode.UNKNOWN)
 
-        b1 = self.api.create_bucket(
-            'bucket1',
-            'allPrivate',
-            default_server_side_encryption=sse_b2_aes,
-        )
+        b1 = self.api.create_bucket('bucket1', 'allPrivate', default_server_side_encryption=sse_b2_aes)
         self._verify_if_bucket_is_encrypted(b1, should_be_encrypted=True)
 
         b2 = self.api.create_bucket('bucket2', 'allPrivate')
@@ -186,13 +162,8 @@ class TestApi:
         return self._verify_if_bucket_is_encrypted(bucket, should_be_encrypted)
 
     def _verify_if_bucket_is_encrypted(self, bucket, should_be_encrypted):
-        sse_b2_aes = EncryptionSetting(
-            mode=EncryptionMode.SSE_B2,
-            algorithm=EncryptionAlgorithm.AES256,
-        )
-        no_encryption = EncryptionSetting(
-            mode=EncryptionMode.NONE,
-        )
+        sse_b2_aes = EncryptionSetting(mode=EncryptionMode.SSE_B2, algorithm=EncryptionAlgorithm.AES256)
+        no_encryption = EncryptionSetting(mode=EncryptionMode.NONE)
         if not should_be_encrypted:
             assert bucket.default_server_side_encryption == no_encryption
         else:
@@ -328,10 +299,7 @@ class TestApi:
 
         old_style_api = B2Api(raw_api=B2RawApi(B2Http(user_agent_append='test append')))
         new_style_api = B2Api(api_config=B2HttpApiConfig(user_agent_append='test append'))
-        assert (
-            old_style_api.session.raw_api.b2_http.user_agent
-            == new_style_api.session.raw_api.b2_http.user_agent
-        )
+        assert old_style_api.session.raw_api.b2_http.user_agent == new_style_api.session.raw_api.b2_http.user_agent
         with pytest.raises(InvalidArgument):
             B2Api(
                 raw_api=B2RawApi(B2Http(user_agent_append='test append')),
@@ -363,21 +331,13 @@ class TestApi:
         bucket = self.api.create_bucket('bucket', 'allPrivate')
         now = time.time()
         create_result = self.api.create_key(
-            ['readFiles'],
-            'testkey',
-            valid_duration_seconds=100,
-            bucket_id=bucket.id_,
-            name_prefix='name',
+            ['readFiles'], 'testkey', valid_duration_seconds=100, bucket_id=bucket.id_, name_prefix='name'
         )
         assert isinstance(create_result, FullApplicationKey)
         assert create_result.key_name == 'testkey'
         assert create_result.capabilities == ['readFiles']
         assert create_result.account_id == self.account_info.get_account_id()
-        assert (
-            (now + 100 - 10) * 1000
-            < create_result.expiration_timestamp_millis
-            < (now + 100 + 10) * 1000
-        )
+        assert (now + 100 - 10) * 1000 < create_result.expiration_timestamp_millis < (now + 100 + 10) * 1000
         assert create_result.bucket_id == bucket.id_
         assert create_result.name_prefix == 'name'
         # assert create_result.options == ...  TODO
@@ -386,11 +346,7 @@ class TestApi:
         self.assertDeleteAndCreateResult(create_result, delete_result)
 
         create_result = self.api.create_key(
-            ['readFiles'],
-            'testkey',
-            valid_duration_seconds=100,
-            bucket_id=bucket.id_,
-            name_prefix='name',
+            ['readFiles'], 'testkey', valid_duration_seconds=100, bucket_id=bucket.id_, name_prefix='name'
         )
         delete_result = self.api.delete_key_by_id(create_result.id_)
         self.assertDeleteAndCreateResult(create_result, delete_result)
@@ -404,10 +360,7 @@ class TestApi:
             assert delete_result.key_name == create_result.key_name
             assert delete_result.capabilities == create_result.capabilities
             assert delete_result.account_id == create_result.account_id
-            assert (
-                delete_result.expiration_timestamp_millis
-                == create_result.expiration_timestamp_millis
-            )
+            assert delete_result.expiration_timestamp_millis == create_result.expiration_timestamp_millis
             assert delete_result.bucket_id == create_result.bucket_id
             assert delete_result.name_prefix == create_result.name_prefix
 
@@ -429,18 +382,7 @@ class TestApi:
                 'keyName': 'testkey%s' % (ind,),
                 'namePrefix': None,
             }
-            for ind in [
-                0,
-                1,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-            ]
+            for ind in [0, 1, 10, 11, 12, 13, 14, 15, 16, 17]
         ]
 
     @pytest.mark.apiver(from_ver=2)

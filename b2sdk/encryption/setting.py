@@ -16,10 +16,7 @@ import urllib.parse
 
 from ..http_constants import SSE_C_KEY_ID_FILE_INFO_KEY_NAME, SSE_C_KEY_ID_HEADER
 from ..utils import b64_of_bytes, md5_of_bytes
-from .types import (
-    ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM,
-    ENCRYPTION_MODES_WITH_MANDATORY_KEY,
-)
+from .types import ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM, ENCRYPTION_MODES_WITH_MANDATORY_KEY
 from .types import EncryptionAlgorithm, EncryptionMode
 
 logger = logging.getLogger(__name__)
@@ -70,14 +67,8 @@ class EncryptionKey:
         Dump EncryptionKey as dict for serializing a to json for requests.
         """
         if self.secret is not None:
-            return {
-                'customerKey': self.key_b64(),
-                'customerKeyMd5': self.key_md5(),
-            }
-        return {
-            'customerKey': self.SECRET_REPR,
-            'customerKeyMd5': self.SECRET_REPR,
-        }
+            return {'customerKey': self.key_b64(), 'customerKeyMd5': self.key_md5()}
+        return {'customerKey': self.SECRET_REPR, 'customerKeyMd5': self.SECRET_REPR}
 
     def key_b64(self):
         return b64_of_bytes(self.secret)
@@ -92,12 +83,7 @@ class EncryptionSetting:
     file version info or even upload)
     """
 
-    def __init__(
-        self,
-        mode: EncryptionMode,
-        algorithm: EncryptionAlgorithm = None,
-        key: EncryptionKey = None,
-    ):
+    def __init__(self, mode: EncryptionMode, algorithm: EncryptionAlgorithm = None, key: EncryptionKey = None):
         """
         :param b2sdk.v2.EncryptionMode mode: encryption mode
         :param b2sdk.v2.EncryptionAlgorithm algorithm: encryption algorithm
@@ -111,17 +97,12 @@ class EncryptionSetting:
         if self.mode in ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM and not self.algorithm:
             raise ValueError('must specify algorithm for encryption mode %s' % (self.mode,))
         if self.mode in ENCRYPTION_MODES_WITH_MANDATORY_KEY and not self.key:
-            raise ValueError(
-                'must specify key for encryption mode %s and algorithm %s'
-                % (self.mode, self.algorithm)
-            )
+            raise ValueError('must specify key for encryption mode %s and algorithm %s' % (self.mode, self.algorithm))
 
     def __eq__(self, other):
         if other is None:
             raise ValueError('cannot compare a known encryption setting to an unknown one')
-        return (
-            self.mode == other.mode and self.algorithm == other.algorithm and self.key == other.key
-        )
+        return self.mode == other.mode and self.algorithm == other.algorithm and self.key == other.key
 
     def serialize_to_json_for_request(self):
         if self.key and self.key.secret is None:
@@ -217,22 +198,13 @@ class EncryptionSetting:
         ):
             raise ValueError(
                 'Ambiguous key id set: "%s" in file_info and "%s" in %s'
-                % (
-                    file_info[SSE_C_KEY_ID_FILE_INFO_KEY_NAME],
-                    self.key.key_id,
-                    self.__class__.__name__,
-                )
+                % (file_info[SSE_C_KEY_ID_FILE_INFO_KEY_NAME], self.key.key_id, self.__class__.__name__)
             )
         file_info[SSE_C_KEY_ID_FILE_INFO_KEY_NAME] = self.key.key_id
         return file_info
 
     def __repr__(self):
-        return '<%s(%s, %s, %s)>' % (
-            self.__class__.__name__,
-            self.mode,
-            self.algorithm,
-            self.key,
-        )
+        return '<%s(%s, %s, %s)>' % (self.__class__.__name__, self.mode, self.algorithm, self.key)
 
 
 class EncryptionSettingFactory:
@@ -316,10 +288,7 @@ class EncryptionSettingFactory:
             ...
 
         """
-        default_sse = bucket_dict.get(
-            'defaultServerSideEncryption',
-            {'isClientAuthorizedToRead': False},
-        )
+        default_sse = bucket_dict.get('defaultServerSideEncryption', {'isClientAuthorizedToRead': False})
 
         if not default_sse['isClientAuthorizedToRead']:
             return EncryptionSetting(EncryptionMode.UNKNOWN)
@@ -360,17 +329,12 @@ class EncryptionSettingFactory:
         return EncryptionSetting(EncryptionMode.NONE)
 
 
-SSE_NONE = EncryptionSetting(
-    mode=EncryptionMode.NONE,
-)
+SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE)
 """
 Commonly used "no encryption" setting
 """
 
-SSE_B2_AES = EncryptionSetting(
-    mode=EncryptionMode.SSE_B2,
-    algorithm=EncryptionAlgorithm.AES256,
-)
+SSE_B2_AES = EncryptionSetting(mode=EncryptionMode.SSE_B2, algorithm=EncryptionAlgorithm.AES256)
 """
 Commonly used SSE-B2 setting
 """

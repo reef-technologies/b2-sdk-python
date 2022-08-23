@@ -107,14 +107,7 @@ class SyncPolicyManager:
                 return CopyAndKeepDaysPolicy
             else:
                 return CopyPolicy
-        raise NotImplementedError(
-            'invalid sync type: %s, keep_days: %s, delete: %s'
-            % (
-                sync_type,
-                keep_days,
-                delete,
-            )
-        )
+        raise NotImplementedError('invalid sync type: %s, keep_days: %s, delete: %s' % (sync_type, keep_days, delete))
 
 
 POLICY_MANAGER = SyncPolicyManager()

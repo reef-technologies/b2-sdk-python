@@ -25,11 +25,7 @@ from .base import IntegrationTestBase
 class TestDownload(IntegrationTestBase):
     def test_large_file(self):
         bucket = self.create_bucket()
-        with mock.patch.object(
-            self.info,
-            '_recommended_part_size',
-            new=self.info.get_absolute_minimum_part_size(),
-        ):
+        with mock.patch.object(self.info, '_recommended_part_size', new=self.info.get_absolute_minimum_part_size()):
             download_manager = self.b2_api.services.download_manager
             with mock.patch.object(
                 download_manager,
@@ -54,9 +50,7 @@ class TestDownload(IntegrationTestBase):
                 f = self._file_helper(bucket)
                 if zero._type() != 'large':
                     # if we are here, that's not the production server!
-                    assert (
-                        f.download_version.content_sha1_verified
-                    )  # large files don't have sha1, lets not check
+                    assert f.download_version.content_sha1_verified  # large files don't have sha1, lets not check
 
     def _file_helper(self, bucket, sha1_sum=None, bytes_to_write: Optional[int] = None) -> DownloadVersion:
         bytes_to_write = bytes_to_write or int(self.info.get_absolute_minimum_part_size()) * 2 + 1
@@ -65,11 +59,7 @@ class TestDownload(IntegrationTestBase):
             source_small_file = pathlib.Path(temp_dir) / 'source_small_file'
             with open(source_small_file, 'wb') as small_file:
                 self.write_zeros(small_file, bytes_to_write)
-            bucket.upload_local_file(
-                source_small_file,
-                'small_file',
-                sha1_sum=sha1_sum,
-            )
+            bucket.upload_local_file(source_small_file, 'small_file', sha1_sum=sha1_sum)
             target_small_file = pathlib.Path(temp_dir) / 'target_small_file'
 
             f = bucket.download_file_by_name('small_file')
@@ -103,9 +93,7 @@ class TestDownload(IntegrationTestBase):
             with gzip.open(source_file, 'wb') as gzip_file:
                 gzip_file.write(data_to_write)
             file_version = bucket.upload_local_file(
-                str(source_file),
-                'gzipped_file',
-                file_infos={'b2-content-encoding': 'gzip'},
+                str(source_file), 'gzipped_file', file_infos={'b2-content-encoding': 'gzip'}
             )
             self.b2_api.download_file_by_id(file_id=file_version.id_).save_to(str(downloaded_compressed_file))
             with open(downloaded_compressed_file, 'rb') as dcf:

@@ -50,23 +50,11 @@ class AbstractVersionDecorator(metaclass=ABCMeta):
         if self.cutoff_version is not None:
             assert self.changed_version < self.cutoff_version, (
                 '%s decorator is set to start renaming %s %r starting at version %s and finishing in %s. It needs to start at a lower version and finish at a higher version.'
-                % (
-                    self.__class__.__name__,
-                    self.WHAT,
-                    self.source,
-                    self.changed_version,
-                    self.cutoff_version,
-                )
+                % (self.__class__.__name__, self.WHAT, self.source, self.changed_version, self.cutoff_version)
             )
             assert self.current_version < self.cutoff_version, (
                 '%s decorator is still used in version %s when old %s name %r was scheduled to be dropped in %s. It is time to remove the mapping.'
-                % (
-                    self.__class__.__name__,
-                    self.current_version,
-                    self.WHAT,
-                    self.source,
-                    self.cutoff_version,
-                )
+                % (self.__class__.__name__, self.current_version, self.WHAT, self.source, self.cutoff_version)
             )
 
 
@@ -127,9 +115,7 @@ class rename_argument(AbstractDeprecator):
             assert self.target in signature.args or self.target in signature.kwonlyargs, message
 
             if self.source in kwargs:
-                assert (
-                    self.target not in kwargs
-                ), 'both argument names were provided: %r (deprecated) and %r (new)' % (
+                assert self.target not in kwargs, 'both argument names were provided: %r (deprecated) and %r (new)' % (
                     self.source,
                     self.target,
                 )
@@ -137,13 +123,7 @@ class rename_argument(AbstractDeprecator):
                 del kwargs[self.source]
                 warnings.warn(
                     '%r is a deprecated argument for %r function/method - it was renamed to %r in version %s. Support for the old name is going to be dropped in %s.'
-                    % (
-                        self.source,
-                        func.__name__,
-                        self.target,
-                        self.changed_version,
-                        self.cutoff_version,
-                    ),
+                    % (self.source, func.__name__, self.target, self.changed_version, self.cutoff_version),
                     DeprecationWarning,
                 )
             return func(*args, **kwargs)
@@ -183,12 +163,7 @@ class rename_function(AbstractDeprecator):
         def wrapper(*args, **kwargs):
             warnings.warn(
                 '%r is deprecated since version %s - it was moved to %r, please switch to use that. The proxy for the old name is going to be removed in %s.'
-                % (
-                    func.__name__,
-                    self.changed_version,
-                    self.target,
-                    self.cutoff_version,
-                ),
+                % (func.__name__, self.changed_version, self.target, self.cutoff_version),
                 DeprecationWarning,
             )
             return func(*args, **kwargs)

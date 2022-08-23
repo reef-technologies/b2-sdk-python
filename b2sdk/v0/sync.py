@@ -20,10 +20,7 @@ from b2sdk.v1 import KeepOrDeleteMode
 from b2sdk.v1 import DEFAULT_SCAN_MANAGER
 from b2sdk.v1 import SyncReport
 from b2sdk.v1 import Synchronizer as SynchronizerV1
-from b2sdk.v1 import (
-    AbstractSyncEncryptionSettingsProvider,
-    SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
-)
+from b2sdk.v1 import AbstractSyncEncryptionSettingsProvider, SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
 
 logger = logging.getLogger(__name__)
 
@@ -56,11 +53,7 @@ class Synchronizer(SynchronizerV1):
 
 
 def get_synchronizer_from_args(
-    args,
-    max_workers,
-    policies_manager=DEFAULT_SCAN_MANAGER,
-    dry_run=False,
-    allow_empty_source=False,
+    args, max_workers, policies_manager=DEFAULT_SCAN_MANAGER, dry_run=False, allow_empty_source=False
 ):
     if args.replaceNewer and args.skipNewer:
         raise CommandError('--skipNewer and --replaceNewer are incompatible')
@@ -136,11 +129,7 @@ def make_folder_sync_actions(
     :type encryption_settings_provider: AbstractSyncEncryptionSettingsProvider
     """
     synchronizer = get_synchronizer_from_args(
-        args,
-        1,
-        policies_manager=policies_manager,
-        dry_run=False,
-        allow_empty_source=False,
+        args, 1, policies_manager=policies_manager, dry_run=False, allow_empty_source=False
     )
     try:
         return synchronizer.make_folder_sync_actions(
@@ -196,17 +185,9 @@ def sync_folders(
     :type encryption_settings_provider: AbstractSyncEncryptionSettingsProvider
     """
     synchronizer = get_synchronizer_from_args(
-        args,
-        max_workers,
-        policies_manager=policies_manager,
-        dry_run=dry_run,
-        allow_empty_source=allow_empty_source,
+        args, max_workers, policies_manager=policies_manager, dry_run=dry_run, allow_empty_source=allow_empty_source
     )
     with SyncReport(stdout, no_progress) as reporter:
         synchronizer.sync_folders(
-            source_folder,
-            dest_folder,
-            now_millis,
-            reporter,
-            encryption_settings_provider=encryption_settings_provider,
+            source_folder, dest_folder, now_millis, reporter, encryption_settings_provider=encryption_settings_provider
         )

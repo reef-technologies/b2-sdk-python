@@ -57,9 +57,7 @@ class UploadSourceBytes(AbstractUploadSource):
     def __repr__(self):
         return '<{classname} data={data} id={id}>'.format(
             classname=self.__class__.__name__,
-            data=str(self.data_bytes[:20]) + '...'
-            if len(self.data_bytes) > 20
-            else self.data_bytes,
+            data=str(self.data_bytes[:20]) + '...' if len(self.data_bytes) > 20 else self.data_bytes,
             id=id(self),
         )
 
@@ -195,9 +193,7 @@ class UploadSourceStream(AbstractUploadSource):
 class UploadSourceStreamRange(UploadSourceStream):
     def __init__(self, stream_opener, offset, stream_length, stream_sha1=None):
         super(UploadSourceStreamRange, self).__init__(
-            stream_opener,
-            stream_length=stream_length,
-            stream_sha1=stream_sha1,
+            stream_opener, stream_length=stream_length, stream_sha1=stream_sha1
         )
         self._offset = offset
 
@@ -215,8 +211,4 @@ class UploadSourceStreamRange(UploadSourceStream):
         )
 
     def open(self):
-        return RangeOfInputStream(
-            super(UploadSourceStreamRange, self).open(),
-            self._offset,
-            self._content_length,
-        )
+        return RangeOfInputStream(super(UploadSourceStreamRange, self).open(), self._offset, self._content_length)

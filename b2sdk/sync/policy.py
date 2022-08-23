@@ -18,14 +18,7 @@ from ..exception import DestFileNewer
 from ..scan.exception import InvalidArgument
 from ..scan.folder import AbstractFolder
 from ..scan.path import AbstractPath
-from .action import (
-    B2CopyAction,
-    B2DeleteAction,
-    B2DownloadAction,
-    B2HideAction,
-    B2UploadAction,
-    LocalDeleteAction,
-)
+from .action import B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction, LocalDeleteAction
 from .encryption_provider import (
     SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     AbstractSyncEncryptionSettingsProvider,
@@ -175,12 +168,7 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
                     elif newer_file_mode == NewerFileSyncMode.SKIP:
                         return False
                     else:
-                        raise DestFileNewer(
-                            dest_path,
-                            source_path,
-                            cls.DESTINATION_PREFIX,
-                            cls.SOURCE_PREFIX,
-                        )
+                        raise DestFileNewer(dest_path, source_path, cls.DESTINATION_PREFIX, cls.SOURCE_PREFIX)
 
         # Compare using file size
         elif compare_version_mode == CompareVersionMode.SIZE:
@@ -278,12 +266,7 @@ class UpAndDeletePolicy(UpPolicy):
     def _get_hide_delete_actions(self):
         for action in super(UpAndDeletePolicy, self)._get_hide_delete_actions():
             yield action
-        for action in make_b2_delete_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
-        ):
+        for action in make_b2_delete_actions(self._source_path, self._dest_path, self._dest_folder, self._transferred):
             yield action
 
 
@@ -296,12 +279,7 @@ class UpAndKeepDaysPolicy(UpPolicy):
         for action in super(UpAndKeepDaysPolicy, self)._get_hide_delete_actions():
             yield action
         for action in make_b2_keep_days_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
-            self._keep_days,
-            self._now_millis,
+            self._source_path, self._dest_path, self._dest_folder, self._transferred, self._keep_days, self._now_millis
         ):
             yield action
 
@@ -316,8 +294,7 @@ class DownAndDeletePolicy(DownPolicy):
             yield action
         if self._dest_path is not None and (self._source_path is None or not self._source_path.is_visible()):
             yield LocalDeleteAction(
-                self._dest_path.relative_path,
-                self._dest_folder.make_full_path(self._dest_path.relative_path),
+                self._dest_path.relative_path, self._dest_folder.make_full_path(self._dest_path.relative_path)
             )
 
 
@@ -357,12 +334,7 @@ class CopyAndDeletePolicy(CopyPolicy):
     def _get_hide_delete_actions(self):
         for action in super()._get_hide_delete_actions():
             yield action
-        for action in make_b2_delete_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
-        ):
+        for action in make_b2_delete_actions(self._source_path, self._dest_path, self._dest_folder, self._transferred):
             yield action
 
 
@@ -375,12 +347,7 @@ class CopyAndKeepDaysPolicy(CopyPolicy):
         for action in super()._get_hide_delete_actions():
             yield action
         for action in make_b2_keep_days_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
-            self._keep_days,
-            self._now_millis,
+            self._source_path, self._dest_path, self._dest_folder, self._transferred, self._keep_days, self._now_millis
         ):
             yield action
 
@@ -402,10 +369,7 @@ def make_b2_delete_note(version, index, transferred):
 
 
 def make_b2_delete_actions(
-    source_path: AbstractPath,
-    dest_path: AbstractPath,
-    dest_folder: AbstractFolder,
-    transferred: bool,
+    source_path: AbstractPath, dest_path: AbstractPath, dest_folder: AbstractFolder, transferred: bool
 ):
     """
     Create the actions to delete files stored on B2, which are not present locally.
@@ -478,10 +442,7 @@ def make_b2_keep_days_actions(
 
         # Do we need to hide this version?
         if version_index == 0 and source_path is None and version.action == 'upload':
-            yield B2HideAction(
-                dest_path.relative_path,
-                dest_folder.make_full_path(dest_path.relative_path),
-            )
+            yield B2HideAction(dest_path.relative_path, dest_folder.make_full_path(dest_path.relative_path))
 
         # Can we start deleting? Once we start deleting, all older
         # versions will also be deleted.

@@ -119,11 +119,7 @@ class TestUpdateBucket(BucketTestBase):
         'bucket_type,bucket_info,default_retention',
         (
             (None, {}, None),
-            (
-                'allPublic',
-                None,
-                BucketRetentionSetting(RetentionMode.COMPLIANCE, RetentionPeriod(years=1)),
-            ),
+            ('allPublic', None, BucketRetentionSetting(RetentionMode.COMPLIANCE, RetentionPeriod(years=1))),
         ),
     )
     def test_assertion_not_raises(self, bucket_type, bucket_info, default_retention):
@@ -141,13 +137,9 @@ class TestUpdateBucket(BucketTestBase):
         'encryption_setting,',
         (
             EncryptionSetting(
-                mode=EncryptionMode.SSE_C,
-                algorithm=EncryptionAlgorithm.AES256,
-                key=EncryptionKey(b'key', 'key-id'),
+                mode=EncryptionMode.SSE_C, algorithm=EncryptionAlgorithm.AES256, key=EncryptionKey(b'key', 'key-id')
             ),
-            EncryptionSetting(
-                mode=EncryptionMode.UNKNOWN,
-            ),
+            EncryptionSetting(mode=EncryptionMode.UNKNOWN),
         ),
     )
     def test_update_bucket_wrong_encryption(self, encryption_setting):
@@ -169,13 +161,9 @@ class TestCreateBucket(BucketTestBase):
         'encryption_setting,',
         (
             EncryptionSetting(
-                mode=EncryptionMode.SSE_C,
-                algorithm=EncryptionAlgorithm.AES256,
-                key=EncryptionKey(b'key', 'key-id'),
+                mode=EncryptionMode.SSE_C, algorithm=EncryptionAlgorithm.AES256, key=EncryptionKey(b'key', 'key-id')
             ),
-            EncryptionSetting(
-                mode=EncryptionMode.UNKNOWN,
-            ),
+            EncryptionSetting(mode=EncryptionMode.UNKNOWN),
         ),
     )
     def test_create_bucket_wrong_encryption(self, encryption_setting):

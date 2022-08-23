@@ -19,10 +19,7 @@ from ...file_version import DownloadVersion
 from ...progress import AbstractProgressListener
 from ...stream.progress import WritingStreamWithProgress
 
-from b2sdk.exception import (
-    ChecksumMismatch,
-    TruncatedOutput,
-)
+from b2sdk.exception import ChecksumMismatch, TruncatedOutput
 from b2sdk.utils import set_file_mtime
 
 if TYPE_CHECKING:
@@ -108,10 +105,7 @@ class DownloadedFile:
         self.check_hash = check_hash
 
     def _validate_download(self, bytes_read, actual_sha1):
-        if (
-            self.download_version.content_encoding is not None
-            and self.download_version.api.api_config.decode_content
-        ):
+        if self.download_version.content_encoding is not None and self.download_version.api.api_config.decode_content:
             return
         if self.range_ is None:
             if bytes_read != self.download_version.content_length:
@@ -123,9 +117,7 @@ class DownloadedFile:
                 and actual_sha1 != self.download_version.content_sha1
             ):
                 raise ChecksumMismatch(
-                    checksum_type='sha1',
-                    expected=self.download_version.content_sha1,
-                    actual=actual_sha1,
+                    checksum_type='sha1', expected=self.download_version.content_sha1, actual=actual_sha1
                 )
         else:
             desired_length = self.range_[1] - self.range_[0] + 1
@@ -172,9 +164,6 @@ class DownloadedFile:
                               (parallel strategies) will be discarded.
         """
         with MtimeUpdatedFile(
-            path_,
-            mod_time_millis=self.download_version.mod_time_millis,
-            mode=mode,
-            buffering=self.write_buffer_size,
+            path_, mod_time_millis=self.download_version.mod_time_millis, mode=mode, buffering=self.write_buffer_size
         ) as file:
             self.save(file, allow_seeking=allow_seeking)

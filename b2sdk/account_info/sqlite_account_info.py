@@ -29,9 +29,7 @@ B2_ACCOUNT_INFO_PROFILE_FILE = os.path.join('~', '.b2db-{profile}.sqlite')
 B2_ACCOUNT_INFO_PROFILE_NAME_REGEXP = re.compile(r'[a-zA-Z0-9_\-]{1,64}')
 XDG_CONFIG_HOME_ENV_VAR = 'XDG_CONFIG_HOME'
 
-DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE = (
-    5000000  # this value is used ONLY in migrating db, and in v1 wrapper, it is not
-)
+DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE = 5000000  # this value is used ONLY in migrating db, and in v1 wrapper, it is not
 # meant to be a default for other applications
 
 
@@ -104,9 +102,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             user_account_info_path = file_name
         elif B2_ACCOUNT_INFO_ENV_VAR in os.environ:
             if profile:
-                raise ValueError(
-                    'Provide either {} env var or profile, not both'.format(B2_ACCOUNT_INFO_ENV_VAR)
-                )
+                raise ValueError('Provide either {} env var or profile, not both'.format(B2_ACCOUNT_INFO_ENV_VAR))
             user_account_info_path = os.environ[B2_ACCOUNT_INFO_ENV_VAR]
         elif os.path.exists(os.path.expanduser(B2_ACCOUNT_INFO_DEFAULT_FILE)) and not profile:
             user_account_info_path = B2_ACCOUNT_INFO_DEFAULT_FILE
@@ -172,10 +168,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                     # Migrating from old schema is a little confusing, but the values change as:
                     # minimum_part_size -> recommended_part_size
                     # new column absolute_minimum_part_size = DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE
-                    conn.execute(
-                        insert_statement,
-                        (*(data[k] for k in keys), DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE),
-                    )
+                    conn.execute(insert_statement, (*(data[k] for k in keys), DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE))
                 # all is happy now
                 return
         except ValueError:  # includes json.decoder.JSONDecodeError
@@ -203,11 +196,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         This should be done before storing any sensitive data in it.
         """
         # Prepare a file
-        fd = os.open(
-            self.filename,
-            flags=os.O_RDWR | os.O_CREAT,
-            mode=stat.S_IRUSR | stat.S_IWUSR,
-        )
+        fd = os.open(self.filename, flags=os.O_RDWR | os.O_CREAT, mode=stat.S_IRUSR | stat.S_IWUSR)
         os.close(fd)
         # Create the tables in the database
         conn = self._connect()
@@ -377,17 +366,13 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         with self._get_connection() as conn:
             conn.execute('BEGIN')
             cursor = conn.execute(
-                'SELECT COUNT(*) AS count FROM update_done WHERE update_number = ?;',
-                (update_number,),
+                'SELECT COUNT(*) AS count FROM update_done WHERE update_number = ?;', (update_number,)
             )
             update_count = cursor.fetchone()[0]
             if update_count == 0:
                 for command in update_commands:
                     conn.execute(command)
-                conn.execute(
-                    'INSERT INTO update_done (update_number) VALUES (?);',
-                    (update_number,),
-                )
+                conn.execute('INSERT INTO update_done (update_number) VALUES (?);', (update_number,))
 
     def clear(self):
         """
@@ -442,14 +427,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             )
 
     def set_auth_data_with_schema_0_for_test(
-        self,
-        account_id,
-        auth_token,
-        api_url,
-        download_url,
-        minimum_part_size,
-        application_key,
-        realm,
+        self, account_id, auth_token, api_url, download_url, minimum_part_size, application_key, realm
     ):
         """
         Set authentication data for tests.
@@ -474,15 +452,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
 
             conn.execute(
                 insert_statement,
-                (
-                    account_id,
-                    application_key,
-                    auth_token,
-                    api_url,
-                    download_url,
-                    minimum_part_size,
-                    realm,
-                ),
+                (account_id, application_key, auth_token, api_url, download_url, minimum_part_size, realm),
             )
 
     def get_application_key(self):
@@ -569,8 +539,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                 return value
         except Exception as e:
             logger.exception(
-                '_get_account_info_or_raise encountered a problem while trying to retrieve "%s"',
-                column_name,
+                '_get_account_info_or_raise encountered a problem while trying to retrieve "%s"', column_name
             )
             raise MissingAccountData(str(e))
 
@@ -578,18 +547,12 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         with self._get_connection() as conn:
             conn.execute('DELETE FROM bucket;')
             for (bucket_name, bucket_id) in name_id_iterable:
-                conn.execute(
-                    'INSERT INTO bucket (bucket_name, bucket_id) VALUES (?, ?);',
-                    (bucket_name, bucket_id),
-                )
+                conn.execute('INSERT INTO bucket (bucket_name, bucket_id) VALUES (?, ?);', (bucket_name, bucket_id))
 
     def save_bucket(self, bucket):
         with self._get_connection() as conn:
             conn.execute('DELETE FROM bucket WHERE bucket_id = ?;', (bucket.id_,))
-            conn.execute(
-                'INSERT INTO bucket (bucket_id, bucket_name) VALUES (?, ?);',
-                (bucket.id_, bucket.name),
-            )
+            conn.execute('INSERT INTO bucket (bucket_id, bucket_name) VALUES (?, ?);', (bucket.id_, bucket.name))
 
     def remove_bucket_name(self, bucket_name):
         with self._get_connection() as conn:

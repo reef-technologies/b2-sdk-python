@@ -253,9 +253,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
 
         if continue_large_file_id is not None:
             unfinished_file = self.services.large_file.get_unfinished_large_file(
-                bucket_id,
-                continue_large_file_id,
-                prefix=file_name,
+                bucket_id, continue_large_file_id, prefix=file_name
             )
             if unfinished_file.file_info != file_info:
                 raise ValueError('Cannot manually resume unfinished large file with different file_info')
@@ -265,23 +263,11 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         elif 'plan_id' in file_info:
             assert emerge_parts_dict is not None
             unfinished_file, finished_parts = self._find_unfinished_file_by_plan_id(
-                bucket_id,
-                file_name,
-                file_info,
-                emerge_parts_dict,
-                encryption,
-                file_retention,
-                legal_hold,
+                bucket_id, file_name, file_info, emerge_parts_dict, encryption, file_retention, legal_hold
             )
         elif emerge_parts_dict is not None:
             unfinished_file, finished_parts = self._match_unfinished_file_if_possible(
-                bucket_id,
-                file_name,
-                file_info,
-                emerge_parts_dict,
-                encryption,
-                file_retention,
-                legal_hold,
+                bucket_id, file_name, file_info, emerge_parts_dict, encryption, file_retention, legal_hold
             )
         return unfinished_file, finished_parts
 
@@ -435,22 +421,13 @@ class SmallFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
 
     def create_upload_execution_step(self, stream_opener, stream_length=None, stream_sha1=None):
         return UploadFileExecutionStep(
-            self.emerge_execution,
-            stream_opener,
-            stream_length=stream_length,
-            stream_sha1=stream_sha1,
+            self.emerge_execution, stream_opener, stream_length=stream_length, stream_sha1=stream_sha1
         )
 
 
 class LargeFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
     def __init__(
-        self,
-        emerge_execution,
-        emerge_part,
-        part_number,
-        large_file_id,
-        large_file_upload_state,
-        finished_parts=None,
+        self, emerge_execution, emerge_part, part_number, large_file_id, large_file_upload_state, finished_parts=None
     ):
         super(LargeFileEmergeExecutionStepFactory, self).__init__(emerge_execution, emerge_part)
         self.part_number = part_number
@@ -460,11 +437,7 @@ class LargeFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
 
     def create_copy_execution_step(self, copy_range):
         return CopyPartExecutionStep(
-            self.emerge_execution,
-            copy_range,
-            self.part_number,
-            self.large_file_id,
-            self.large_file_upload_state,
+            self.emerge_execution, copy_range, self.part_number, self.large_file_id, self.large_file_upload_state
         )
 
     def create_upload_execution_step(self, stream_opener, stream_length=None, stream_sha1=None):
@@ -555,9 +528,7 @@ class UploadFileExecutionStep(BaseExecutionStep):
 
     def execute(self):
         upload_source = UploadSourceStream(
-            self.stream_opener,
-            stream_length=self.stream_length,
-            stream_sha1=self.stream_sha1,
+            self.stream_opener, stream_length=self.stream_length, stream_sha1=self.stream_sha1
         )
         execution = self.emerge_execution
         return execution.services.upload_manager.upload_file(
@@ -597,9 +568,7 @@ class UploadPartExecutionStep(BaseExecutionStep):
     def execute(self):
         execution = self.emerge_execution
         upload_source = UploadSourceStream(
-            self.stream_opener,
-            stream_length=self.stream_length,
-            stream_sha1=self.stream_sha1,
+            self.stream_opener, stream_length=self.stream_length, stream_sha1=self.stream_sha1
         )
         return execution.services.upload_manager.upload_part(
             execution.bucket_id,

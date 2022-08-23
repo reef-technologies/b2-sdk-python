@@ -43,13 +43,7 @@ class ReplicationRule:
             raise ValueError('replication rule name is invalid')
 
         if not (self.MIN_PRIORITY <= self.priority <= self.MAX_PRIORITY):
-            raise ValueError(
-                'priority should be within [%d, %d] interval'
-                % (
-                    self.MIN_PRIORITY,
-                    self.MAX_PRIORITY,
-                )
-            )
+            raise ValueError('priority should be within [%d, %d] interval' % (self.MIN_PRIORITY, self.MAX_PRIORITY))
 
     def as_dict(self) -> dict:
         return {
@@ -108,19 +102,14 @@ class ReplicationConfiguration:
         return bool(self.source_key_id)
 
     def get_source_configuration_as_dict(self) -> dict:
-        return {
-            'rules': self.rules,
-            'source_key_id': self.source_key_id,
-        }
+        return {'rules': self.rules, 'source_key_id': self.source_key_id}
 
     @property
     def is_destination(self) -> bool:
         return bool(self.source_to_destination_key_mapping)
 
     def get_destination_configuration_as_dict(self) -> dict:
-        return {
-            'source_to_destination_key_mapping': self.source_to_destination_key_mapping,
-        }
+        return {'source_to_destination_key_mapping': self.source_to_destination_key_mapping}
 
     def as_dict(self) -> dict:
         """
@@ -167,9 +156,7 @@ class ReplicationConfiguration:
             }
             if self.is_source
             else None,
-            'asReplicationDestination': {
-                'sourceToDestinationKeyMapping': self.source_to_destination_key_mapping,
-            }
+            'asReplicationDestination': {'sourceToDestinationKeyMapping': self.source_to_destination_key_mapping}
             if self.is_destination
             else None,
         }

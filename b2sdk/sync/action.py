@@ -131,10 +131,7 @@ class B2UploadAction(AbstractAction):
             progress_listener = None
         file_info = {SRC_LAST_MODIFIED_MILLIS: str(self.mod_time_millis)}
         encryption = self.encryption_settings_provider.get_setting_for_upload(
-            bucket=bucket,
-            b2_file_name=self.b2_file_name,
-            file_info=file_info,
-            length=self.size,
+            bucket=bucket, b2_file_name=self.b2_file_name, file_info=file_info, length=self.size
         )
         bucket.upload(
             UploadSourceLocalFile(self.local_full_path),
@@ -155,11 +152,7 @@ class B2UploadAction(AbstractAction):
         reporter.print_completion('upload ' + self.relative_name)
 
     def __str__(self):
-        return 'b2_upload(%s, %s, %s)' % (
-            self.local_full_path,
-            self.b2_file_name,
-            self.mod_time_millis,
-        )
+        return 'b2_upload(%s, %s, %s)' % (self.local_full_path, self.b2_file_name, self.mod_time_millis)
 
 
 class B2HideAction(AbstractAction):
@@ -262,14 +255,11 @@ class B2DownloadAction(AbstractAction):
         download_path = self.local_full_path + '.b2.sync.tmp'
 
         encryption = self.encryption_settings_provider.get_setting_for_download(
-            bucket=bucket,
-            file_version=self.source_path.selected_version,
+            bucket=bucket, file_version=self.source_path.selected_version
         )
 
         downloaded_file = bucket.download_file_by_id(
-            self.source_path.selected_version.id_,
-            progress_listener=progress_listener,
-            encryption=encryption,
+            self.source_path.selected_version.id_, progress_listener=progress_listener, encryption=encryption
         )
         downloaded_file.save_to(download_path)
 
@@ -350,8 +340,7 @@ class B2CopyAction(AbstractAction):
             progress_listener = None
 
         source_encryption = self.encryption_settings_provider.get_source_setting_for_copy(
-            bucket=self.source_bucket,
-            source_file_version=self.source_path.selected_version,
+            bucket=self.source_bucket, source_file_version=self.source_path.selected_version
         )
 
         destination_encryption = self.encryption_settings_provider.get_destination_setting_for_copy(

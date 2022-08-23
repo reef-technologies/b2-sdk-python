@@ -82,12 +82,7 @@ class LocalSourceUploadSubpart(BaseUploadSubpart):
 
     def _get_stream(self):
         fp = self.outbound_source.open()
-        return wrap_with_range(
-            fp,
-            self.outbound_source.get_content_length(),
-            self.relative_offset,
-            self.length,
-        )
+        return wrap_with_range(fp, self.outbound_source.get_content_length(), self.relative_offset, self.length)
 
     def is_hashable(self):
         return True

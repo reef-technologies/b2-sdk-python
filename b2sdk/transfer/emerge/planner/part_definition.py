@@ -76,19 +76,12 @@ class UploadEmergePartDefinition(BaseEmergePartDefinition):
 
     def get_execution_step(self, execution_step_factory):
         return execution_step_factory.create_upload_execution_step(
-            self._get_stream,
-            stream_length=self.length,
-            stream_sha1=self.get_sha1(),
+            self._get_stream, stream_length=self.length, stream_sha1=self.get_sha1()
         )
 
     def _get_stream(self):
         fp = self.upload_source.open()
-        return wrap_with_range(
-            fp,
-            self.upload_source.get_content_length(),
-            self.relative_offset,
-            self.length,
-        )
+        return wrap_with_range(fp, self.upload_source.get_content_length(), self.relative_offset, self.length)
 
 
 class UploadSubpartsEmergePartDefinition(BaseEmergePartDefinition):
@@ -99,8 +92,7 @@ class UploadSubpartsEmergePartDefinition(BaseEmergePartDefinition):
 
     def __repr__(self):
         return '<{classname} upload_subparts={upload_subparts}>'.format(
-            classname=self.__class__.__name__,
-            upload_subparts=repr(self.upload_subparts),
+            classname=self.__class__.__name__, upload_subparts=repr(self.upload_subparts)
         )
 
     def get_length(self):
@@ -123,10 +115,7 @@ class UploadSubpartsEmergePartDefinition(BaseEmergePartDefinition):
 
     def get_execution_step(self, execution_step_factory):
         return execution_step_factory.create_upload_execution_step(
-            partial(
-                self._get_stream,
-                emerge_execution=execution_step_factory.emerge_execution,
-            ),
+            partial(self._get_stream, emerge_execution=execution_step_factory.emerge_execution),
             stream_length=self.get_length(),
             stream_sha1=self.get_sha1(),
         )

@@ -27,12 +27,7 @@ API_VERSIONS = get_api_versions()
 @pytest.hookimpl
 def pytest_addoption(parser):
     """Add an argument for running test for given apiver."""
-    parser.addoption(
-        '--api',
-        default=API_VERSIONS[-1],
-        choices=API_VERSIONS,
-        help='version of the API',
-    )
+    parser.addoption('--api', default=API_VERSIONS[-1], choices=API_VERSIONS, help='version of the API')
 
 
 @pytest.hookimpl
@@ -40,8 +35,7 @@ def pytest_configure(config):
     """Add apiver test folder to the path and add "apiver" marker used by `pytest_runtest_setup`."""
     sys.path.insert(0, str(Path(__file__).parent / config.getoption('--api') / 'apiver'))
     config.addinivalue_line(
-        'markers',
-        'apiver(*args, *, from_ver=0, to_ver=sys.maxsize): mark test to run only for specific apivers',
+        'markers', 'apiver(*args, *, from_ver=0, to_ver=sys.maxsize): mark test to run only for specific apivers'
     )
 
 

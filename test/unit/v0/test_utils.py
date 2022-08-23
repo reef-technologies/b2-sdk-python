@@ -10,13 +10,7 @@
 
 from ..test_base import TestBase
 
-from .deps import (
-    b2_url_encode,
-    b2_url_decode,
-    choose_part_ranges,
-    format_and_scale_number,
-    format_and_scale_fraction,
-)
+from .deps import b2_url_encode, b2_url_decode, choose_part_ranges, format_and_scale_number, format_and_scale_fraction
 
 # These are from the B2 Docs (https://www.backblaze.com/b2/docs/string_encoding.html)
 ENCODING_TEST_CASES = [
@@ -60,16 +54,8 @@ ENCODING_TEST_CASES = [
     {'fullyEncoded': '%7D', 'minimallyEncoded': '%7D', 'string': '}'},
     {'fullyEncoded': '%7E', 'minimallyEncoded': '~', 'string': '~'},
     {'fullyEncoded': '%7F', 'minimallyEncoded': '%7F', 'string': u'\u007f'},
-    {
-        'fullyEncoded': '%E8%87%AA%E7%94%B1',
-        'minimallyEncoded': '%E8%87%AA%E7%94%B1',
-        'string': u'\u81ea\u7531',
-    },
-    {
-        'fullyEncoded': '%F0%90%90%80',
-        'minimallyEncoded': '%F0%90%90%80',
-        'string': u'\U00010400',
-    },
+    {'fullyEncoded': '%E8%87%AA%E7%94%B1', 'minimallyEncoded': '%E8%87%AA%E7%94%B1', 'string': u'\u81ea\u7531'},
+    {'fullyEncoded': '%F0%90%90%80', 'minimallyEncoded': '%F0%90%90%80', 'string': u'\U00010400'},
 ]
 
 
@@ -83,10 +69,7 @@ class TestUrlEncoding(TestBase):
 
             expected_encoded = (minimally_encoded, fully_encoded)
             if encoded not in expected_encoded:
-                print(
-                    'string: %s   encoded: %s   expected: %s'
-                    % (repr(string), encoded, expected_encoded)
-                )
+                print('string: %s   encoded: %s   expected: %s' % (repr(string), encoded, expected_encoded))
             self.assertTrue(encoded in expected_encoded)
             self.assertEqual(string, b2_url_decode(fully_encoded))
             self.assertEqual(string, b2_url_decode(minimally_encoded))

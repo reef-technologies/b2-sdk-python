@@ -85,9 +85,7 @@ class TestInterpretError:
         assert 'File not present: file.txt' == str(
             interpret_b2_error(404, 'not_found', '', {}, {'fileName': 'file.txt'})
         )
-        assert 'File not present: 01010101' == str(
-            interpret_b2_error(404, 'not_found', '', {}, {'fileId': '01010101'})
-        )
+        assert 'File not present: 01010101' == str(interpret_b2_error(404, 'not_found', '', {}, {'fileId': '01010101'}))
 
     def test_file_or_bucket_not_present(self):
         self._check_one(ResourceNotFound, 404, None, None, {})
@@ -122,26 +120,14 @@ class TestInterpretError:
         self._check_one((CapExceeded, StorageCapExceeded), 403, 'storage_cap_exceeded', '', {})
 
     def test_transaction_cap_exceeded(self):
-        self._check_one(
-            (CapExceeded, TransactionCapExceeded),
-            403,
-            'transaction_cap_exceeded',
-            '',
-            {},
-        )
+        self._check_one((CapExceeded, TransactionCapExceeded), 403, 'transaction_cap_exceeded', '', {})
 
     def test_conflict(self):
         self._check_one(Conflict, 409, '', '', {})
 
     def test_too_many_requests_with_retry_after_header(self):
         retry_after = 200
-        error = self._check_one(
-            TooManyRequests,
-            429,
-            '',
-            '',
-            {'retry-after': retry_after},
-        )
+        error = self._check_one(TooManyRequests, 429, '', '', {'retry-after': retry_after})
         assert error.retry_after_seconds == retry_after
 
     def test_too_many_requests_without_retry_after_header(self):
@@ -166,15 +152,7 @@ class TestInterpretError:
         assert 'Unknown error: 499 code message' == str(error)
 
     @classmethod
-    def _check_one(
-        cls,
-        expected_class,
-        status,
-        code,
-        message,
-        response_headers,
-        post_params=None,
-    ):
+    def _check_one(cls, expected_class, status, code, message, response_headers, post_params=None):
         actual_exception = interpret_b2_error(status, code, message, response_headers, post_params)
         assert isinstance(actual_exception, expected_class)
         return actual_exception

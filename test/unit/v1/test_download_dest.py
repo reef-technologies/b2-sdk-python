@@ -12,11 +12,7 @@ import os
 
 from ..test_base import TestBase
 
-from .deps import (
-    DownloadDestLocalFile,
-    DownloadDestProgressWrapper,
-    PreSeekedDownloadDest,
-)
+from .deps import DownloadDestLocalFile, DownloadDestProgressWrapper, PreSeekedDownloadDest
 from .deps import ProgressListenerForTest
 from .deps import TempDir
 
@@ -40,10 +36,7 @@ class TestDownloadDestLocalFile(TestBase):
             ) as f:
                 f.write(b'hello world')
             with open(file_path, 'rb') as f:
-                self.assertEqual(
-                    self.expected_result.encode(),
-                    f.read(),
-                )
+                self.assertEqual(self.expected_result.encode(), f.read())
             self.assertEqual(mod_time, int(os.path.getmtime(file_path) * 1000))
 
     def test_failed_write_deletes_partial_file(self):
@@ -51,13 +44,7 @@ class TestDownloadDestLocalFile(TestBase):
             download_dest, file_path = self._make_dest(temp_dir)
             try:
                 with download_dest.make_file_context(
-                    "file_id",
-                    "file_name",
-                    100,
-                    "content_type",
-                    "sha1",
-                    {},
-                    1500222333000,
+                    "file_id", "file_name", 100, "content_type", "sha1", {}, 1500222333000
                 ) as f:
                     f.write(b'hello world')
                     raise Exception('test error')
@@ -73,10 +60,7 @@ class TestPreSeekedDownloadDest(TestDownloadDestLocalFile):
         file_path = os.path.join(temp_dir, "test.txt")
         with open(file_path, 'wb') as f:
             f.write(b'12345678901234567890')
-        return (
-            PreSeekedDownloadDest(local_file_path=file_path, seek_target=3),
-            file_path,
-        )
+        return (PreSeekedDownloadDest(local_file_path=file_path, seek_target=3), file_path)
 
 
 class TestDownloadDestProgressWrapper(TestBase):
@@ -97,11 +81,4 @@ class TestDownloadDestProgressWrapper(TestBase):
             with open(file_path, 'rb') as f:
                 self.assertEqual(b'hello world\n', f.read())
             self.assertEqual(mod_time, int(os.path.getmtime(file_path) * 1000))
-            self.assertEqual(
-                [
-                    'set_total_bytes(100)',
-                    'bytes_completed(12)',
-                    'close()',
-                ],
-                progress_listener.get_calls(),
-            )
+            self.assertEqual(['set_total_bytes(100)', 'bytes_completed(12)', 'close()'], progress_listener.get_calls())

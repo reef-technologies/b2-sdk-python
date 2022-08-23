@@ -113,9 +113,7 @@ class Synchronizer:
         self.compare_threshold = compare_threshold or 0
         self.dry_run = dry_run
         self.allow_empty_source = allow_empty_source
-        self.policies_manager = (
-            policies_manager  # actually it should be called scan_policies_manager
-        )
+        self.policies_manager = policies_manager  # actually it should be called scan_policies_manager
         self.sync_policy_manager = sync_policy_manager
         self.max_workers = max_workers
         self._validate()
@@ -125,31 +123,18 @@ class Synchronizer:
             raise InvalidArgument('compare_threshold', 'must be a positive integer')
 
         if self.newer_file_mode not in tuple(NewerFileSyncMode):
-            raise InvalidArgument(
-                'newer_file_mode',
-                'must be one of :%s' % NewerFileSyncMode.__members__,
-            )
+            raise InvalidArgument('newer_file_mode', 'must be one of :%s' % NewerFileSyncMode.__members__)
 
         if self.keep_days_or_delete not in tuple(KeepOrDeleteMode):
-            raise InvalidArgument(
-                'keep_days_or_delete',
-                'must be one of :%s' % KeepOrDeleteMode.__members__,
-            )
+            raise InvalidArgument('keep_days_or_delete', 'must be one of :%s' % KeepOrDeleteMode.__members__)
 
-        if (
-            self.keep_days_or_delete == KeepOrDeleteMode.KEEP_BEFORE_DELETE
-            and self.keep_days is None
-        ):
+        if self.keep_days_or_delete == KeepOrDeleteMode.KEEP_BEFORE_DELETE and self.keep_days is None:
             raise InvalidArgument(
-                'keep_days',
-                'is required when keep_days_or_delete is %s' % KeepOrDeleteMode.KEEP_BEFORE_DELETE,
+                'keep_days', 'is required when keep_days_or_delete is %s' % KeepOrDeleteMode.KEEP_BEFORE_DELETE
             )
 
         if self.compare_version_mode not in tuple(CompareVersionMode):
-            raise InvalidArgument(
-                'compare_version_mode',
-                'must be one of :%s' % CompareVersionMode.__members__,
-            )
+            raise InvalidArgument('compare_version_mode', 'must be one of :%s' % CompareVersionMode.__members__)
 
     def sync_folders(
         self,
@@ -209,12 +194,7 @@ class Synchronizer:
 
         # Schedule each of the actions.
         for action in self._make_folder_sync_actions(
-            source_folder,
-            dest_folder,
-            now_millis,
-            reporter,
-            self.policies_manager,
-            encryption_settings_provider,
+            source_folder, dest_folder, now_millis, reporter, self.policies_manager, encryption_settings_provider
         ):
             logging.debug('scheduling action %s on bucket %s', action, action_bucket)
             sync_executor.submit(action.run, action_bucket, reporter, self.dry_run)
@@ -244,10 +224,7 @@ class Synchronizer:
         :param b2sdk.v2.ScanPolicyManager policies_manager: object which decides which files to process
         :param b2sdk.v2.AbstractSyncEncryptionSettingsProvider encryption_settings_provider: encryption setting provider
         """
-        if (
-            self.keep_days_or_delete == KeepOrDeleteMode.KEEP_BEFORE_DELETE
-            and dest_folder.folder_type() == 'local'
-        ):
+        if self.keep_days_or_delete == KeepOrDeleteMode.KEEP_BEFORE_DELETE and dest_folder.folder_type() == 'local':
             raise InvalidArgument('keep_days_or_delete', 'cannot be used for local files')
 
         source_type = source_folder.folder_type()
@@ -258,12 +235,7 @@ class Synchronizer:
 
         total_files = 0
         total_bytes = 0
-        for source_path, dest_path in zip_folders(
-            source_folder,
-            dest_folder,
-            reporter,
-            policies_manager,
-        ):
+        for source_path, dest_path in zip_folders(source_folder, dest_folder, reporter, policies_manager):
             if source_path is None:
                 logger.debug('determined that %s is not present on source', dest_path)
             elif dest_path is None:
@@ -277,13 +249,7 @@ class Synchronizer:
                 reporter.update_compare(1)
 
             for action in self._make_file_sync_actions(
-                sync_type,
-                source_path,
-                dest_path,
-                source_folder,
-                dest_folder,
-                now_millis,
-                encryption_settings_provider,
+                sync_type, source_path, dest_path, source_folder, dest_folder, now_millis, encryption_settings_provider
             ):
                 total_files += 1
                 total_bytes += action.get_bytes()

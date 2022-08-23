@@ -12,12 +12,7 @@
 class PartFactory:
     @classmethod
     def from_list_parts_dict(cls, part_dict):
-        return Part(
-            part_dict['fileId'],
-            part_dict['partNumber'],
-            part_dict['contentLength'],
-            part_dict['contentSha1'],
-        )
+        return Part(part_dict['fileId'], part_dict['partNumber'], part_dict['contentLength'], part_dict['contentSha1'])
 
 
 class Part:

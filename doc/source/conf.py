@@ -120,10 +120,7 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {
-    'prev_next_buttons_location': 'both',
-    'collapse_navigation': True,
-}
+html_theme_options = {'prev_next_buttons_location': 'both', 'collapse_navigation': True}
 
 autodoc_default_options = {
     'member-order': 'bysource',
@@ -177,9 +174,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, 'B2_Python_SDK.tex', u'B2\\_Python\\_SDK', u'Backblaze', 'manual'),
-]
+latex_documents = [(master_doc, 'B2_Python_SDK.tex', u'B2\\_Python\\_SDK', u'Backblaze', 'manual')]
 
 # -- Options for manual page output ---------------------------------------
 
@@ -201,7 +196,7 @@ texinfo_documents = [
         'B2_Python_SDK',
         'Backblaze Python SDK',
         'Miscellaneous',
-    ),
+    )
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.

@@ -16,11 +16,7 @@ Changes made to the original source: see NOTICE
 """
 
 from requests import Response, ConnectionError
-from requests.exceptions import (
-    ChunkedEncodingError,
-    ContentDecodingError,
-    StreamConsumedError,
-)
+from requests.exceptions import ChunkedEncodingError, ContentDecodingError, StreamConsumedError
 from requests.utils import iter_slices, stream_decode_response_unicode
 from urllib3.exceptions import ProtocolError, DecodeError, ReadTimeoutError
 

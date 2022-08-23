@@ -51,12 +51,7 @@ class BaseFileVersion:
         'replication_status',
     ]
     _TYPE_MATCHER = re.compile('[a-z0-9]+_[a-z0-9]+_f([0-9]).*')
-    _FILE_TYPE = {
-        1: 'small',
-        2: 'large',
-        3: 'part',
-        4: 'tiny',
-    }
+    _FILE_TYPE = {1: 'small', 2: 'large', 3: 'part', 4: 'tiny'}
 
     def __init__(
         self,
@@ -118,9 +113,7 @@ class BaseFileVersion:
             'file_name': self.file_name,
             'size': self.size,
             'content_type': self.content_type,
-            'content_sha1': self._encode_content_sha1(
-                self.content_sha1, self.content_sha1_verified
-            ),
+            'content_sha1': self._encode_content_sha1(self.content_sha1, self.content_sha1_verified),
             'file_info': self.file_info,
             'upload_timestamp': self.upload_timestamp,
             'server_side_encryption': self.server_side_encryption,
@@ -160,10 +153,7 @@ class BaseFileVersion:
         return True
 
     def __repr__(self):
-        return '%s(%s)' % (
-            self.__class__.__name__,
-            ', '.join(repr(getattr(self, attr)) for attr in self._all_slots()),
-        )
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(repr(getattr(self, attr)) for attr in self._all_slots()))
 
     def _all_slots(self):
         """Return all slots for an object (for it's class and all parent classes). Useful in auxiliary methods."""
@@ -180,9 +170,7 @@ class BaseFileVersion:
         return self._clone(legal_hold=legal_hold)
 
     def update_retention(
-        self,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+        self, file_retention: FileRetentionSetting, bypass_governance: bool = False
     ) -> 'BaseFileVersion':
         file_retention = self.api.update_file_retention(self.id_, self.file_name, file_retention, bypass_governance)
         return self._clone(file_retention=file_retention)
@@ -209,12 +197,7 @@ class FileVersion(BaseFileVersion):
     :ivar str ~.action: ``"upload"``, ``"hide"`` or ``"delete"``
     """
 
-    __slots__ = [
-        'account_id',
-        'bucket_id',
-        'content_md5',
-        'action',
-    ]
+    __slots__ = ['account_id', 'bucket_id', 'content_md5', 'action']
 
     # defined at https://www.backblaze.com/b2/docs/files.html#httpHeaderSizeLimit
     DEFAULT_HEADERS_LIMIT = 7000
@@ -297,10 +280,7 @@ class FileVersion(BaseFileVersion):
         encryption: Optional[EncryptionSetting] = None,
     ) -> 'DownloadedFile':
         return self.api.download_file_by_id(
-            self.id_,
-            progress_listener=progress_listener,
-            range_=range_,
-            encryption=encryption,
+            self.id_, progress_listener=progress_listener, range_=range_, encryption=encryption
         )
 
     def _get_upload_headers(self) -> bytes:
@@ -494,9 +474,7 @@ class FileVersionFactory:
         legal_hold = LegalHold.from_file_version_dict(file_version_dict)
 
         replication_status_value = file_version_dict.get('replicationStatus')
-        replication_status = (
-            replication_status_value and ReplicationStatus[replication_status_value.upper()]
-        )
+        replication_status = replication_status_value and ReplicationStatus[replication_status_value.upper()]
 
         return self.FILE_VERSION_CLASS(
             self.api,
@@ -599,8 +577,4 @@ class FileIdAndName:
         return self.file_id == other.file_id and self.file_name == other.file_name
 
     def __repr__(self):
-        return '%s(%s, %s)' % (
-            self.__class__.__name__,
-            repr(self.file_id),
-            repr(self.file_name),
-        )
+        return '%s(%s, %s)' % (self.__class__.__name__, repr(self.file_id), repr(self.file_name))

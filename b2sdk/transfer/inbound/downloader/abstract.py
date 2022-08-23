@@ -69,9 +69,7 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
         self._forced_chunk_size = force_chunk_size
         self._align_factor = align_factor
         self._check_hash = check_hash
-        self._thread_pool = (
-            thread_pool if thread_pool is not None else self.DEFAULT_THREAD_POOL_CLASS()
-        )
+        self._thread_pool = thread_pool if thread_pool is not None else self.DEFAULT_THREAD_POOL_CLASS()
         super().__init__(**kwargs)
 
     def _get_hasher(self):

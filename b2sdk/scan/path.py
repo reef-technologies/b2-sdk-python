@@ -59,12 +59,7 @@ class LocalPath(AbstractPath):
 class B2Path(AbstractPath):
     __slots__ = ['relative_path', 'selected_version', 'all_versions']
 
-    def __init__(
-        self,
-        relative_path: str,
-        selected_version: FileVersion,
-        all_versions: List[FileVersion],
-    ):
+    def __init__(self, relative_path: str, selected_version: FileVersion, all_versions: List[FileVersion]):
         self.selected_version = selected_version
         self.all_versions = all_versions
         self.relative_path = relative_path
@@ -85,13 +80,7 @@ class B2Path(AbstractPath):
             self.__class__.__name__,
             self.relative_path,
             ', '.join(
-                '(%s, %s, %s)'
-                % (
-                    repr(fv.id_),
-                    repr(fv.mod_time_millis),
-                    repr(fv.action),
-                )
-                for fv in self.all_versions
+                '(%s, %s, %s)' % (repr(fv.id_), repr(fv.mod_time_millis), repr(fv.action)) for fv in self.all_versions
             ),
         )
 

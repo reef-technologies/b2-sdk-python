@@ -152,12 +152,7 @@ class Emerger(metaclass=B2TraceMetaAbstract):
             legal_hold=legal_hold,
         )
 
-    def get_emerge_planner(
-        self,
-        recommended_upload_part_size=None,
-        min_part_size=None,
-        max_part_size=None,
-    ):
+    def get_emerge_planner(self, recommended_upload_part_size=None, min_part_size=None, max_part_size=None):
         return EmergePlanner.from_account_info(
             self.services.session.account_info,
             min_part_size=min_part_size,

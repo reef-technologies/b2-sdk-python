@@ -39,27 +39,20 @@ class TestMakeB2KeepDaysActions(TestBase):
         self.check_one_answer(
             True,
             [(1, -5, 'upload'), (2, -10, 'hide'), (3, -20, 'upload')],
-            [
-                'b2_delete(folder/a, 2, (hide marker))',
-                'b2_delete(folder/a, 3, (old version))',
-            ],
+            ['b2_delete(folder/a, 2, (hide marker))', 'b2_delete(folder/a, 3, (old version))'],
         )
 
     def test_old_upload_causes_delete(self):
         # An upload that is old stays if there is a source file, but things
         # behind it go away.
         self.check_one_answer(
-            True,
-            [(1, -5, 'upload'), (2, -10, 'upload'), (3, -20, 'upload')],
-            ['b2_delete(folder/a, 3, (old version))'],
+            True, [(1, -5, 'upload'), (2, -10, 'upload'), (3, -20, 'upload')], ['b2_delete(folder/a, 3, (old version))']
         )
 
     def test_out_of_order_dates(self):
         # The one at date -3 will get deleted because the one before it is old.
         self.check_one_answer(
-            True,
-            [(1, -5, 'upload'), (2, -10, 'upload'), (3, -3, 'upload')],
-            ['b2_delete(folder/a, 3, (old version))'],
+            True, [(1, -5, 'upload'), (2, -10, 'upload'), (3, -3, 'upload')], ['b2_delete(folder/a, 3, (old version))']
         )
 
     def check_one_answer(self, has_source, id_relative_date_action_list, expected_actions):
@@ -78,11 +71,7 @@ class TestMakeB2KeepDaysActions(TestBase):
             for (id_, relative_date, action) in id_relative_date_action_list
         ]
         dest_file = (
-            B2SyncPath(
-                'a',
-                selected_version=dest_file_versions[0],
-                all_versions=dest_file_versions,
-            )
+            B2SyncPath('a', selected_version=dest_file_versions[0], all_versions=dest_file_versions)
             if dest_file_versions
             else None
         )
@@ -91,14 +80,7 @@ class TestMakeB2KeepDaysActions(TestBase):
         api.get_bucket_by_name.return_value = bucket
         dest_folder = B2Folder('bucket-1', 'folder', api)
         actual_actions = list(
-            make_b2_keep_days_actions(
-                source_file,
-                dest_file,
-                dest_folder,
-                dest_folder,
-                self.keep_days,
-                self.today,
-            )
+            make_b2_keep_days_actions(source_file, dest_file, dest_folder, dest_folder, self.keep_days, self.today)
         )
         actual_action_strs = [str(a) for a in actual_actions]
         self.assertEqual(expected_actions, actual_action_strs)

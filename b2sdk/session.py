@@ -163,23 +163,9 @@ class B2Session:
             replication=replication,
         )
 
-    def create_key(
-        self,
-        account_id,
-        capabilities,
-        key_name,
-        valid_duration_seconds,
-        bucket_id,
-        name_prefix,
-    ):
+    def create_key(self, account_id, capabilities, key_name, valid_duration_seconds, bucket_id, name_prefix):
         return self._wrap_default_token(
-            self.raw_api.create_key,
-            account_id,
-            capabilities,
-            key_name,
-            valid_duration_seconds,
-            bucket_id,
-            name_prefix,
+            self.raw_api.create_key, account_id, capabilities, key_name, valid_duration_seconds, bucket_id, name_prefix
         )
 
     def delete_key(self, application_key_id):
@@ -193,11 +179,7 @@ class B2Session:
 
     def download_file_from_url(self, url, range_=None, encryption: Optional[EncryptionSetting] = None):
         return self._wrap_token(
-            self.raw_api.download_file_from_url,
-            TokenType.API_TOKEN_ONLY,
-            url,
-            range_=range_,
-            encryption=encryption,
+            self.raw_api.download_file_from_url, TokenType.API_TOKEN_ONLY, url, range_=range_, encryption=encryption
         )
 
     def finish_large_file(self, file_id, part_sha1_array):
@@ -205,10 +187,7 @@ class B2Session:
 
     def get_download_authorization(self, bucket_id, file_name_prefix, valid_duration_in_seconds):
         return self._wrap_default_token(
-            self.raw_api.get_download_authorization,
-            bucket_id,
-            file_name_prefix,
-            valid_duration_in_seconds,
+            self.raw_api.get_download_authorization, bucket_id, file_name_prefix, valid_duration_in_seconds
         )
 
     def get_file_info_by_id(self, file_id: str) -> Dict[str, Any]:
@@ -228,19 +207,10 @@ class B2Session:
 
     def list_buckets(self, account_id, bucket_id=None, bucket_name=None):
         return self._wrap_default_token(
-            self.raw_api.list_buckets,
-            account_id,
-            bucket_id=bucket_id,
-            bucket_name=bucket_name,
+            self.raw_api.list_buckets, account_id, bucket_id=bucket_id, bucket_name=bucket_name
         )
 
-    def list_file_names(
-        self,
-        bucket_id,
-        start_file_name=None,
-        max_file_count=None,
-        prefix=None,
-    ):
+    def list_file_names(self, bucket_id, start_file_name=None, max_file_count=None, prefix=None):
         return self._wrap_default_token(
             self.raw_api.list_file_names,
             bucket_id,
@@ -249,14 +219,7 @@ class B2Session:
             prefix=prefix,
         )
 
-    def list_file_versions(
-        self,
-        bucket_id,
-        start_file_name=None,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
-    ):
+    def list_file_versions(self, bucket_id, start_file_name=None, start_file_id=None, max_file_count=None, prefix=None):
         return self._wrap_default_token(
             self.raw_api.list_file_versions,
             bucket_id,
@@ -277,13 +240,7 @@ class B2Session:
     def list_parts(self, file_id, start_part_number, max_part_count):
         return self._wrap_default_token(self.raw_api.list_parts, file_id, start_part_number, max_part_count)
 
-    def list_unfinished_large_files(
-        self,
-        bucket_id,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
-    ):
+    def list_unfinished_large_files(self, bucket_id, start_file_id=None, max_file_count=None, prefix=None):
         return self._wrap_default_token(
             self.raw_api.list_unfinished_large_files,
             bucket_id,
@@ -544,29 +501,11 @@ class B2Session:
         return response
 
     def update_file_retention(
-        self,
-        file_id,
-        file_name,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+        self, file_id, file_name, file_retention: FileRetentionSetting, bypass_governance: bool = False
     ):
         return self._wrap_default_token(
-            self.raw_api.update_file_retention,
-            file_id,
-            file_name,
-            file_retention,
-            bypass_governance,
+            self.raw_api.update_file_retention, file_id, file_name, file_retention, bypass_governance
         )
 
-    def update_file_legal_hold(
-        self,
-        file_id,
-        file_name,
-        legal_hold: LegalHold,
-    ):
-        return self._wrap_default_token(
-            self.raw_api.update_file_legal_hold,
-            file_id,
-            file_name,
-            legal_hold,
-        )
+    def update_file_legal_hold(self, file_id, file_name, legal_hold: LegalHold):
+        return self._wrap_default_token(self.raw_api.update_file_legal_hold, file_id, file_name, legal_hold)

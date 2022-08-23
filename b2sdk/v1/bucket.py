@@ -13,11 +13,7 @@ from typing import Optional, overload, Tuple
 
 from .download_dest import AbstractDownloadDestination
 from .file_metadata import FileMetadata
-from .file_version import (
-    FileVersionInfo,
-    FileVersionInfoFactory,
-    file_version_info_from_download_version,
-)
+from .file_version import FileVersionInfo, FileVersionInfoFactory, file_version_info_from_download_version
 from b2sdk import v2
 from b2sdk.utils import validate_b2_file_name
 
@@ -128,10 +124,7 @@ class Bucket(v2.Bucket):
         :param encryption: encryption settings (``None`` if unknown)
         """
         downloaded_file = super().download_file_by_name(
-            file_name=file_name,
-            progress_listener=progress_listener,
-            range_=range_,
-            encryption=encryption,
+            file_name=file_name, progress_listener=progress_listener, range_=range_, encryption=encryption
         )
         try:
             return download_file_and_return_info_dict(downloaded_file, download_dest, range_)
@@ -186,11 +179,7 @@ class Bucket(v2.Bucket):
         :param encryption: encryption settings (``None`` if unknown)
         """
         return self.api.download_file_by_id(
-            file_id,
-            download_dest,
-            progress_listener,
-            range_=range_,
-            encryption=encryption,
+            file_id, download_dest, progress_listener, range_=range_, encryption=encryption
         )
 
     def get_file_info_by_name(self, file_name: str) -> FileVersionInfo:
@@ -231,9 +220,7 @@ class Bucket(v2.Bucket):
         with suppress(KeyError):
             del kwargs['replication']
         self.replication = None
-        assert (
-            not kwargs
-        )  # after we get rid of everything we don't support in this apiver, this should be empty
+        assert not kwargs  # after we get rid of everything we don't support in this apiver, this should be empty
 
         account_id = self.api.account_info.get_account_id()
         return self.api.session.update_bucket(
@@ -282,9 +269,7 @@ class Bucket(v2.Bucket):
 
 
 def download_file_and_return_info_dict(
-    downloaded_file: v2.DownloadedFile,
-    download_dest: AbstractDownloadDestination,
-    range_: Optional[Tuple[int, int]],
+    downloaded_file: v2.DownloadedFile, download_dest: AbstractDownloadDestination, range_: Optional[Tuple[int, int]]
 ):
     with download_dest.make_file_context(
         file_id=downloaded_file.download_version.id_,

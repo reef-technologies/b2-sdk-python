@@ -68,8 +68,7 @@ class TestTranslateErrors(TestBase):
         def fcn():
             raise requests.ConnectionError(
                 requests.packages.urllib3.exceptions.MaxRetryError(
-                    'AAA nodename nor servname provided, or not known AAA',
-                    'http://example.com',
+                    'AAA nodename nor servname provided, or not known AAA', 'http://example.com'
                 )
             )
 
@@ -104,9 +103,7 @@ class TestTranslateErrors(TestBase):
         response = MagicMock()
         response.status_code = 429
         response.headers = {'retry-after': 1}
-        response.content = (
-            b'{"status": 429, "code": "Too Many requests", "message": "retry after some time"}'
-        )
+        response.content = b'{"status": 429, "code": "Too Many requests", "message": "retry after some time"}'
         with self.assertRaises(TooManyRequests):
             B2Http._translate_errors(lambda: response)
 
@@ -139,12 +136,7 @@ class TestTranslateAndRetry(TestBase):
     def test_never_works(self):
         with patch('time.sleep') as mock_time:
             fcn = MagicMock()
-            fcn.side_effect = [
-                ServiceError('a'),
-                ServiceError('a'),
-                ServiceError('a'),
-                self.response,
-            ]
+            fcn.side_effect = [ServiceError('a'), ServiceError('a'), ServiceError('a'), self.response]
             with self.assertRaises(ServiceError):
                 B2Http._translate_and_retry(fcn, 3)
             self.assertEqual([call(1.0), call(1.5)], mock_time.mock_calls)
@@ -159,10 +151,7 @@ class TestTranslateAndRetry(TestBase):
     def test_too_many_requests_failed_after_sleep(self):
         with patch('time.sleep') as mock_time:
             fcn = MagicMock()
-            fcn.side_effect = [
-                TooManyRequests(retry_after_seconds=2),
-                TooManyRequests(retry_after_seconds=5),
-            ]
+            fcn.side_effect = [TooManyRequests(retry_after_seconds=2), TooManyRequests(retry_after_seconds=5)]
             with self.assertRaises(TooManyRequests):
                 B2Http._translate_and_retry(fcn, 2)
             self.assertEqual([call(2)], mock_time.mock_calls)
@@ -213,18 +202,10 @@ class TestB2Http(TestBase):
         requests.Session.return_value = self.session
 
         if apiver_deps.V <= 1:
-            self.b2_http = B2Http(
-                requests,
-                install_clock_skew_hook=False,
-                user_agent_append=self.UA_APPEND,
-            )
+            self.b2_http = B2Http(requests, install_clock_skew_hook=False, user_agent_append=self.UA_APPEND)
         else:
             self.b2_http = B2Http(
-                B2HttpApiConfig(
-                    requests.Session,
-                    install_clock_skew_hook=False,
-                    user_agent_append=self.UA_APPEND,
-                )
+                B2HttpApiConfig(requests.Session, install_clock_skew_hook=False, user_agent_append=self.UA_APPEND)
             )
 
     def test_post_json_return_json(self):
@@ -278,10 +259,7 @@ class TestB2Http(TestBase):
 class TestB2HttpUserAgentAppend(TestB2Http):
 
     UA_APPEND = 'ua_extra_string'
-    EXPECTED_HEADERS = {
-        **TestB2Http.EXPECTED_HEADERS,
-        'User-Agent': '%s %s' % (USER_AGENT, UA_APPEND),
-    }
+    EXPECTED_HEADERS = {**TestB2Http.EXPECTED_HEADERS, 'User-Agent': '%s %s' % (USER_AGENT, UA_APPEND)}
 
 
 class TestClockSkewHook(TestBase):

@@ -16,11 +16,7 @@ from b2sdk.api import Services
 from .account_info import AbstractAccountInfo
 from .bucket import Bucket, BucketFactory, download_file_and_return_info_dict
 from .cache import AbstractCache
-from .file_version import (
-    FileVersionInfo,
-    FileVersionInfoFactory,
-    file_version_info_from_id_and_name,
-)
+from .file_version import FileVersionInfo, FileVersionInfoFactory, file_version_info_from_id_and_name
 from .session import B2Session
 
 
@@ -62,18 +58,11 @@ class B2Api(v2.B2Api):
         :param api_config:
         """
         self.session = self.SESSION_CLASS(
-            account_info=account_info,
-            cache=cache,
-            raw_api=raw_api,
-            api_config=api_config,
+            account_info=account_info, cache=cache, raw_api=raw_api, api_config=api_config
         )
         self.file_version_factory = self.FILE_VERSION_FACTORY_CLASS(self)
         self.download_version_factory = self.DOWNLOAD_VERSION_FACTORY_CLASS(self)
-        self.services = Services(
-            self,
-            max_upload_workers=max_upload_workers,
-            max_copy_workers=max_copy_workers,
-        )
+        self.services = Services(self, max_upload_workers=max_upload_workers, max_copy_workers=max_copy_workers)
 
     def get_file_info(self, file_id: str) -> Dict[str, Any]:
         """
@@ -160,10 +149,7 @@ class B2Api(v2.B2Api):
         :param encryption: encryption settings (``None`` if unknown)
         """
         downloaded_file = super().download_file_by_id(
-            file_id=file_id,
-            progress_listener=progress_listener,
-            range_=range_,
-            encryption=encryption,
+            file_id=file_id, progress_listener=progress_listener, range_=range_, encryption=encryption
         )
         if download_dest is not None:
             try:
@@ -185,9 +171,7 @@ class B2Api(v2.B2Api):
         account_id = self.account_info.get_account_id()
 
         return self.session.list_keys(
-            account_id,
-            max_key_count=self.DEFAULT_LIST_KEY_COUNT,
-            start_application_key_id=start_application_key_id,
+            account_id, max_key_count=self.DEFAULT_LIST_KEY_COUNT, start_application_key_id=start_application_key_id
         )
 
     def create_key(

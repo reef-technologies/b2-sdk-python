@@ -13,11 +13,7 @@ import pytest
 
 def pytest_addoption(parser):
     """Add a flag for not cleaning up old buckets"""
-    parser.addoption(
-        '--dont-cleanup-old-buckets',
-        action="store_true",
-        default=False,
-    )
+    parser.addoption('--dont-cleanup-old-buckets', action="store_true", default=False)
 
 
 @pytest.fixture

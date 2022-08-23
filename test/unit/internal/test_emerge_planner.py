@@ -8,20 +8,13 @@
 #
 ######################################################################
 
-from b2sdk.transfer.emerge.planner.planner import (
-    EmergePlanner,
-    GIGABYTE,
-    MEGABYTE,
-)
+from b2sdk.transfer.emerge.planner.planner import EmergePlanner, GIGABYTE, MEGABYTE
 from b2sdk.transfer.emerge.planner.part_definition import (
     CopyEmergePartDefinition,
     UploadEmergePartDefinition,
     UploadSubpartsEmergePartDefinition,
 )
-from b2sdk.transfer.emerge.planner.upload_subpart import (
-    LocalSourceUploadSubpart,
-    RemoteSourceUploadSubpart,
-)
+from b2sdk.transfer.emerge.planner.upload_subpart import LocalSourceUploadSubpart, RemoteSourceUploadSubpart
 from b2sdk.transfer.emerge.write_intent import WriteIntent
 from b2sdk.transfer.outbound.copy_source import CopySource as OrigCopySource
 from b2sdk.transfer.outbound.upload_source import UploadSourceStream
@@ -98,9 +91,7 @@ class TestEmergePlanner(TestBase):
 
     def _get_emerge_planner(self):
         return EmergePlanner(
-            min_part_size=self.min_size,
-            recommended_upload_part_size=self.recommended_size,
-            max_part_size=self.max_size,
+            min_part_size=self.min_size, recommended_upload_part_size=self.recommended_size, max_part_size=self.max_size
         )
 
     # yapf: disable

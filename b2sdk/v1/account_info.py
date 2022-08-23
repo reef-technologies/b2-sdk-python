@@ -25,16 +25,7 @@ logger = logging.getLogger(__name__)
 class OldAccountInfoMethods:
     REALM_URLS = v2.REALM_URLS
 
-    @limit_trace_arguments(
-        only=[
-            'self',
-            'api_url',
-            'download_url',
-            'minimum_part_size',
-            'realm',
-            's3_api_url',
-        ]
-    )
+    @limit_trace_arguments(only=['self', 'api_url', 'download_url', 'minimum_part_size', 'realm', 's3_api_url'])
     def set_auth_data(
         self,
         account_id,

@@ -24,9 +24,7 @@ from . import api as v1api
 class FileVersionInfo(v2.FileVersion):
     __slots__ = ['_api']
 
-    LS_ENTRY_TEMPLATE = (
-        '%83s  %6s  %10s  %8s  %9d  %s'  # order is file_id, action, date, time, size, name
-    )
+    LS_ENTRY_TEMPLATE = '%83s  %6s  %10s  %8s  %9d  %s'  # order is file_id, action, date, time, size, name
 
     def __init__(
         self,
@@ -68,9 +66,7 @@ class FileVersionInfo(v2.FileVersion):
         with suppress(KeyError):
             del kwargs['replication_status']
         self.replication_status = None
-        assert (
-            not kwargs
-        )  # after we get rid of everything we don't support in this apiver, this should be empty
+        assert not kwargs  # after we get rid of everything we don't support in this apiver, this should be empty
 
         if v2.SRC_LAST_MODIFIED_MILLIS in self.file_info:
             self.mod_time_millis = int(self.file_info[v2.SRC_LAST_MODIFIED_MILLIS])
@@ -93,14 +89,7 @@ class FileVersionInfo(v2.FileVersion):
         date_str = dt.strftime('%Y-%m-%d')
         time_str = dt.strftime('%H:%M:%S')
         size = self.size or 0  # required if self.action == 'hide'
-        return self.LS_ENTRY_TEMPLATE % (
-            self.id_,
-            self.action,
-            date_str,
-            time_str,
-            size,
-            self.file_name,
-        )
+        return self.LS_ENTRY_TEMPLATE % (self.id_, self.action, date_str, time_str, size, self.file_name)
 
     @classmethod
     def format_folder_ls_entry(cls, name):
@@ -114,9 +103,7 @@ class FileVersionInfo(v2.FileVersion):
         return self.api.file_version_factory.from_api_response(self.api.get_file_info(self.id_))
 
 
-def file_version_info_from_new_file_version(
-    file_version: v2.FileVersion,
-) -> FileVersionInfo:
+def file_version_info_from_new_file_version(file_version: v2.FileVersion) -> FileVersionInfo:
     return FileVersionInfo(
         **{
             att_name: getattr(file_version, att_name)

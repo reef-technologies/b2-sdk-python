@@ -19,9 +19,7 @@ class TestSyncReport:
     def test_bad_terminal(self):
         stdout = MagicMock()
         stdout.write = MagicMock(
-            side_effect=[
-                UnicodeEncodeError('codec', u'foo', 100, 105, 'artificial UnicodeEncodeError')
-            ]
+            side_effect=[UnicodeEncodeError('codec', u'foo', 100, 105, 'artificial UnicodeEncodeError')]
             + list(range(25))
         )
         sync_report = SyncReport(stdout, False)

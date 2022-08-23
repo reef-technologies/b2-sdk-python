@@ -26,12 +26,7 @@ class OldAccountInfoMethods:
         """
         return self.get_application_key_id()
 
-    @version_utils.rename_argument(
-        'account_id_or_app_key_id',
-        'application_key_id',
-        '0.1.5',
-        None,
-    )
+    @version_utils.rename_argument('account_id_or_app_key_id', 'application_key_id', '0.1.5', None)
     def set_auth_data(
         self,
         account_id,

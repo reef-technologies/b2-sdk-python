@@ -21,10 +21,7 @@ from b2sdk.transfer.emerge.planner.part_definition import (
     UploadEmergePartDefinition,
     UploadSubpartsEmergePartDefinition,
 )
-from b2sdk.transfer.emerge.planner.upload_subpart import (
-    LocalSourceUploadSubpart,
-    RemoteSourceUploadSubpart,
-)
+from b2sdk.transfer.emerge.planner.upload_subpart import LocalSourceUploadSubpart, RemoteSourceUploadSubpart
 
 MEGABYTE = 1000 * 1000
 GIGABYTE = 1000 * MEGABYTE
@@ -87,27 +84,14 @@ class EmergePlanner:
     DEFAULT_RECOMMENDED_UPLOAD_PART_SIZE = 100 * MEGABYTE
     DEFAULT_MAX_PART_SIZE = 5 * GIGABYTE
 
-    def __init__(
-        self,
-        min_part_size=None,
-        recommended_upload_part_size=None,
-        max_part_size=None,
-    ):
+    def __init__(self, min_part_size=None, recommended_upload_part_size=None, max_part_size=None):
         self.min_part_size = min_part_size or self.DEFAULT_MIN_PART_SIZE
-        self.recommended_upload_part_size = (
-            recommended_upload_part_size or self.DEFAULT_RECOMMENDED_UPLOAD_PART_SIZE
-        )
+        self.recommended_upload_part_size = recommended_upload_part_size or self.DEFAULT_RECOMMENDED_UPLOAD_PART_SIZE
         self.max_part_size = max_part_size or self.DEFAULT_MAX_PART_SIZE
         assert self.min_part_size <= self.recommended_upload_part_size <= self.max_part_size
 
     @classmethod
-    def from_account_info(
-        cls,
-        account_info,
-        min_part_size=None,
-        recommended_upload_part_size=None,
-        max_part_size=None,
-    ):
+    def from_account_info(cls, account_info, min_part_size=None, recommended_upload_part_size=None, max_part_size=None):
         if recommended_upload_part_size is None:
             recommended_upload_part_size = account_info.get_recommended_part_size()
         if min_part_size is None and recommended_upload_part_size < cls.DEFAULT_MIN_PART_SIZE:
@@ -130,11 +114,7 @@ class EmergePlanner:
         # the constant is for handling mixed upload/copy in concatenate etc
         max_destination_offset = max(intent.destination_end_offset for intent in write_intents)
         self.recommended_upload_part_size = max(
-            self.recommended_upload_part_size,
-            min(
-                ceil(1.5 * max_destination_offset / 10000),
-                self.max_part_size,
-            ),
+            self.recommended_upload_part_size, min(ceil(1.5 * max_destination_offset / 10000), self.max_part_size)
         )
         assert self.min_part_size <= self.recommended_upload_part_size <= self.max_part_size, (
             self.min_part_size,
@@ -211,9 +191,7 @@ class EmergePlanner:
                         yield self._get_upload_part(upload_buffer_part)
                     # split current intent (copy source) to parts and yield
                     copy_parts = self._get_copy_parts(
-                        current_intent,
-                        start_offset=upload_buffer.end_offset,
-                        end_offset=current_end,
+                        current_intent, start_offset=upload_buffer.end_offset, end_offset=current_end
                     )
                     for part in copy_parts:
                         yield part
@@ -222,9 +200,7 @@ class EmergePlanner:
                 if current_intent.is_copy() and first and last:
                     # this is a single intent "small copy" - we force use of `copy_file`
                     copy_parts = self._get_copy_parts(
-                        current_intent,
-                        start_offset=upload_buffer.end_offset,
-                        end_offset=current_end,
+                        current_intent, start_offset=upload_buffer.end_offset, end_offset=current_end
                     )
                     for part in copy_parts:
                         yield part
@@ -367,11 +343,7 @@ class EmergePlanner:
             upload_intents = list(upload_intents_state.state_update(last_sent_offset, incoming_offset))
             copy_intents = list(copy_intents_state.state_update(last_sent_offset, incoming_offset))
 
-            intent_fragments = self._merge_intent_fragments(
-                last_sent_offset,
-                upload_intents,
-                copy_intents,
-            )
+            intent_fragments = self._merge_intent_fragments(last_sent_offset, upload_intents, copy_intents)
 
             for intent, intent_fragment_end in intent_fragments:
                 yield intent, intent_fragment_end
@@ -508,10 +480,7 @@ class IntentsState:
         if (
             self._current_intent is None
             and self._next_intent is not None
-            and (
-                self._next_intent.destination_offset != effective_incoming_offset
-                or incoming_offset is None
-            )
+            and (self._next_intent.destination_offset != effective_incoming_offset or incoming_offset is None)
         ):
             self._set_current_intent(self._next_intent, last_sent_offset)
             self._set_next_intent(None)
@@ -654,8 +623,7 @@ class EmergePart:
 
     def __repr__(self):
         return '<{classname} part_definition={part_definition}>'.format(
-            classname=self.__class__.__name__,
-            part_definition=repr(self.part_definition),
+            classname=self.__class__.__name__, part_definition=repr(self.part_definition)
         )
 
     def get_length(self):

@@ -82,11 +82,7 @@ class TestAccountInfo:
         account_data['application_key_id'] = application_key_id
         account_info.set_auth_data(**account_data)
 
-        assert account_info.is_master_key() is expected, (
-            account_id,
-            application_key_id,
-            expected,
-        )
+        assert account_info.is_master_key() is expected, (account_id, application_key_id, expected)
 
     @pytest.mark.parametrize(
         'account_id,realm,expected',
@@ -104,18 +100,11 @@ class TestAccountInfo:
         assert account_info.is_same_account(account_id, realm) is expected
 
     @pytest.mark.parametrize(
-        's3_api_url',
-        (
-            'https://s3.us-east-123.backblazeb2.com',
-            'https://s3.us-west-321.backblazeb2.com',
-        ),
+        's3_api_url', ('https://s3.us-east-123.backblazeb2.com', 'https://s3.us-west-321.backblazeb2.com')
     )
     def test_s3_api_url(self, s3_api_url):
         account_info = self.account_info_factory()
-        account_info_default_data = {
-            **self.account_info_default_data,
-            's3_api_url': s3_api_url,
-        }
+        account_info_default_data = {**self.account_info_default_data, 's3_api_url': s3_api_url}
         account_info.set_auth_data(**account_info_default_data)
         assert s3_api_url == account_info.get_s3_api_url()
 
@@ -200,18 +189,8 @@ class AccountInfoBase(metaclass=ABCMeta):
         assert AbstractAccountInfo.DEFAULT_ALLOWED == actual, 'default allowed'
 
         # allowed was added later
-        allowed = dict(
-            bucketId=None,
-            bucketName=None,
-            capabilities=['readFiles'],
-            namePrefix=None,
-        )
-        account_info.set_auth_data(
-            **{
-                **account_info_default_data,
-                'allowed': allowed,
-            }
-        )
+        allowed = dict(bucketId=None, bucketName=None, capabilities=['readFiles'], namePrefix=None)
+        account_info.set_auth_data(**{**account_info_default_data, 'allowed': allowed})
         assert allowed == account_info.get_allowed()
 
     def test_clear_bucket_upload_data(self):
@@ -243,12 +222,8 @@ class AccountInfoBase(metaclass=ABCMeta):
         assert 'bucket-0' == account_info.get_bucket_id_or_none_from_bucket_name('my-bucket')
         assert 'my-bucket' == account_info.get_bucket_name_or_none_from_bucket_id('bucket-0')
         if self.PERSISTENCE:
-            assert 'bucket-0' == self._make_info().get_bucket_id_or_none_from_bucket_name(
-                'my-bucket'
-            )
-            assert 'my-bucket' == self._make_info().get_bucket_name_or_none_from_bucket_id(
-                'bucket-0'
-            )
+            assert 'bucket-0' == self._make_info().get_bucket_id_or_none_from_bucket_name('my-bucket')
+            assert 'my-bucket' == self._make_info().get_bucket_name_or_none_from_bucket_id('bucket-0')
         account_info.remove_bucket_name('my-bucket')
         assert account_info.get_bucket_id_or_none_from_bucket_name('my-bucket') is None
         assert account_info.get_bucket_name_or_none_from_bucket_id('bucket-0') is None
@@ -353,26 +328,18 @@ class TestSqliteAccountInfo(AccountInfoBase):
         self.test_home = tempfile.mkdtemp()
 
         yield
-        for cleanup_method in [
-            lambda: os.unlink(self.db_path),
-            lambda: shutil.rmtree(self.test_home),
-        ]:
+        for cleanup_method in [lambda: os.unlink(self.db_path), lambda: shutil.rmtree(self.test_home)]:
             try:
                 cleanup_method()
             except OSError:
                 pass
 
-    @pytest.mark.skipif(
-        platform.system() == 'Windows',
-        reason='different permission system on Windows',
-    )
+    @pytest.mark.skipif(platform.system() == 'Windows', reason='different permission system on Windows')
     def test_permissions(self):
         """
         Test that a new database won't be readable by just any user
         """
-        s = SqliteAccountInfo(
-            file_name=self.db_path,
-        )
+        s = SqliteAccountInfo(file_name=self.db_path)
         mode = os.stat(self.db_path).st_mode
         assert stat.filemode(mode) == '-rw-------'
 
@@ -387,8 +354,7 @@ class TestSqliteAccountInfo(AccountInfoBase):
             self._make_info()
 
     @pytest.mark.skipif(
-        platform.system() == 'Windows',
-        reason='it fails to upgrade on Windows, not worth to fix it anymore',
+        platform.system() == 'Windows', reason='it fails to upgrade on Windows, not worth to fix it anymore'
     )
     def test_convert_from_json(self):
         """
@@ -421,28 +387,18 @@ class TestSqliteAccountInfo(AccountInfoBase):
         # Override HOME to ensure hermetic tests
         with mock.patch('os.environ', env or {'HOME': self.test_home}):
             return SqliteAccountInfo(
-                file_name=self.db_path if not env else None,
-                last_upgrade_to_run=last_upgrade_to_run,
+                file_name=self.db_path if not env else None, last_upgrade_to_run=last_upgrade_to_run
             )
 
     def test_uses_default(self):
-        account_info = self._make_sqlite_account_info(
-            env={
-                'HOME': self.test_home,
-                'USERPROFILE': self.test_home,
-            }
-        )
+        account_info = self._make_sqlite_account_info(env={'HOME': self.test_home, 'USERPROFILE': self.test_home})
         actual_path = os.path.abspath(account_info.filename)
         assert os.path.join(self.test_home, '.b2_account_info') == actual_path
 
     def test_uses_xdg_config_home(self, apiver):
         with WindowsSafeTempDir() as d:
             account_info = self._make_sqlite_account_info(
-                env={
-                    'HOME': self.test_home,
-                    'USERPROFILE': self.test_home,
-                    XDG_CONFIG_HOME_ENV_VAR: d,
-                }
+                env={'HOME': self.test_home, 'USERPROFILE': self.test_home, XDG_CONFIG_HOME_ENV_VAR: d}
             )
             if apiver in ['v0', 'v1']:
                 expected_path = os.path.abspath(os.path.join(self.test_home, '.b2_account_info'))
@@ -457,11 +413,7 @@ class TestSqliteAccountInfo(AccountInfoBase):
             default_db_file_location = os.path.join(self.test_home, '.b2_account_info')
             open(default_db_file_location, 'a').close()
             account_info = self._make_sqlite_account_info(
-                env={
-                    'HOME': self.test_home,
-                    'USERPROFILE': self.test_home,
-                    XDG_CONFIG_HOME_ENV_VAR: d,
-                }
+                env={'HOME': self.test_home, 'USERPROFILE': self.test_home, XDG_CONFIG_HOME_ENV_VAR: d}
             )
             actual_path = os.path.abspath(account_info.filename)
             assert default_db_file_location == actual_path

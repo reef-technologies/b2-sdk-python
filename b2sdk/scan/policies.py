@@ -149,30 +149,17 @@ class ScanPoliciesManager:
         """
         if include_file_regexes and not exclude_file_regexes:
             raise InvalidArgument(
-                'include_file_regexes',
-                'cannot be used without exclude_file_regexes at the same time',
+                'include_file_regexes', 'cannot be used without exclude_file_regexes at the same time'
             )
 
-        with check_invalid_argument(
-            'exclude_dir_regexes',
-            'wrong regex was given for excluding directories',
-            re.error,
-        ):
+        with check_invalid_argument('exclude_dir_regexes', 'wrong regex was given for excluding directories', re.error):
             self._exclude_dir_set = RegexSet(exclude_dir_regexes)
             self._exclude_file_because_of_dir_set = RegexSet(
                 map(convert_dir_regex_to_dir_prefix_regex, exclude_dir_regexes)
             )
-        with check_invalid_argument(
-            'exclude_file_regexes',
-            'wrong regex was given for excluding files',
-            re.error,
-        ):
+        with check_invalid_argument('exclude_file_regexes', 'wrong regex was given for excluding files', re.error):
             self._exclude_file_set = RegexSet(exclude_file_regexes)
-        with check_invalid_argument(
-            'include_file_regexes',
-            'wrong regex was given for including files',
-            re.error,
-        ):
+        with check_invalid_argument('include_file_regexes', 'wrong regex was given for including files', re.error):
             self._include_file_set = RegexSet(include_file_regexes)
         self.exclude_all_symlinks = exclude_all_symlinks
         with check_invalid_argument('exclude_modified_before,exclude_modified_after', '', ValueError):

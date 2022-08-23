@@ -23,12 +23,7 @@ from ..scan.folder import B2Folder
 from ..scan.path import B2Path
 from ..scan.policies import DEFAULT_SCAN_MANAGER, ScanPoliciesManager
 from ..scan.report import ProgressReport
-from ..scan.scan import (
-    AbstractScanReport,
-    AbstractScanResult,
-    CountAndSampleScanReport,
-    zip_folders,
-)
+from ..scan.scan import AbstractScanReport, AbstractScanResult, CountAndSampleScanReport, zip_folders
 from .setting import ReplicationRule
 from .types import ReplicationStatus
 
@@ -62,9 +57,7 @@ class ReplicationScanResult(AbstractScanResult):
 
     @classmethod
     def from_files(
-        cls,
-        source_file: Optional[B2Path] = None,
-        destination_file: Optional[B2Path] = None,
+        cls, source_file: Optional[B2Path] = None, destination_file: Optional[B2Path] = None
     ) -> 'ReplicationScanResult':
         params = {}
 
@@ -76,18 +69,13 @@ class ReplicationScanResult(AbstractScanResult):
                     'source_has_hide_marker': not source_file.is_visible(),
                     'source_encryption_mode': source_file_version.server_side_encryption.mode,
                     'source_has_large_metadata': source_file_version.has_large_header,
-                    'source_has_file_retention': source_file_version.file_retention
-                    is not NO_RETENTION_FILE_SETTING,
+                    'source_has_file_retention': source_file_version.file_retention is not NO_RETENTION_FILE_SETTING,
                     'source_has_legal_hold': source_file_version.legal_hold is LegalHold.ON,
                 }
             )
 
         if destination_file:
-            params.update(
-                {
-                    'destination_replication_status': destination_file.selected_version.replication_status,
-                }
-            )
+            params.update({'destination_replication_status': destination_file.selected_version.replication_status})
 
         if source_file and destination_file:
             source_version = source_file.selected_version
@@ -151,9 +139,7 @@ class ReplicationMonitor:
     @property
     def source_folder(self) -> B2_FOLDER_CLASS:
         return self.B2_FOLDER_CLASS(
-            bucket_name=self.bucket.name,
-            folder_name=self.rule.file_name_prefix,
-            api=self.source_api,
+            bucket_name=self.bucket.name, folder_name=self.rule.file_name_prefix, api=self.source_api
         )
 
     @property
@@ -166,9 +152,7 @@ class ReplicationMonitor:
     def destination_folder(self) -> B2_FOLDER_CLASS:
         destination_bucket = self.destination_bucket
         return self.B2_FOLDER_CLASS(
-            bucket_name=destination_bucket.name,
-            folder_name=self.rule.file_name_prefix,
-            api=destination_bucket.api,
+            bucket_name=destination_bucket.name, folder_name=self.rule.file_name_prefix, api=destination_bucket.api
         )
 
     def iter_pairs(self) -> Iterator[Tuple[Optional[B2Path], Optional[B2Path]]]:
@@ -202,8 +186,7 @@ class ReplicationMonitor:
 
             def fill_queue():
                 for path in self.source_folder.all_files(
-                    policies_manager=self.scan_policies_manager,
-                    reporter=self.report,
+                    policies_manager=self.scan_policies_manager, reporter=self.report
                 ):
                     queue.put((path,), block=True)
                 queue.put(None, block=True)
@@ -223,10 +206,7 @@ class ReplicationMonitor:
                 report.add(*items)
 
         with ThreadPoolExecutor(max_workers=2) as thread_pool:
-            futures = [
-                thread_pool.submit(fill_queue),
-                thread_pool.submit(consume_queue),
-            ]
+            futures = [thread_pool.submit(fill_queue), thread_pool.submit(consume_queue)]
 
             for future in futures:
                 future.result()

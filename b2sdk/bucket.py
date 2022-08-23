@@ -31,22 +31,13 @@ from .file_lock import (
 )
 from .file_version import DownloadVersion, FileVersion
 from .progress import AbstractProgressListener, DoNothingProgressListener
-from .replication.setting import (
-    ReplicationConfiguration,
-    ReplicationConfigurationFactory,
-)
+from .replication.setting import ReplicationConfiguration, ReplicationConfigurationFactory
 from .transfer.emerge.executor import AUTO_CONTENT_TYPE
 from .transfer.emerge.write_intent import WriteIntent
 from .transfer.inbound.downloaded_file import DownloadedFile
 from .transfer.outbound.copy_source import CopySource
 from .transfer.outbound.upload_source import UploadSourceBytes, UploadSourceLocalFile
-from .utils import (
-    B2TraceMeta,
-    b2_url_encode,
-    disable_trace,
-    limit_trace_arguments,
-    validate_b2_file_name,
-)
+from .utils import B2TraceMeta, b2_url_encode, disable_trace, limit_trace_arguments, validate_b2_file_name
 
 logger = logging.getLogger(__name__)
 
@@ -207,12 +198,7 @@ class Bucket(metaclass=B2TraceMeta):
         :param range_: two integer values, start and end offsets
         :param encryption: encryption settings (``None`` if unknown)
         """
-        return self.api.download_file_by_id(
-            file_id,
-            progress_listener,
-            range_=range_,
-            encryption=encryption,
-        )
+        return self.api.download_file_by_id(file_id, progress_listener, range_=range_, encryption=encryption)
 
     def download_file_by_name(
         self,
@@ -235,10 +221,7 @@ class Bucket(metaclass=B2TraceMeta):
         """
         url = self.api.session.get_download_url_by_name(self.name, file_name)
         return self.api.services.download_manager.download_file_from_url(
-            url,
-            progress_listener,
-            range_,
-            encryption=encryption,
+            url, progress_listener, range_, encryption=encryption
         )
 
     def get_file_info_by_id(self, file_id: str) -> FileVersion:
@@ -402,10 +385,7 @@ class Bucket(metaclass=B2TraceMeta):
                 start_file_name = response.get('nextFileName')
                 start_file_id = response.get('nextFileId')
             else:
-                start_file_name = max(
-                    response['nextFileName'],
-                    prefix + current_dir[:-1] + '0',
-                )
+                start_file_name = max(response['nextFileName'], prefix + current_dir[:-1] + '0')
 
     def list_unfinished_large_files(self, start_file_id=None, batch_size=None, prefix=None):
         """
@@ -418,10 +398,7 @@ class Bucket(metaclass=B2TraceMeta):
         :rtype: generator[b2sdk.v2.UnfinishedLargeFile]
         """
         return self.api.services.large_file.list_unfinished_large_files(
-            self.id_,
-            start_file_id=start_file_id,
-            batch_size=batch_size,
-            prefix=prefix,
+            self.id_, start_file_id=start_file_id, batch_size=batch_size, prefix=prefix
         )
 
     @limit_trace_arguments(skip=('data_bytes',))
@@ -935,10 +912,7 @@ class Bucket(metaclass=B2TraceMeta):
 
         :rtype: dict
         """
-        result = {
-            'accountId': self.api.account_info.get_account_id(),
-            'bucketId': self.id_,
-        }
+        result = {'accountId': self.api.account_info.get_account_id(), 'bucketId': self.id_}
         if self.name is not None:
             result['bucketName'] = self.name
         if self.type_ is not None:

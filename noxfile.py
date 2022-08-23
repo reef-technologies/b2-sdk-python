@@ -18,29 +18,14 @@ CI = os.environ.get('CI') is not None
 NOX_PYTHONS = os.environ.get('NOX_PYTHONS')
 SKIP_COVERAGE = os.environ.get('SKIP_COVERAGE') == 'true'
 
-PYTHON_VERSIONS = (
-    [
-        '3.7',
-        '3.8',
-        '3.9',
-        '3.10',
-        '3.11',
-    ]
-    if NOX_PYTHONS is None
-    else NOX_PYTHONS.split(',')
-)
+PYTHON_VERSIONS = ['3.7', '3.8', '3.9', '3.10', '3.11'] if NOX_PYTHONS is None else NOX_PYTHONS.split(',')
 
 PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[-1]
 
 PY_PATHS = ['b2sdk', 'test', 'noxfile.py', 'setup.py']
 
 REQUIREMENTS_FORMAT = ['yapf==0.27']
-REQUIREMENTS_LINT = [
-    'yapf==0.27',
-    'pyflakes==2.4.0',
-    'pytest==6.2.5',
-    'liccheck==0.6.2',
-]
+REQUIREMENTS_LINT = ['yapf==0.27', 'pyflakes==2.4.0', 'pytest==6.2.5', 'liccheck==0.6.2']
 REQUIREMENTS_TEST = [
     "pytest==6.2.5",
     "pytest-cov==3.0.0",
@@ -52,10 +37,7 @@ REQUIREMENTS_TEST = [
 REQUIREMENTS_BUILD = ['setuptools>=20.2']
 
 nox.options.reuse_existing_virtualenvs = True
-nox.options.sessions = [
-    'lint',
-    'test',
-]
+nox.options.sessions = ['lint', 'test']
 
 # In CI, use Python interpreter provided by GitHub Actions
 if CI:
@@ -108,11 +90,7 @@ def lint(session):
 
     # TODO: use flake8 instead of pyflakes
     session.log('pyflakes b2sdk')
-    output = (
-        subprocess.run('pyflakes b2sdk', shell=True, check=False, stdout=subprocess.PIPE)
-        .stdout.decode()
-        .strip()
-    )
+    output = subprocess.run('pyflakes b2sdk', shell=True, check=False, stdout=subprocess.PIPE).stdout.decode().strip()
     excludes = ['__init__.py', 'exception.py']
     output = [l for l in output.splitlines() if all(x not in l for x in excludes)]
     if output:
@@ -211,16 +189,7 @@ def doc(session):
         session.run('sphinx-build', *sphinx_args)
         session.notify('doc_cover')
     else:
-        sphinx_args[-2:-2] = [
-            '-E',
-            '--open-browser',
-            '--watch',
-            '../b2sdk',
-            '--ignore',
-            '*.pyc',
-            '--ignore',
-            '*~',
-        ]
+        sphinx_args[-2:-2] = ['-E', '--open-browser', '--watch', '../b2sdk', '--ignore', '*.pyc', '--ignore', '*~']
         session.run('sphinx-autobuild', *sphinx_args)
 
 

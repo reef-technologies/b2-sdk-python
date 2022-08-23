@@ -12,9 +12,4 @@ from .hashing import StreamWithHash
 from .progress import ReadingStreamWithProgress, WritingStreamWithProgress
 from .range import RangeOfInputStream
 
-__all__ = [
-    'RangeOfInputStream',
-    'ReadingStreamWithProgress',
-    'StreamWithHash',
-    'WritingStreamWithProgress',
-]
+__all__ = ['RangeOfInputStream', 'ReadingStreamWithProgress', 'StreamWithHash', 'WritingStreamWithProgress']

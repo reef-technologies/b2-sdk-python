@@ -11,22 +11,14 @@
 from b2sdk import v2
 from b2sdk.v2 import exception as v2_exception
 from .file_to_path_translator import make_files_from_paths, make_paths_from_files
-from .scan_policies import (
-    DEFAULT_SCAN_MANAGER,
-    wrap_if_necessary as scan_wrap_if_necessary,
-)
+from .scan_policies import DEFAULT_SCAN_MANAGER, wrap_if_necessary as scan_wrap_if_necessary
 from .encryption_provider import wrap_if_necessary as encryption_wrap_if_necessary
 from ..exception import DestFileNewer
 
 
 # Override to change "policies_manager" default argument
 def zip_folders(folder_a, folder_b, reporter, policies_manager=DEFAULT_SCAN_MANAGER):
-    return v2.zip_folders(
-        folder_a,
-        folder_b,
-        reporter,
-        policies_manager=scan_wrap_if_necessary(policies_manager),
-    )
+    return v2.zip_folders(folder_a, folder_b, reporter, policies_manager=scan_wrap_if_necessary(policies_manager))
 
 
 # Override to change "policies_manager" default arguments

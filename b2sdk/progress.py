@@ -59,9 +59,7 @@ class AbstractProgressListener(metaclass=ABCMeta):
         In well-structured code, should be called only once.
         """
         # import traceback, sys; traceback.print_stack(file=sys.stdout)
-        assert (
-            self._closed is False
-        ), 'progress listener was closed twice! uncomment the line above to debug this'
+        assert self._closed is False, 'progress listener was closed twice! uncomment the line above to debug this'
         self._closed = True
 
     def __enter__(self):

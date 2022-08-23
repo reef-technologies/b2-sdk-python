@@ -16,11 +16,7 @@ from apiver_deps import B2HttpApiConfig
 from apiver_deps import InMemoryCache
 from apiver_deps import InMemoryAccountInfo
 from apiver_deps import RawSimulator
-from apiver_deps import (
-    ReplicationConfiguration,
-    ReplicationRule,
-    ReplicationSetupHelper,
-)
+from apiver_deps import ReplicationConfiguration, ReplicationRule, ReplicationSetupHelper
 from ..test_base import TestBase
 
 logger = logging.getLogger(__name__)
@@ -30,11 +26,7 @@ class TestReplication(TestBase):
     def setUp(self):
         self.account_info = InMemoryAccountInfo()
         self.cache = InMemoryCache()
-        self.api = B2Api(
-            self.account_info,
-            self.cache,
-            api_config=B2HttpApiConfig(_raw_api_class=RawSimulator),
-        )
+        self.api = B2Api(self.account_info, self.cache, api_config=B2HttpApiConfig(_raw_api_class=RawSimulator))
         self.raw_api = self.api.session.raw_api
         self.application_key_id, self.master_key = self.raw_api.create_account()
 
@@ -49,10 +41,7 @@ class TestReplication(TestBase):
         logger.info('preparations complete, starting the test')
         rsh = ReplicationSetupHelper()
         source_bucket, destination_bucket = rsh.setup_both(
-            source_bucket=source_bucket,
-            destination_bucket=destination_bucket,
-            name='aa',
-            prefix='ab',
+            source_bucket=source_bucket, destination_bucket=destination_bucket, name='aa', prefix='ab'
         )
 
         from pprint import pprint
@@ -79,11 +68,7 @@ class TestReplication(TestBase):
 
         assert source_bucket.replication.rules == [
             ReplicationRule(
-                destination_bucket_id='bucket_1',
-                name='aa',
-                file_name_prefix='ab',
-                is_enabled=True,
-                priority=128,
+                destination_bucket_id='bucket_1', name='aa', file_name_prefix='ab', is_enabled=True, priority=128
             )
         ]
         assert source_bucket.replication.source_key_id == source_application_key.id_
@@ -99,21 +84,14 @@ class TestReplication(TestBase):
         old_source_application_key = source_application_key
 
         source_bucket, destination_bucket = rsh.setup_both(
-            source_bucket=source_bucket,
-            destination_bucket=destination_bucket,
-            prefix='ad',
-            include_existing_files=True,
+            source_bucket=source_bucket, destination_bucket=destination_bucket, prefix='ad', include_existing_files=True
         )
 
         keymap = {k.key_name: k for k in self.api.list_keys()}
         new_source_application_key = keymap['bucket1-replisrc']
         assert source_bucket.replication.rules == [
             ReplicationRule(
-                destination_bucket_id='bucket_1',
-                name='aa',
-                file_name_prefix='ab',
-                is_enabled=True,
-                priority=128,
+                destination_bucket_id='bucket_1', name='aa', file_name_prefix='ab', is_enabled=True, priority=128
             ),
             ReplicationRule(
                 destination_bucket_id='bucket_1',

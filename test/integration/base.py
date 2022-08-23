@@ -68,7 +68,5 @@ class IntegrationTestBase:
 
     def create_bucket(self):
         return self.b2_api.create_bucket(
-            self.generate_bucket_name(),
-            'allPublic',
-            bucket_info={BUCKET_CREATED_AT_MILLIS: str(current_time_millis())},
+            self.generate_bucket_name(), 'allPublic', bucket_info={BUCKET_CREATED_AT_MILLIS: str(current_time_millis())}
         )

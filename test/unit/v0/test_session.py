@@ -35,10 +35,7 @@ class TestB2Session(TestBase):
         self.assertEqual('ok', self.session.get_file_info_by_id(None))
 
     def test_works_second_time(self):
-        self.raw_api.get_file_info_by_id.side_effect = [
-            InvalidAuthToken('message', 'code'),
-            'ok',
-        ]
+        self.raw_api.get_file_info_by_id.side_effect = [InvalidAuthToken('message', 'code'), 'ok']
         self.assertEqual('ok', self.session.get_file_info_by_id(None))
 
     def test_fails_second_time(self):
@@ -51,10 +48,7 @@ class TestB2Session(TestBase):
 
     def test_app_key_info_no_info(self):
         self.account_info.get_allowed.return_value = dict(
-            bucketId=None,
-            bucketName=None,
-            capabilities=ALL_CAPABILITIES,
-            namePrefix=None,
+            bucketId=None, bucketName=None, capabilities=ALL_CAPABILITIES, namePrefix=None
         )
         self.raw_api.get_file_info_by_id.side_effect = Unauthorized('no_go', 'code')
         with self.assertRaisesRegexp(Unauthorized, r'no_go for application key with no restrictions \(code\)'):
@@ -62,24 +56,15 @@ class TestB2Session(TestBase):
 
     def test_app_key_info_no_info_no_message(self):
         self.account_info.get_allowed.return_value = dict(
-            bucketId=None,
-            bucketName=None,
-            capabilities=ALL_CAPABILITIES,
-            namePrefix=None,
+            bucketId=None, bucketName=None, capabilities=ALL_CAPABILITIES, namePrefix=None
         )
         self.raw_api.get_file_info_by_id.side_effect = Unauthorized('', 'code')
-        with self.assertRaisesRegexp(
-            Unauthorized,
-            r'unauthorized for application key with no restrictions \(code\)',
-        ):
+        with self.assertRaisesRegexp(Unauthorized, r'unauthorized for application key with no restrictions \(code\)'):
             self.session.get_file_info_by_id(None)
 
     def test_app_key_info_all_info(self):
         self.account_info.get_allowed.return_value = dict(
-            bucketId='123456',
-            bucketName='my-bucket',
-            capabilities=['readFiles'],
-            namePrefix='prefix/',
+            bucketId='123456', bucketName='my-bucket', capabilities=['readFiles'], namePrefix='prefix/'
         )
         self.raw_api.get_file_info_by_id.side_effect = Unauthorized('no_go', 'code')
         with self.assertRaisesRegexp(

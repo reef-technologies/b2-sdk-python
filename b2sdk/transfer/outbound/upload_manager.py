@@ -13,11 +13,7 @@ import logging
 from typing import Optional
 
 from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
-from b2sdk.exception import (
-    AlreadyFailed,
-    B2Error,
-    MaxRetriesExceeded,
-)
+from b2sdk.exception import AlreadyFailed, B2Error, MaxRetriesExceeded
 from b2sdk.file_lock import FileRetentionSetting, LegalHold
 from b2sdk.stream.progress import ReadingStreamWithProgress
 from b2sdk.stream.hashing import StreamWithHash
@@ -209,8 +205,7 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                         if content_sha1 == HEX_DIGITS_AT_END:
                             content_sha1 = input_stream.hash
                         assert (
-                            content_sha1 == 'do_not_verify'
-                            or content_sha1 == response['contentSha1']
+                            content_sha1 == 'do_not_verify' or content_sha1 == response['contentSha1']
                         ), '%s != %s' % (content_sha1, response['contentSha1'])
                         return self.services.api.file_version_factory.from_api_response(response)
 

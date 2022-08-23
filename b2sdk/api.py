@@ -19,22 +19,12 @@ from .encryption.setting import EncryptionSetting
 from .replication.setting import ReplicationConfiguration
 from .exception import BucketIdNotFound, NonExistentBucket, RestrictedBucket
 from .file_lock import FileRetentionSetting, LegalHold
-from .file_version import (
-    DownloadVersionFactory,
-    FileIdAndName,
-    FileVersion,
-    FileVersionFactory,
-)
+from .file_version import DownloadVersionFactory, FileIdAndName, FileVersion, FileVersionFactory
 from .large_file.services import LargeFileServices
 from .raw_api import API_VERSION
 from .progress import AbstractProgressListener
 from .session import B2Session
-from .transfer import (
-    CopyManager,
-    DownloadManager,
-    Emerger,
-    UploadManager,
-)
+from .transfer import CopyManager, DownloadManager, Emerger, UploadManager
 from .transfer.inbound.downloaded_file import DownloadedFile
 from .utils import B2TraceMeta, b2_url_encode, limit_trace_arguments
 
@@ -276,42 +266,17 @@ class B2Api(metaclass=B2TraceMeta):
         :param encryption: encryption settings (``None`` if unknown)
         """
         url = self.session.get_download_url_by_id(file_id)
-        return self.services.download_manager.download_file_from_url(
-            url,
-            progress_listener,
-            range_,
-            encryption,
-        )
+        return self.services.download_manager.download_file_from_url(url, progress_listener, range_, encryption)
 
     def update_file_retention(
-        self,
-        file_id: str,
-        file_name: str,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+        self, file_id: str, file_name: str, file_retention: FileRetentionSetting, bypass_governance: bool = False
     ) -> FileRetentionSetting:
         return FileRetentionSetting.from_server_response(
-            self.session.update_file_retention(
-                file_id,
-                file_name,
-                file_retention,
-                bypass_governance,
-            )
+            self.session.update_file_retention(file_id, file_name, file_retention, bypass_governance)
         )
 
-    def update_file_legal_hold(
-        self,
-        file_id: str,
-        file_name: str,
-        legal_hold: LegalHold,
-    ) -> LegalHold:
-        return LegalHold.from_server_response(
-            self.session.update_file_legal_hold(
-                file_id,
-                file_name,
-                legal_hold,
-            )
-        )
+    def update_file_legal_hold(self, file_id: str, file_name: str, legal_hold: LegalHold) -> LegalHold:
+        return LegalHold.from_server_response(self.session.update_file_legal_hold(file_id, file_name, legal_hold))
 
     def get_bucket_by_id(self, bucket_id: str) -> Bucket:
         """
@@ -454,11 +419,7 @@ class B2Api(metaclass=B2TraceMeta):
         :param str file_name: a file name
         """
         self.check_bucket_name_restrictions(bucket_name)
-        return '%s/file/%s/%s' % (
-            self.account_info.get_download_url(),
-            bucket_name,
-            b2_url_encode(file_name),
-        )
+        return '%s/file/%s/%s' % (self.account_info.get_download_url(), bucket_name, b2_url_encode(file_name))
 
     # keys
     def create_key(
@@ -513,9 +474,7 @@ class B2Api(metaclass=B2TraceMeta):
         response = self.session.delete_key(application_key_id=application_key_id)
         return ApplicationKey.from_api_response(response)
 
-    def list_keys(
-        self, start_application_key_id: Optional[str] = None
-    ) -> Generator[ApplicationKey, None, None]:
+    def list_keys(self, start_application_key_id: Optional[str] = None) -> Generator[ApplicationKey, None, None]:
         """
         List application keys. Lazily perform requests to B2 cloud and return all keys.
 
@@ -525,9 +484,7 @@ class B2Api(metaclass=B2TraceMeta):
 
         while True:
             response = self.session.list_keys(
-                account_id,
-                max_key_count=self.DEFAULT_LIST_KEY_COUNT,
-                start_application_key_id=start_application_key_id,
+                account_id, max_key_count=self.DEFAULT_LIST_KEY_COUNT, start_application_key_id=start_application_key_id
             )
             for entry in response['keys']:
                 yield ApplicationKey.from_api_response(entry)
@@ -545,10 +502,7 @@ class B2Api(metaclass=B2TraceMeta):
 
         Raises an exception if profile is not permitted to list keys.
         """
-        return next(
-            self.list_keys(start_application_key_id=key_id),
-            None,
-        )
+        return next(self.list_keys(start_application_key_id=key_id), None)
 
     # other
     def get_file_info(self, file_id: str) -> FileVersion:

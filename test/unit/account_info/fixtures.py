@@ -83,21 +83,13 @@ def sqlite_account_info(sqlite_account_info_factory):
 
 
 @pytest.fixture(
-    params=[
-        pytest.lazy_fixture('in_memory_account_info_factory'),
-        pytest.lazy_fixture('sqlite_account_info_factory'),
-    ]
+    params=[pytest.lazy_fixture('in_memory_account_info_factory'), pytest.lazy_fixture('sqlite_account_info_factory')]
 )
 def account_info_factory(request):
     return request.param
 
 
-@pytest.fixture(
-    params=[
-        pytest.lazy_fixture('in_memory_account_info'),
-        pytest.lazy_fixture('sqlite_account_info'),
-    ]
-)
+@pytest.fixture(params=[pytest.lazy_fixture('in_memory_account_info'), pytest.lazy_fixture('sqlite_account_info')])
 def account_info(request):
     return request.param
 
@@ -105,9 +97,7 @@ def account_info(request):
 @pytest.fixture
 def fake_account_info(mocker):
     account_info = mocker.MagicMock(name='FakeAccountInfo', spec=InMemoryAccountInfo)
-    account_info.REALM_URLS = {
-        'dev': 'http://api.backblazeb2.xyz:8180',
-    }
+    account_info.REALM_URLS = {'dev': 'http://api.backblazeb2.xyz:8180'}
     account_info.is_same_account.return_value = True
     account_info.is_same_key.return_value = True
     return account_info

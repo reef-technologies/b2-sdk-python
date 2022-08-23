@@ -43,11 +43,7 @@ class File:
         return self.versions[0]
 
     def __repr__(self):
-        return '%s(%s, [%s])' % (
-            self.__class__.__name__,
-            self.name,
-            ', '.join(repr(v) for v in self.versions),
-        )
+        return '%s(%s, [%s])' % (self.__class__.__name__, self.name, ', '.join(repr(v) for v in self.versions))
 
 
 class B2File(File):

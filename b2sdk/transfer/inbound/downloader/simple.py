@@ -56,10 +56,7 @@ class SimpleDownloader(AbstractDownloader):
         num_tries = 5  # this is hardcoded because we are going to replace the entire retry interface soon, so we'll avoid deprecation here and keep it private
         retries_left = num_tries - 1
         while retries_left and bytes_read < download_version.content_length:
-            new_range = self._get_remote_range(
-                response,
-                download_version,
-            ).subrange(bytes_read, actual_size - 1)
+            new_range = self._get_remote_range(response, download_version).subrange(bytes_read, actual_size - 1)
             # original response is not closed at this point yet, as another layer is responsible for closing it, so a new socket might be allocated,
             # but this is a very rare case and so it is not worth the optimization
             logger.debug(
@@ -69,9 +66,7 @@ class SimpleDownloader(AbstractDownloader):
                 new_range,
             )
             with session.download_file_from_url(
-                response.request.url,
-                new_range.as_tuple(),
-                encryption=encryption,
+                response.request.url, new_range.as_tuple(), encryption=encryption
             ) as followup_response:
                 for data in followup_response.iter_content(chunk_size=self._get_chunk_size(actual_size)):
                     file.write(data)

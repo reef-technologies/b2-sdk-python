@@ -59,10 +59,7 @@ class BaseApplicationKey:
             'name_prefix': response.get('namePrefix'),
             'options': response.get('options'),
         }
-        return {
-            **mandatory_args,
-            **{key: value for key, value in optional_args.items() if value is not None},
-        }
+        return {**mandatory_args, **{key: value for key, value in optional_args.items() if value is not None}}
 
     def has_capabilities(self, capabilities) -> bool:
         """checks whether the key has ALL of the given capabilities"""
@@ -82,10 +79,7 @@ class BaseApplicationKey:
             'namePrefix': self.name_prefix,
             'options': self.options,
         }
-        return {
-            **mandatory_keys,
-            **{key: value for key, value in optional_keys.items() if value is not None},
-        }
+        return {**mandatory_keys, **{key: value for key, value in optional_keys.items() if value is not None}}
 
 
 class ApplicationKey(BaseApplicationKey):
@@ -148,7 +142,4 @@ class FullApplicationKey(BaseApplicationKey):
 
     def as_dict(self):
         """Represent the key as a dict, like the one returned by B2 cloud"""
-        return {
-            **super().as_dict(),
-            'applicationKey': self.application_key,
-        }
+        return {**super().as_dict(), 'applicationKey': self.application_key}

@@ -60,10 +60,7 @@ class RetentionPeriod:
         return cls(**{period_dict['unit']: period_dict['duration']})
 
     def as_dict(self):
-        return {
-            "duration": self.duration,
-            "unit": self.unit,
-        }
+        return {"duration": self.duration, "unit": self.unit}
 
     def __repr__(self):
         return '%s(%s %s)' % (self.__class__.__name__, self.duration, self.unit)
@@ -112,8 +109,7 @@ class FileRetentionSetting:
         if 'fileRetention' not in file_version_dict:
             if file_version_dict['action'] not in ACTIONS_WITHOUT_LOCK_SETTINGS:
                 raise UnexpectedCloudBehaviour(
-                    'No fileRetention provided for file version with action=%s'
-                    % (file_version_dict['action'])
+                    'No fileRetention provided for file version with action=%s' % (file_version_dict['action'])
                 )
             return NO_RETENTION_FILE_SETTING
         file_retention_dict = file_version_dict['fileRetention']
@@ -130,10 +126,7 @@ class FileRetentionSetting:
         if mode is None:
             return NO_RETENTION_FILE_SETTING
 
-        return cls(
-            RetentionMode(mode),
-            file_retention_value_dict['retainUntilTimestamp'],
-        )
+        return cls(RetentionMode(mode), file_retention_value_dict['retainUntilTimestamp'])
 
     @classmethod
     def from_server_response(cls, server_response: dict) -> 'FileRetentionSetting':
@@ -161,10 +154,7 @@ class FileRetentionSetting:
         return self.as_dict()
 
     def as_dict(self):
-        return {
-            "mode": self.mode.value,
-            "retainUntilTimestamp": self.retain_until,
-        }
+        return {"mode": self.mode.value, "retainUntilTimestamp": self.retain_until}
 
     def add_to_to_upload_headers(self, headers):
         if self.mode is RetentionMode.UNKNOWN:
@@ -178,11 +168,7 @@ class FileRetentionSetting:
         return self.mode == other.mode and self.retain_until == other.retain_until
 
     def __repr__(self):
-        return '%s(%s, %s)' % (
-            self.__class__.__name__,
-            repr(self.mode.value),
-            repr(self.retain_until),
-        )
+        return '%s(%s, %s)' % (self.__class__.__name__, repr(self.mode.value), repr(self.retain_until))
 
 
 @enum.unique
@@ -211,8 +197,7 @@ class LegalHold(enum.Enum):
         if 'legalHold' not in file_version_dict:
             if file_version_dict['action'] not in ACTIONS_WITHOUT_LOCK_SETTINGS:
                 raise UnexpectedCloudBehaviour(
-                    'legalHold not provided for file version with action=%s'
-                    % (file_version_dict['action'])
+                    'legalHold not provided for file version with action=%s' % (file_version_dict['action'])
                 )
             return cls.UNSET
         if not file_version_dict['legalHold']['isClientAuthorizedToRead']:
@@ -236,9 +221,7 @@ class LegalHold(enum.Enum):
             'X-Bz-Client-Unauthorized-To-Read'
         ].split(','):
             return cls.UNKNOWN
-        return (
-            cls.UNSET
-        )  # the bucket is not file-lock-enabled or the header is missing for any other reason
+        return cls.UNSET  # the bucket is not file-lock-enabled or the header is missing for any other reason
 
     def to_server(self) -> str:
         if self.is_unknown():
@@ -283,9 +266,7 @@ class BucketRetentionSetting:
         return cls(RetentionMode(retention_dict['mode']), period)
 
     def as_dict(self):
-        result = {
-            'mode': self.mode.value,
-        }
+        result = {'mode': self.mode.value}
         if self.period is not None:
             result['period'] = self.period.as_dict()
         return result
@@ -299,22 +280,14 @@ class BucketRetentionSetting:
         return self.mode == other.mode and self.period == other.period
 
     def __repr__(self):
-        return '%s(%s, %s)' % (
-            self.__class__.__name__,
-            repr(self.mode.value),
-            repr(self.period),
-        )
+        return '%s(%s, %s)' % (self.__class__.__name__, repr(self.mode.value), repr(self.period))
 
 
 class FileLockConfiguration:
     """Represent bucket's file lock configuration, i.e. whether the file lock mechanism is enabled and default
     file retention"""
 
-    def __init__(
-        self,
-        default_retention: BucketRetentionSetting,
-        is_file_lock_enabled: Optional[bool],
-    ):
+    def __init__(self, default_retention: BucketRetentionSetting, is_file_lock_enabled: Optional[bool]):
         self.default_retention = default_retention
         self.is_file_lock_enabled = is_file_lock_enabled
 
@@ -356,10 +329,7 @@ class FileLockConfiguration:
         return cls(retention, is_file_lock_enabled)
 
     def as_dict(self):
-        return {
-            "defaultRetention": self.default_retention.as_dict(),
-            "isFileLockEnabled": self.is_file_lock_enabled,
-        }
+        return {"defaultRetention": self.default_retention.as_dict(), "isFileLockEnabled": self.is_file_lock_enabled}
 
     def __eq__(self, other):
         return (
@@ -368,11 +338,7 @@ class FileLockConfiguration:
         )
 
     def __repr__(self):
-        return '%s(%s, %s)' % (
-            self.__class__.__name__,
-            repr(self.default_retention),
-            repr(self.is_file_lock_enabled),
-        )
+        return '%s(%s, %s)' % (self.__class__.__name__, repr(self.default_retention), repr(self.is_file_lock_enabled))
 
 
 UNKNOWN_BUCKET_RETENTION = BucketRetentionSetting(RetentionMode.UNKNOWN)

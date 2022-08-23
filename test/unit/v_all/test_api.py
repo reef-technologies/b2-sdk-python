@@ -26,11 +26,7 @@ class TestApi(TestBase):
     def setUp(self):
         self.account_info = InMemoryAccountInfo()
         self.cache = InMemoryCache()
-        self.api = B2Api(
-            self.account_info,
-            self.cache,
-            api_config=B2HttpApiConfig(_raw_api_class=RawSimulator),
-        )
+        self.api = B2Api(self.account_info, self.cache, api_config=B2HttpApiConfig(_raw_api_class=RawSimulator))
         self.raw_api = self.api.session.raw_api
         (self.application_key_id, self.master_key) = self.raw_api.create_account()
 
@@ -50,10 +46,7 @@ class TestApi(TestBase):
             ('revision', None),
             ('bucket_dict', {}),
             ('options_set', set()),
-            (
-                'default_server_side_encryption',
-                EncryptionSetting(EncryptionMode.UNKNOWN),
-            ),
+            ('default_server_side_encryption', EncryptionSetting(EncryptionMode.UNKNOWN)),
         ]:
             with self.subTest(att_name=att_name):
                 assert getattr(bucket, att_name) == att_value, att_name
@@ -82,7 +75,4 @@ class TestApi(TestBase):
 
         download_url = self.api.get_download_url_for_fileid('file-id')
 
-        assert (
-            download_url
-            == 'http://download.example.com/b2api/v2/b2_download_file_by_id?fileId=file-id'
-        )
+        assert download_url == 'http://download.example.com/b2api/v2/b2_download_file_by_id?fileId=file-id'

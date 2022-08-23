@@ -35,9 +35,8 @@ class CorruptAccountInfo(AccountInfoError):
         self.file_name = file_name
 
     def __str__(self):
-        return (
-            'Account info file (%s) appears corrupted.  Try removing and then re-authorizing the account.'
-            % (self.file_name,)
+        return 'Account info file (%s) appears corrupted.  Try removing and then re-authorizing the account.' % (
+            self.file_name,
         )
 
 

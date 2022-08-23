@@ -38,19 +38,12 @@ def _translate_b2_path_to_file(path: v2.B2SyncPath) -> B2File:
 
 def _translate_local_path_to_file(path: v2.LocalSyncPath) -> File:
     version = FileVersion(
-        id_=path.absolute_path,
-        file_name=path.relative_path,
-        mod_time=path.mod_time,
-        action='upload',
-        size=path.size,
+        id_=path.absolute_path, file_name=path.relative_path, mod_time=path.mod_time, action='upload', size=path.size
     )
     return File(path.relative_path, [version])
 
 
-_path_translation_map = {
-    'b2': _translate_b2_path_to_file,
-    'local': _translate_local_path_to_file,
-}
+_path_translation_map = {'b2': _translate_b2_path_to_file, 'local': _translate_local_path_to_file}
 
 
 # The goal is to create v2.SyncPath objects from v1.File objects
@@ -84,7 +77,4 @@ def _translate_local_file_to_path(file: File) -> v2.AbstractSyncPath:
     )
 
 
-_file_translation_map = {
-    'b2': _translate_b2_file_to_path,
-    'local': _translate_local_file_to_path,
-}
+_file_translation_map = {'b2': _translate_b2_file_to_path, 'local': _translate_local_file_to_path}

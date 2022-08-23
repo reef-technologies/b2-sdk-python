@@ -58,9 +58,7 @@ class AbstractFolder(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def all_files(
-        self, reporter: ProgressReport, policies_manager=DEFAULT_SCAN_MANAGER
-    ) -> Iterator[AbstractPath]:
+    def all_files(self, reporter: ProgressReport, policies_manager=DEFAULT_SCAN_MANAGER) -> Iterator[AbstractPath]:
         """
         Return an iterator over all of the files in the folder, in
         the order that B2 uses.
@@ -131,9 +129,7 @@ class LocalFolder(AbstractFolder):
         """
         return 'local'
 
-    def all_files(
-        self, reporter: ProgressReport, policies_manager=DEFAULT_SCAN_MANAGER
-    ) -> Iterator[LocalPath]:
+    def all_files(self, reporter: ProgressReport, policies_manager=DEFAULT_SCAN_MANAGER) -> Iterator[LocalPath]:
         """
         Yield all files.
 
@@ -186,11 +182,7 @@ class LocalFolder(AbstractFolder):
             raise EmptyDirectory(self.root)
 
     def _walk_relative_paths(
-        self,
-        local_dir: str,
-        relative_dir_path: str,
-        reporter,
-        policies_manager: ScanPoliciesManager,
+        self, local_dir: str, relative_dir_path: str, reporter, policies_manager: ScanPoliciesManager
     ):
         """
         Yield a File object for each of the files anywhere under this folder, in the
@@ -224,8 +216,7 @@ class LocalFolder(AbstractFolder):
 
             if '/' in name:
                 raise UnsupportedFilename(
-                    "scan does not support file names that include '/'",
-                    "%s in dir %s" % (name, local_dir),
+                    "scan does not support file names that include '/'", "%s in dir %s" % (name, local_dir)
                 )
 
             local_path = os.path.join(local_dir, name)
@@ -327,9 +318,7 @@ class B2Folder(AbstractFolder):
             self.prefix += '/'
 
     def all_files(
-        self,
-        reporter: ProgressReport,
-        policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER,
+        self, reporter: ProgressReport, policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER
     ) -> Iterator[B2Path]:
         """
         Yield all files.
@@ -364,9 +353,7 @@ class B2Folder(AbstractFolder):
 
             if current_name != file_name and current_name is not None and current_versions:
                 yield B2Path(
-                    relative_path=current_name,
-                    selected_version=current_versions[0],
-                    all_versions=current_versions,
+                    relative_path=current_name, selected_version=current_versions[0], all_versions=current_versions
                 )
                 current_versions = []
 
@@ -375,26 +362,17 @@ class B2Folder(AbstractFolder):
 
         if current_name is not None and current_versions:
             yield B2Path(
-                relative_path=current_name,
-                selected_version=current_versions[0],
-                all_versions=current_versions,
+                relative_path=current_name, selected_version=current_versions[0], all_versions=current_versions
             )
 
     def get_file_versions(self):
-        for file_version, _ in self.bucket.ls(
-            self.folder_name,
-            latest_only=False,
-            recursive=True,
-        ):
+        for file_version, _ in self.bucket.ls(self.folder_name, latest_only=False, recursive=True):
             yield file_version
 
     def _validate_file_name(self, file_name):
         # Do not allow relative paths in file names
         if RELATIVE_PATH_MATCHER.search(file_name):
-            raise UnsupportedFilename(
-                "scan does not support file names that include relative paths",
-                file_name,
-            )
+            raise UnsupportedFilename("scan does not support file names that include relative paths", file_name)
         # Do not allow absolute paths in file names
         if ABSOLUTE_PATH_MATCHER.search(file_name):
             raise UnsupportedFilename("scan does not support file names with absolute paths", file_name)

@@ -295,14 +295,11 @@ class InvalidRange(B2Error):
         self.range_ = range_
 
     def __str__(self):
-        return (
-            'A range of %d-%d was requested (size of %d), but cloud could only serve %d of that'
-            % (
-                self.range_[0],
-                self.range_[1],
-                self.range_[1] - self.range_[0] + 1,
-                self.content_length,
-            )
+        return 'A range of %d-%d was requested (size of %d), but cloud could only serve %d of that' % (
+            self.range_[0],
+            self.range_[1],
+            self.range_[1] - self.range_[0] + 1,
+            self.content_length,
         )
 
 
@@ -352,9 +349,7 @@ class InvalidAuthToken(Unauthorized):
     """
 
     def __init__(self, message, code):
-        super(InvalidAuthToken, self).__init__(
-            'Invalid authorization token. Server said: ' + message, code
-        )
+        super(InvalidAuthToken, self).__init__('Invalid authorization token. Server said: ' + message, code)
 
 
 class RestrictedBucket(B2Error):
@@ -373,10 +368,7 @@ class MaxFileSizeExceeded(B2Error):
         self.max_allowed_size = max_allowed_size
 
     def __str__(self):
-        return 'Allowed file size of exceeded: %s > %s' % (
-            self.size,
-            self.max_allowed_size,
-        )
+        return 'Allowed file size of exceeded: %s > %s' % (self.size, self.max_allowed_size)
 
 
 class MaxRetriesExceeded(B2Error):
@@ -387,10 +379,7 @@ class MaxRetriesExceeded(B2Error):
 
     def __str__(self):
         exceptions = '\n'.join(str(wrapped_error) for wrapped_error in self.exception_info_list)
-        return 'FAILED to upload after %s tries. Encountered exceptions: %s' % (
-            self.limit,
-            exceptions,
-        )
+        return 'FAILED to upload after %s tries. Encountered exceptions: %s' % (self.limit, exceptions)
 
 
 class MissingPart(B2SimpleError):
@@ -455,10 +444,7 @@ class TruncatedOutput(TransientErrorMixin, B2Error):
         self.file_size = file_size
 
     def __str__(self):
-        return 'only %d of %d bytes read' % (
-            self.bytes_read,
-            self.file_size,
-        )
+        return 'only %d of %d bytes read' % (self.bytes_read, self.file_size)
 
 
 class UnexpectedCloudBehaviour(B2SimpleError):
@@ -536,9 +522,7 @@ def interpret_b2_error(
         return FileAlreadyHidden(post_params.get('fileName'))
     elif status == 400 and code == 'bad_json':
         return BadJson(message)
-    elif (status == 400 and code in ("no_such_file", "file_not_present")) or (
-        status == 404 and code == "not_found"
-    ):
+    elif (status == 400 and code in ("no_such_file", "file_not_present")) or (status == 404 and code == "not_found"):
         # hide_file returns 400 and "no_such_file"
         # delete_file_version returns 400 and "file_not_present"
         # get_file_info returns 404 and "not_found"
@@ -558,11 +542,7 @@ def interpret_b2_error(
         return PartSha1Mismatch(post_params.get('fileId'))
     elif status == 400 and code == "bad_bucket_id":
         return BucketIdNotFound(post_params.get('bucketId'))
-    elif status == 400 and code in (
-        'bad_request',
-        'auth_token_limit',
-        'source_too_large',
-    ):
+    elif status == 400 and code in ('bad_request', 'auth_token_limit', 'source_too_large'):
         # it's "bad_request" on 2022-03-29, but will become 'auth_token_limit' in 2022-04  # TODO: cleanup after 2022-05-01
         matcher = UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE.match(message)
         if matcher is not None:

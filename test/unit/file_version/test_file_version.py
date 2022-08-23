@@ -38,11 +38,7 @@ class TestFileVersion:
     def setUp(self):
         self.account_info = InMemoryAccountInfo()
         self.cache = DummyCache()
-        self.api = B2Api(
-            self.account_info,
-            self.cache,
-            api_config=B2HttpApiConfig(_raw_api_class=RawSimulator),
-        )
+        self.api = B2Api(self.account_info, self.cache, api_config=B2HttpApiConfig(_raw_api_class=RawSimulator))
         self.raw_api = self.api.session.raw_api
         (self.application_key_id, self.master_key) = self.raw_api.create_account()
         self.api.authorize_account('production', self.application_key_id, self.master_key)
@@ -70,11 +66,7 @@ class TestFileVersion:
         assert refreshed_version.as_dict() == fetched_version.as_dict()
 
     def test_clone_file_version_and_download_version(self):
-        encryption = EncryptionSetting(
-            EncryptionMode.SSE_C,
-            EncryptionAlgorithm.AES256,
-            EncryptionKey(b'secret', None),
-        )
+        encryption = EncryptionSetting(EncryptionMode.SSE_C, EncryptionAlgorithm.AES256, EncryptionKey(b'secret', None))
         initial_file_version = self.bucket.upload_bytes(
             b'nothing',
             'test_file',
@@ -94,10 +86,7 @@ class TestFileVersion:
         assert initial_file_version._clone() == initial_file_version
         cloned = initial_file_version._clone(legal_hold=LegalHold.OFF)
         assert isinstance(cloned, VFileVersion)
-        assert cloned.as_dict() == {
-            **initial_file_version.as_dict(),
-            'legalHold': LegalHold.OFF.value,
-        }
+        assert cloned.as_dict() == {**initial_file_version.as_dict(), 'legalHold': LegalHold.OFF.value}
 
         download_version = self.api.download_file_by_id(
             initial_file_version.id_, encryption=encryption
@@ -105,10 +94,7 @@ class TestFileVersion:
         assert download_version._clone() == download_version
         cloned = download_version._clone(legal_hold=LegalHold.OFF)
         assert isinstance(cloned, DownloadVersion)
-        assert cloned.as_dict() == {
-            **download_version.as_dict(),
-            'legalHold': LegalHold.OFF.value,
-        }
+        assert cloned.as_dict() == {**download_version.as_dict(), 'legalHold': LegalHold.OFF.value}
 
     def test_update_legal_hold(self):
         new_file_version = self.file_version.update_legal_hold(LegalHold.ON)
@@ -148,10 +134,8 @@ class TestFileVersion:
     def test_file_version_upload_headers(self):
         file_version = self.file_version._clone(
             server_side_encryption=EncryptionSetting(
-                EncryptionMode.SSE_C,
-                EncryptionAlgorithm.AES256,
-                EncryptionKey(None, None),
-            ),
+                EncryptionMode.SSE_C, EncryptionAlgorithm.AES256, EncryptionKey(None, None)
+            )
         )
 
         assert (

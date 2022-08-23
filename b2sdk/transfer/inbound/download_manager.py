@@ -14,9 +14,7 @@ from typing import Optional
 from b2sdk.encryption.setting import EncryptionSetting
 from b2sdk.progress import DoNothingProgressListener
 
-from b2sdk.exception import (
-    InvalidRange,
-)
+from b2sdk.exception import InvalidRange
 from b2sdk.utils import B2TraceMetaAbstract
 
 from .downloaded_file import DownloadedFile
@@ -71,11 +69,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         self.check_hash = check_hash
 
     def download_file_from_url(
-        self,
-        url,
-        progress_listener=None,
-        range_=None,
-        encryption: Optional[EncryptionSetting] = None,
+        self, url, progress_listener=None, range_=None, encryption: Optional[EncryptionSetting] = None
     ) -> DownloadedFile:
         """
         :param url: url from which the file should be downloaded
@@ -84,11 +78,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         :param b2sdk.v2.EncryptionSetting encryption: encryption setting (``None`` if unknown)
         """
         progress_listener = progress_listener or DoNothingProgressListener()
-        with self.services.session.download_file_from_url(
-            url,
-            range_=range_,
-            encryption=encryption,
-        ) as response:
+        with self.services.session.download_file_from_url(url, range_=range_, encryption=encryption) as response:
             download_version = self.services.api.download_version_factory.from_response_headers(response.headers)
             if range_ is not None:
                 # 2021-05-20: unfortunately for a read of a complete object server does not return the 'Content-Range' header

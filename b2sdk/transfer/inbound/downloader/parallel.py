@@ -145,38 +145,15 @@ class ParallelDownloader(AbstractDownloader):
             if stop:
                 break
 
-    def _get_parts(
-        self,
-        response,
-        session,
-        writer,
-        hasher,
-        first_part,
-        parts_to_download,
-        chunk_size,
-        encryption,
-    ):
+    def _get_parts(self, response, session, writer, hasher, first_part, parts_to_download, chunk_size, encryption):
         stream = self._thread_pool.submit(
-            download_first_part,
-            response,
-            hasher,
-            session,
-            writer,
-            first_part,
-            chunk_size,
-            encryption=encryption,
+            download_first_part, response, hasher, session, writer, first_part, chunk_size, encryption=encryption
         )
         streams = [stream]
 
         for part in parts_to_download:
             stream = self._thread_pool.submit(
-                download_non_first_part,
-                response.request.url,
-                session,
-                writer,
-                part,
-                chunk_size,
-                encryption=encryption,
+                download_non_first_part, response.request.url, session, writer, part, chunk_size, encryption=encryption
             )
             streams.append(stream)
 
@@ -291,11 +268,7 @@ def download_first_part(
             bytes_read,
             cloud_range,
         )
-        with session.download_file_from_url(
-            url,
-            cloud_range.as_tuple(),
-            encryption=encryption,
-        ) as response:
+        with session.download_file_from_url(url, cloud_range.as_tuple(), encryption=encryption) as response:
             for to_write in response.iter_content(chunk_size=chunk_size):
                 writer_queue_put((False, first_offset + bytes_read, to_write))
                 hasher_update(to_write)
@@ -335,11 +308,7 @@ def download_non_first_part(
             bytes_read,
             cloud_range,
         )
-        with session.download_file_from_url(
-            url,
-            cloud_range.as_tuple(),
-            encryption=encryption,
-        ) as response:
+        with session.download_file_from_url(url, cloud_range.as_tuple(), encryption=encryption) as response:
             for to_write in response.iter_content(chunk_size=chunk_size):
                 writer_queue_put((False, start_range + bytes_read, to_write))
                 bytes_read += len(to_write)
@@ -365,10 +334,7 @@ def gen_parts(cloud_range, local_range, part_count):
     Generate a sequence of PartToDownload to download a large file as
     a collection of parts.
     """
-    assert cloud_range.size() == local_range.size(), (
-        cloud_range.size(),
-        local_range.size(),
-    )
+    assert cloud_range.size() == local_range.size(), (cloud_range.size(), local_range.size())
     assert 0 < part_count <= cloud_range.size()
     offset = 0
     remaining_size = cloud_range.size()

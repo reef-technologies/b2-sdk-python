@@ -199,13 +199,7 @@ class B2Http:
         self.callbacks.append(callback)
 
     def post_content_return_json(
-        self,
-        url,
-        headers,
-        data,
-        try_count: int = TRY_COUNT_DATA,
-        post_params=None,
-        _timeout: Optional[int] = None,
+        self, url, headers, data, try_count: int = TRY_COUNT_DATA, post_params=None, _timeout: Optional[int] = None
     ):
         """
         Use like this:
@@ -232,10 +226,7 @@ class B2Http:
             data.seek(0)
             self._run_pre_request_hooks('POST', url, request_headers)
             response = self.session.post(
-                url,
-                headers=request_headers,
-                data=data,
-                timeout=_timeout or self.TIMEOUT_FOR_UPLOAD,
+                url, headers=request_headers, data=data, timeout=_timeout or self.TIMEOUT_FOR_UPLOAD
             )
             self._run_post_request_hooks('POST', url, request_headers, response)
             return response
@@ -282,14 +273,7 @@ class B2Http:
         timeout = self.TIMEOUT_FOR_COPY
 
         data = io.BytesIO(json.dumps(params).encode())
-        return self.post_content_return_json(
-            url,
-            headers,
-            data,
-            try_count,
-            params,
-            _timeout=timeout,
-        )
+        return self.post_content_return_json(url, headers, data, try_count, params, _timeout=timeout)
 
     def get_content(self, url, headers, try_count: int = TRY_COUNT_DOWNLOAD):
         """
@@ -327,12 +311,7 @@ class B2Http:
         response = self._translate_and_retry(do_get, try_count, None)
         return ResponseContextManager(response)
 
-    def head_content(
-        self,
-        url: str,
-        headers: Dict[str, Any],
-        try_count: int = TRY_COUNT_HEAD,
-    ) -> Dict[str, Any]:
+    def head_content(self, url: str, headers: Dict[str, Any], try_count: int = TRY_COUNT_HEAD) -> Dict[str, Any]:
         """
         Does a HEAD instead of a GET for the URL.
         The response's content is limited to the headers.
@@ -396,10 +375,7 @@ class B2Http:
                 error = json.loads(response.content.decode('utf-8')) if response.content else {}
                 extra_error_keys = error.keys() - ('code', 'status', 'message')
                 if extra_error_keys:
-                    logger.debug(
-                        'received error has extra (unsupported) keys: %s',
-                        extra_error_keys,
-                    )
+                    logger.debug('received error has extra (unsupported) keys: %s', extra_error_keys)
                 raise interpret_b2_error(
                     int(error.get('status', response.status_code)),
                     error.get('code'),
@@ -477,11 +453,7 @@ class B2Http:
                     sleep_duration = wait_time
                     sleep_reason = 'that is what the default exponential backoff is'
 
-                logger.info(
-                    'Pausing thread for %i seconds because %s',
-                    sleep_duration,
-                    sleep_reason,
-                )
+                logger.info('Pausing thread for %i seconds because %s', sleep_duration, sleep_reason)
                 time.sleep(sleep_duration)
 
                 # Set up wait time for the next iteration

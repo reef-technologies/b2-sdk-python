@@ -25,10 +25,7 @@ from apiver_deps import (
 @pytest.fixture
 def api() -> B2Api:
     account_info = StubAccountInfo()
-    api = B2Api(
-        account_info,
-        api_config=B2HttpApiConfig(_raw_api_class=RawSimulator),
-    )
+    api = B2Api(account_info, api_config=B2HttpApiConfig(_raw_api_class=RawSimulator))
 
     simulator = api.session.raw_api
     account_id, master_key = simulator.create_account()
@@ -53,7 +50,7 @@ def source_bucket(api, destination_bucket) -> Bucket:
                 destination_bucket_id=destination_bucket.id_,
                 name='name',
                 file_name_prefix='folder/',  # TODO: is last slash needed?
-            ),
+            )
         ],
         source_key_id='hoho|trololo',
     )
@@ -77,7 +74,4 @@ def test_file_reversed(tmpdir) -> str:
 
 @pytest.fixture
 def monitor(source_bucket) -> ReplicationMonitor:
-    return ReplicationMonitor(
-        source_bucket,
-        rule=source_bucket.replication.rules[0],
-    )
+    return ReplicationMonitor(source_bucket, rule=source_bucket.replication.rules[0])

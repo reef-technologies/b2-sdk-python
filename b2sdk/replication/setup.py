@@ -43,14 +43,8 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
     DEFAULT_PRIORITY: ClassVar[
         int
     ] = ReplicationRule.DEFAULT_PRIORITY  #: what priority to set if there are no preexisting rules
-    MAX_PRIORITY: ClassVar[
-        int
-    ] = ReplicationRule.MAX_PRIORITY  #: maximum allowed priority of a replication rule
-    DEFAULT_SOURCE_CAPABILITIES: ClassVar[Tuple[str, ...]] = (
-        'readFiles',
-        'readFileLegalHolds',
-        'readFileRetentions',
-    )
+    MAX_PRIORITY: ClassVar[int] = ReplicationRule.MAX_PRIORITY  #: maximum allowed priority of a replication rule
+    DEFAULT_SOURCE_CAPABILITIES: ClassVar[Tuple[str, ...]] = ('readFiles', 'readFileLegalHolds', 'readFileRetentions')
     DEFAULT_DESTINATION_CAPABILITIES: ClassVar[Tuple[str, ...]] = (
         'writeFiles',
         'writeFileLegalHolds',
@@ -69,36 +63,19 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
     ) -> Tuple[Bucket, Bucket]:
 
         # setup source key
-        source_key = self._get_source_key(
-            source_bucket,
-            prefix,
-            source_bucket.replication,
-        )
+        source_key = self._get_source_key(source_bucket, prefix, source_bucket.replication)
 
         # setup destination
-        new_destination_bucket = self.setup_destination(
-            source_key.id_,
-            destination_bucket,
-        )
+        new_destination_bucket = self.setup_destination(source_key.id_, destination_bucket)
 
         # setup source
         new_source_bucket = self.setup_source(
-            source_bucket,
-            source_key,
-            destination_bucket,
-            prefix,
-            name,
-            priority,
-            include_existing_files,
+            source_bucket, source_key, destination_bucket, prefix, name, priority, include_existing_files
         )
 
         return new_source_bucket, new_destination_bucket
 
-    def setup_destination(
-        self,
-        source_key_id: str,
-        destination_bucket: Bucket,
-    ) -> Bucket:
+    def setup_destination(self, source_key_id: str, destination_bucket: Bucket) -> Bucket:
         api: B2Api = destination_bucket.api
 
         # yapf: disable
@@ -121,16 +98,11 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
         )
         # yapf: enable
         return destination_bucket.update(
-            if_revision_is=destination_bucket.revision,
-            replication=new_replication_configuration,
+            if_revision_is=destination_bucket.revision, replication=new_replication_configuration
         )
 
     @classmethod
-    def _get_destination_key(
-        cls,
-        api: B2Api,
-        destination_bucket: Bucket,
-    ):
+    def _get_destination_key(cls, api: B2Api, destination_bucket: Bucket):
         keys_to_purge = []
         if destination_bucket.replication is not None:
             current_destination_key_ids = (
@@ -163,9 +135,7 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
         if not key:
             logger.debug("no matching key found, making a new one")
             key = cls._create_destination_key(
-                name=destination_bucket.name[:91] + '-replidst',
-                bucket=destination_bucket,
-                prefix=None,
+                name=destination_bucket.name[:91] + '-replidst', bucket=destination_bucket, prefix=None
             )
         return keys_to_purge, key
 
@@ -184,22 +154,13 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
         if source_bucket.replication:
             current_source_rules = source_bucket.replication.rules
-            destination_configuration = (
-                source_bucket.replication.get_destination_configuration_as_dict()
-            )
+            destination_configuration = source_bucket.replication.get_destination_configuration_as_dict()
         else:
             current_source_rules = []
             destination_configuration = {}
 
-        priority = self._get_priority_for_new_rule(
-            current_source_rules,
-            priority,
-        )
-        name = self._get_new_rule_name(
-            current_source_rules,
-            destination_bucket,
-            name,
-        )
+        priority = self._get_priority_for_new_rule(current_source_rules, priority)
+        name = self._get_new_rule_name(current_source_rules, destination_bucket, name)
         new_rr = ReplicationRule(
             name=name,
             priority=priority,
@@ -208,45 +169,30 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
             include_existing_files=include_existing_files,
         )
         new_replication_configuration = ReplicationConfiguration(
-            source_key_id=source_key.id_,
-            rules=current_source_rules + [new_rr],
-            **destination_configuration,
+            source_key_id=source_key.id_, rules=current_source_rules + [new_rr], **destination_configuration
         )
-        return source_bucket.update(
-            if_revision_is=source_bucket.revision,
-            replication=new_replication_configuration,
-        )
+        return source_bucket.update(if_revision_is=source_bucket.revision, replication=new_replication_configuration)
 
     @classmethod
     def _get_source_key(
-        cls,
-        source_bucket: Bucket,
-        prefix: str,
-        current_replication_configuration: ReplicationConfiguration,
+        cls, source_bucket: Bucket, prefix: str, current_replication_configuration: ReplicationConfiguration
     ) -> ApplicationKey:
         api = source_bucket.api
 
         if current_replication_configuration is not None:
             current_source_key = api.get_key(current_replication_configuration.source_key_id)
-            do_create_key = cls._should_make_new_source_key(
-                current_replication_configuration,
-                current_source_key,
-            )
+            do_create_key = cls._should_make_new_source_key(current_replication_configuration, current_source_key)
             if not do_create_key:
                 return current_source_key
 
         new_key = cls._create_source_key(
-            name=source_bucket.name[:91] + '-replisrc',
-            bucket=source_bucket,
-            prefix=prefix,
+            name=source_bucket.name[:91] + '-replisrc', bucket=source_bucket, prefix=prefix
         )
         return new_key
 
     @classmethod
     def _should_make_new_source_key(
-        cls,
-        current_replication_configuration: ReplicationConfiguration,
-        current_source_key: Optional[ApplicationKey],
+        cls, current_replication_configuration: ReplicationConfiguration, current_source_key: Optional[ApplicationKey]
     ) -> bool:
         if current_replication_configuration.source_key_id is None:
             logger.debug('will create a new source key because no key is set')
@@ -261,8 +207,7 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
         if current_source_key.name_prefix:
             logger.debug(
-                'will create a new source key because current key %s had a prefix: "%s"',
-                current_source_key.name_prefix,
+                'will create a new source key because current key %s had a prefix: "%s"', current_source_key.name_prefix
             )
             return True
 
@@ -276,12 +221,7 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
         return False  # current key is ok
 
     @classmethod
-    def _create_source_key(
-        cls,
-        name: str,
-        bucket: Bucket,
-        prefix: Optional[str] = None,
-    ) -> ApplicationKey:
+    def _create_source_key(cls, name: str, bucket: Bucket, prefix: Optional[str] = None) -> ApplicationKey:
         # in this implementation we ignore the prefix and create a full key, because
         # if someone would need a different (wider) key later, all replication
         # destinations would have to start using new keys and it's not feasible
@@ -292,37 +232,19 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
         return cls._create_key(name, bucket, prefix, capabilities)
 
     @classmethod
-    def _create_destination_key(
-        cls,
-        name: str,
-        bucket: Bucket,
-        prefix: Optional[str] = None,
-    ) -> ApplicationKey:
+    def _create_destination_key(cls, name: str, bucket: Bucket, prefix: Optional[str] = None) -> ApplicationKey:
         capabilities = cls.DEFAULT_DESTINATION_CAPABILITIES
         return cls._create_key(name, bucket, prefix, capabilities)
 
     @classmethod
     def _create_key(
-        cls,
-        name: str,
-        bucket: Bucket,
-        prefix: Optional[str] = None,
-        capabilities=tuple(),
+        cls, name: str, bucket: Bucket, prefix: Optional[str] = None, capabilities=tuple()
     ) -> ApplicationKey:
         api: B2Api = bucket.api
-        return api.create_key(
-            capabilities=capabilities,
-            key_name=name,
-            bucket_id=bucket.id_,
-            name_prefix=prefix,
-        )
+        return api.create_key(capabilities=capabilities, key_name=name, bucket_id=bucket.id_, name_prefix=prefix)
 
     @classmethod
-    def _get_priority_for_new_rule(
-        cls,
-        current_rules: Iterable[ReplicationRule],
-        priority: Optional[int] = None,
-    ):
+    def _get_priority_for_new_rule(cls, current_rules: Iterable[ReplicationRule], priority: Optional[int] = None):
         if priority is not None:
             return priority
         if current_rules:
@@ -333,20 +255,14 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _get_new_rule_name(
-        cls,
-        current_rules: Iterable[ReplicationRule],
-        destination_bucket: Bucket,
-        name: Optional[str] = None,
+        cls, current_rules: Iterable[ReplicationRule], destination_bucket: Bucket, name: Optional[str] = None
     ):
         if name is not None:
             return name
         existing_names = set(rr.name for rr in current_rules)
         suffixes = cls._get_rule_name_candidate_suffixes()
         while True:
-            candidate = '%s%s' % (
-                destination_bucket.name,
-                next(suffixes),
-            )  # use := after dropping 3.7
+            candidate = '%s%s' % (destination_bucket.name, next(suffixes))  # use := after dropping 3.7
             if candidate not in existing_names:
                 return candidate
 

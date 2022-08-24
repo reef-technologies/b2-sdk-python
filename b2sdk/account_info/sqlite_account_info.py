@@ -30,6 +30,8 @@ B2_ACCOUNT_INFO_PROFILE_NAME_REGEXP = re.compile(r'[a-zA-Z0-9_\-]{1,64}')
 XDG_CONFIG_HOME_ENV_VAR = 'XDG_CONFIG_HOME'
 
 DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE = 5000000  # this value is used ONLY in migrating db, and in v1 wrapper, it is not
+
+
 # meant to be a default for other applications
 
 
@@ -391,18 +393,18 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             conn.execute('DELETE FROM bucket_upload_url;')
 
     def _set_auth_data(
-        self,
-        account_id,
-        auth_token,
-        api_url,
-        download_url,
-        recommended_part_size,
-        absolute_minimum_part_size,
-        application_key,
-        realm,
-        s3_api_url,
-        allowed,
-        application_key_id,
+            self,
+            account_id,
+            auth_token,
+            api_url,
+            download_url,
+            recommended_part_size,
+            absolute_minimum_part_size,
+            application_key,
+            realm,
+            s3_api_url,
+            allowed,
+            application_key_id,
     ):
         assert self.allowed_is_valid(allowed)
         with self._get_connection() as conn:
@@ -433,14 +435,14 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             )
 
     def set_auth_data_with_schema_0_for_test(
-        self,
-        account_id,
-        auth_token,
-        api_url,
-        download_url,
-        minimum_part_size,
-        application_key,
-        realm,
+            self,
+            account_id,
+            auth_token,
+            api_url,
+            download_url,
+            minimum_part_size,
+            application_key,
+            realm,
     ):
         """
         Set authentication data for tests.

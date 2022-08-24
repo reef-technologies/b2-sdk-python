@@ -21,10 +21,10 @@ from .report import ProgressReport
 
 
 def zip_folders(
-    folder_a: AbstractFolder,
-    folder_b: AbstractFolder,
-    reporter: ProgressReport,
-    policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER,
+        folder_a: AbstractFolder,
+        folder_b: AbstractFolder,
+        reporter: ProgressReport,
+        policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER,
 ) -> Tuple[Optional[AbstractPath], Optional[AbstractPath]]:
     """
     Iterate over all of the files in the union of two folders,

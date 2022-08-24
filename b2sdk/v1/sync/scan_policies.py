@@ -35,15 +35,15 @@ class ScanPoliciesManager(v2.ScanPoliciesManager):
     """
 
     def __init__(
-        self,
-        exclude_dir_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
-        exclude_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
-        include_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
-        exclude_all_symlinks: bool = False,
-        exclude_modified_before: Optional[int] = None,
-        exclude_modified_after: Optional[int] = None,
-        exclude_uploaded_before: Optional[int] = None,
-        exclude_uploaded_after: Optional[int] = None,
+            self,
+            exclude_dir_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
+            exclude_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
+            include_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
+            exclude_all_symlinks: bool = False,
+            exclude_modified_before: Optional[int] = None,
+            exclude_modified_after: Optional[int] = None,
+            exclude_uploaded_before: Optional[int] = None,
+            exclude_uploaded_after: Optional[int] = None,
     ):
         """
         :param exclude_dir_regexes: regexes to exclude directories
@@ -78,7 +78,7 @@ class ScanPoliciesManager(v2.ScanPoliciesManager):
             exclude_modified_before, exclude_modified_after
         )
         with v2_exception.check_invalid_argument(
-            'exclude_uploaded_before,exclude_uploaded_after', '', ValueError
+                'exclude_uploaded_before,exclude_uploaded_after', '', ValueError
         ):
             self._include_upload_time_range = v2.IntegerRange(
                 exclude_uploaded_before, exclude_uploaded_after
@@ -138,7 +138,7 @@ class ScanPoliciesManagerWrapper(v2.ScanPoliciesManager):
 
     def should_exclude_local_path(self, local_path: v2.LocalSyncPath):
         if self.scan_policies_manager.should_exclude_file_version(
-            _translate_local_path_to_file(local_path).latest_version()
+                _translate_local_path_to_file(local_path).latest_version()
         ):
             return True
         return self.scan_policies_manager.should_exclude_file(local_path.relative_path)

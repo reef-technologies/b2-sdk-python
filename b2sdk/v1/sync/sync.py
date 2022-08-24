@@ -27,17 +27,17 @@ def zip_folders(folder_a, folder_b, reporter, policies_manager=DEFAULT_SCAN_MANA
 # and to wrap encryption_settings_providers in argument name translators
 class Synchronizer(v2.Synchronizer):
     def __init__(
-        self,
-        max_workers,
-        policies_manager=DEFAULT_SCAN_MANAGER,
-        dry_run=False,
-        allow_empty_source=False,
-        newer_file_mode=v2.NewerFileSyncMode.RAISE_ERROR,
-        keep_days_or_delete=v2.KeepOrDeleteMode.NO_DELETE,
-        compare_version_mode=v2.CompareVersionMode.MODTIME,
-        compare_threshold=None,
-        keep_days=None,
-        sync_policy_manager: v2.SyncPolicyManager = v2.POLICY_MANAGER,
+            self,
+            max_workers,
+            policies_manager=DEFAULT_SCAN_MANAGER,
+            dry_run=False,
+            allow_empty_source=False,
+            newer_file_mode=v2.NewerFileSyncMode.RAISE_ERROR,
+            keep_days_or_delete=v2.KeepOrDeleteMode.NO_DELETE,
+            compare_version_mode=v2.CompareVersionMode.MODTIME,
+            compare_threshold=None,
+            keep_days=None,
+            sync_policy_manager: v2.SyncPolicyManager = v2.POLICY_MANAGER,
     ):
         super().__init__(
             max_workers,
@@ -53,13 +53,13 @@ class Synchronizer(v2.Synchronizer):
         )
 
     def make_folder_sync_actions(
-        self,
-        source_folder,
-        dest_folder,
-        now_millis,
-        reporter,
-        policies_manager=DEFAULT_SCAN_MANAGER,
-        encryption_settings_provider=v2.SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+            self,
+            source_folder,
+            dest_folder,
+            now_millis,
+            reporter,
+            policies_manager=DEFAULT_SCAN_MANAGER,
+            encryption_settings_provider=v2.SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         return super()._make_folder_sync_actions(
             source_folder, dest_folder, now_millis, reporter,
@@ -69,15 +69,15 @@ class Synchronizer(v2.Synchronizer):
 
     # override to retain a public method
     def make_file_sync_actions(
-        self,
-        sync_type,
-        source_file,
-        dest_file,
-        source_folder,
-        dest_folder,
-        now_millis,
-        encryption_settings_provider: v2.AbstractSyncEncryptionSettingsProvider = v2.
-        SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+            self,
+            sync_type,
+            source_file,
+            dest_file,
+            source_folder,
+            dest_folder,
+            now_millis,
+            encryption_settings_provider: v2.AbstractSyncEncryptionSettingsProvider = v2.
+            SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         """
         Yields the sequence of actions needed to sync the two files
@@ -103,15 +103,15 @@ class Synchronizer(v2.Synchronizer):
 
     # override to raise old style DestFileNewer exceptions
     def _make_file_sync_actions(
-        self,
-        sync_type,
-        source_path,
-        dest_path,
-        source_folder,
-        dest_folder,
-        now_millis,
-        encryption_settings_provider: v2.AbstractSyncEncryptionSettingsProvider = v2.
-        SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+            self,
+            sync_type,
+            source_path,
+            dest_path,
+            source_folder,
+            dest_folder,
+            now_millis,
+            encryption_settings_provider: v2.AbstractSyncEncryptionSettingsProvider = v2.
+            SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         """
         Yields the sequence of actions needed to sync the two files

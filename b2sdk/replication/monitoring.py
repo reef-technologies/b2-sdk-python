@@ -57,7 +57,7 @@ class ReplicationScanResult(AbstractScanResult):
 
     @classmethod
     def from_files(
-        cls, source_file: Optional[B2Path] = None, destination_file: Optional[B2Path] = None
+            cls, source_file: Optional[B2Path] = None, destination_file: Optional[B2Path] = None
     ) -> 'ReplicationScanResult':
         params = {}
 
@@ -203,8 +203,8 @@ class ReplicationMonitor:
 
             def fill_queue():
                 for path in self.source_folder.all_files(
-                    policies_manager=self.scan_policies_manager,
-                    reporter=self.report,
+                        policies_manager=self.scan_policies_manager,
+                        reporter=self.report,
                 ):
                     queue.put((path,), block=True)
                 queue.put(None, block=True)

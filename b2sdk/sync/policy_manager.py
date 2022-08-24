@@ -24,19 +24,19 @@ class SyncPolicyManager:
         self.policies = {}  # dict<,>
 
     def get_policy(
-        self,
-        sync_type,
-        source_path: AbstractPath,
-        source_folder,
-        dest_path: AbstractPath,
-        dest_folder,
-        now_millis,
-        delete,
-        keep_days,
-        newer_file_mode,
-        compare_threshold,
-        compare_version_mode,
-        encryption_settings_provider,
+            self,
+            sync_type,
+            source_path: AbstractPath,
+            source_folder,
+            dest_path: AbstractPath,
+            dest_folder,
+            now_millis,
+            delete,
+            keep_days,
+            newer_file_mode,
+            compare_threshold,
+            compare_version_mode,
+            encryption_settings_provider,
     ):
         """
         Return a policy object.

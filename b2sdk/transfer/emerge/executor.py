@@ -27,18 +27,18 @@ class EmergeExecutor:
         self.services = services
 
     def execute_emerge_plan(
-        self,
-        emerge_plan,
-        bucket_id,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        continue_large_file_id=None,
-        max_queue_size=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            emerge_plan,
+            bucket_id,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            continue_large_file_id=None,
+            max_queue_size=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         if emerge_plan.is_large_file():
             execution = LargeFileEmergeExecution(
@@ -75,16 +75,16 @@ class BaseEmergeExecution(metaclass=ABCMeta):
     DEFAULT_CONTENT_TYPE = AUTO_CONTENT_TYPE
 
     def __init__(
-        self,
-        services,
-        bucket_id,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            services,
+            bucket_id,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         self.services = services
         self.bucket_id = bucket_id
@@ -116,18 +116,18 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
     MAX_LARGE_FILE_SIZE = 10 * 1000 * 1000 * 1000 * 1000  # 10 TB
 
     def __init__(
-        self,
-        services,
-        bucket_id,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        continue_large_file_id=None,
-        max_queue_size=None,
+            self,
+            services,
+            bucket_id,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            continue_large_file_id=None,
+            max_queue_size=None,
     ):
         super(LargeFileEmergeExecution, self).__init__(
             services,
@@ -235,15 +235,15 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
             return future
 
     def _get_unfinished_file_and_parts(
-        self,
-        bucket_id,
-        file_name,
-        file_info,
-        continue_large_file_id,
-        encryption: EncryptionSetting,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        emerge_parts_dict=None,
+            self,
+            bucket_id,
+            file_name,
+            file_info,
+            continue_large_file_id,
+            encryption: EncryptionSetting,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            emerge_parts_dict=None,
     ):
         if 'listFiles' not in self.services.session.account_info.get_allowed()['capabilities']:
             return None, {}
@@ -289,14 +289,14 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         return unfinished_file, finished_parts
 
     def _find_unfinished_file_by_plan_id(
-        self,
-        bucket_id,
-        file_name,
-        file_info,
-        emerge_parts_dict,
-        encryption: EncryptionSetting,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            file_name,
+            file_info,
+            emerge_parts_dict,
+            encryption: EncryptionSetting,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         file_retention = file_retention or NO_RETENTION_FILE_SETTING
         assert 'plan_id' in file_info
@@ -304,7 +304,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         best_match_parts = {}
         best_match_parts_len = 0
         for file_ in self.services.large_file.list_unfinished_large_files(
-            bucket_id, prefix=file_name
+                bucket_id, prefix=file_name
         ):
             if file_.file_info != file_info:
                 continue
@@ -346,14 +346,14 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         return best_match_file, best_match_parts
 
     def _match_unfinished_file_if_possible(
-        self,
-        bucket_id,
-        file_name,
-        file_info,
-        emerge_parts_dict,
-        encryption: EncryptionSetting,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            file_name,
+            file_info,
+            emerge_parts_dict,
+            encryption: EncryptionSetting,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         """
         Find an unfinished file that may be used to resume a large file upload.  The
@@ -364,7 +364,7 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         """
         file_retention = file_retention or NO_RETENTION_FILE_SETTING
         for file_ in self.services.large_file.list_unfinished_large_files(
-            bucket_id, prefix=file_name
+                bucket_id, prefix=file_name
         ):
             if file_.file_name != file_name:
                 continue
@@ -451,13 +451,13 @@ class SmallFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
 
 class LargeFileEmergeExecutionStepFactory(BaseExecutionStepFactory):
     def __init__(
-        self,
-        emerge_execution,
-        emerge_part,
-        part_number,
-        large_file_id,
-        large_file_upload_state,
-        finished_parts=None,
+            self,
+            emerge_execution,
+            emerge_part,
+            part_number,
+            large_file_id,
+            large_file_upload_state,
+            finished_parts=None,
     ):
         super(LargeFileEmergeExecutionStepFactory, self).__init__(emerge_execution, emerge_part)
         self.part_number = part_number
@@ -526,13 +526,13 @@ class CopyFileExecutionStep(BaseExecutionStep):
 
 class CopyPartExecutionStep(BaseExecutionStep):
     def __init__(
-        self,
-        emerge_execution,
-        copy_source_range,
-        part_number,
-        large_file_id,
-        large_file_upload_state,
-        finished_parts=None
+            self,
+            emerge_execution,
+            copy_source_range,
+            part_number,
+            large_file_id,
+            large_file_upload_state,
+            finished_parts=None
     ):
         super().__init__(emerge_execution)
         self.copy_source_range = copy_source_range
@@ -582,15 +582,15 @@ class UploadFileExecutionStep(BaseExecutionStep):
 
 class UploadPartExecutionStep(BaseExecutionStep):
     def __init__(
-        self,
-        emerge_execution,
-        stream_opener,
-        part_number,
-        large_file_id,
-        large_file_upload_state,
-        stream_length=None,
-        stream_sha1=None,
-        finished_parts=None
+            self,
+            emerge_execution,
+            stream_opener,
+            part_number,
+            large_file_id,
+            large_file_upload_state,
+            stream_length=None,
+            stream_sha1=None,
+            finished_parts=None
     ):
         super().__init__(emerge_execution)
         self.stream_opener = stream_opener

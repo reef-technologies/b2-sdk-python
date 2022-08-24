@@ -39,7 +39,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
     # block size used when downloading file. If it is set to a high value,
     # progress reporting will be jumpy, if it's too low, it impacts CPU
     MIN_CHUNK_SIZE = 8192  # ~1MB file will show ~1% progress increment
-    MAX_CHUNK_SIZE = 1024**2
+    MAX_CHUNK_SIZE = 1024 ** 2
 
     PARALLEL_DOWNLOADER_CLASS = staticmethod(ParallelDownloader)
     SIMPLE_DOWNLOADER_CLASS = staticmethod(SimpleDownloader)
@@ -71,11 +71,11 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         self.check_hash = check_hash
 
     def download_file_from_url(
-        self,
-        url,
-        progress_listener=None,
-        range_=None,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            url,
+            progress_listener=None,
+            range_=None,
+            encryption: Optional[EncryptionSetting] = None,
     ) -> DownloadedFile:
         """
         :param url: url from which the file should be downloaded
@@ -85,9 +85,9 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         """
         progress_listener = progress_listener or DoNothingProgressListener()
         with self.services.session.download_file_from_url(
-            url,
-            range_=range_,
-            encryption=encryption,
+                url,
+                range_=range_,
+                encryption=encryption,
         ) as response:
             download_version = self.services.api.download_version_factory.from_response_headers(
                 response.headers

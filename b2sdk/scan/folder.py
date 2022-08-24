@@ -18,7 +18,8 @@ from abc import ABCMeta, abstractmethod
 from typing import Iterator
 
 from ..utils import fix_windows_path_limit, get_file_mtime, is_file_readable
-from .exception import EmptyDirectory, EnvironmentEncodingError, NotADirectory, UnableToCreateDirectory, UnsupportedFilename
+from .exception import EmptyDirectory, EnvironmentEncodingError, NotADirectory, UnableToCreateDirectory, \
+    UnsupportedFilename
 from .path import AbstractPath, B2Path, LocalPath
 from .policies import DEFAULT_SCAN_MANAGER, ScanPoliciesManager
 from .report import ProgressReport
@@ -26,16 +27,16 @@ from .report import ProgressReport
 DRIVE_MATCHER = re.compile(r"^([A-Za-z]):([/\\])")
 ABSOLUTE_PATH_MATCHER = re.compile(r"^(/)|^(\\)")
 RELATIVE_PATH_MATCHER = re.compile(
-                           # "abc" and "xyz" represent anything, including "nothing"
-    r"^(\.\.[/\\])|" +     # ../abc or ..\abc
-    r"^(\.[/\\])|" +       # ./abc or .\abc
-    r"([/\\]\.\.[/\\])|" + # abc/../xyz or abc\..\xyz or abc\../xyz or abc/..\xyz
-    r"([/\\]\.[/\\])|" +   # abc/./xyz or abc\.\xyz or abc\./xyz or abc/.\xyz
-    r"([/\\]\.\.)$|" +     # abc/.. or abc\..
-    r"([/\\]\.)$|" +       # abc/. or abc\.
-    r"^(\.\.)$|" +         # just ".."
-    r"([/\\][/\\])|" +     # abc\/xyz or abc/\xyz or abc//xyz or abc\\xyz
-    r"^(\.)$"              # just "."
+    # "abc" and "xyz" represent anything, including "nothing"
+    r"^(\.\.[/\\])|" +  # ../abc or ..\abc
+    r"^(\.[/\\])|" +  # ./abc or .\abc
+    r"([/\\]\.\.[/\\])|" +  # abc/../xyz or abc\..\xyz or abc\../xyz or abc/..\xyz
+    r"([/\\]\.[/\\])|" +  # abc/./xyz or abc\.\xyz or abc\./xyz or abc/.\xyz
+    r"([/\\]\.\.)$|" +  # abc/.. or abc\..
+    r"([/\\]\.)$|" +  # abc/. or abc\.
+    r"^(\.\.)$|" +  # just ".."
+    r"([/\\][/\\])|" +  # abc\/xyz or abc/\xyz or abc//xyz or abc\\xyz
+    r"^(\.)$"  # just "."
 )  # yapf: disable
 
 logger = logging.getLogger(__name__)
@@ -178,8 +179,8 @@ class LocalFolder(AbstractFolder):
             raise EmptyDirectory(self.root)
 
     def _walk_relative_paths(
-        self, local_dir: str, relative_dir_path: str, reporter,
-        policies_manager: ScanPoliciesManager
+            self, local_dir: str, relative_dir_path: str, reporter,
+            policies_manager: ScanPoliciesManager
     ):
         """
         Yield a File object for each of the files anywhere under this folder, in the
@@ -245,7 +246,7 @@ class LocalFolder(AbstractFolder):
         for (name, local_path, relative_file_path) in sorted(names):
             if name.endswith('/'):
                 for subdir_file in self._walk_relative_paths(
-                    local_path, relative_file_path, reporter, policies_manager
+                        local_path, relative_file_path, reporter, policies_manager
                 ):
                     yield subdir_file
             else:
@@ -318,9 +319,9 @@ class B2Folder(AbstractFolder):
             self.prefix += '/'
 
     def all_files(
-        self,
-        reporter: ProgressReport,
-        policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER
+            self,
+            reporter: ProgressReport,
+            policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER
     ) -> Iterator[B2Path]:
         """
         Yield all files.
@@ -373,9 +374,9 @@ class B2Folder(AbstractFolder):
 
     def get_file_versions(self):
         for file_version, _ in self.bucket.ls(
-            self.folder_name,
-            latest_only=False,
-            recursive=True,
+                self.folder_name,
+                latest_only=False,
+                recursive=True,
         ):
             yield file_version
 

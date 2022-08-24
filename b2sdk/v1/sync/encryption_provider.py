@@ -29,11 +29,11 @@ class SyncEncryptionSettingsProviderWrapper(v2.AbstractSyncEncryptionSettingsPro
         )
 
     def get_setting_for_upload(
-        self,
-        bucket: Bucket,
-        b2_file_name: str,
-        file_info: Optional[dict],
-        length: int,
+            self,
+            bucket: Bucket,
+            b2_file_name: str,
+            file_info: Optional[dict],
+            length: int,
     ) -> Optional[v2.EncryptionSetting]:
         return self.provider.get_setting_for_upload(
             bucket=bucket,
@@ -43,20 +43,20 @@ class SyncEncryptionSettingsProviderWrapper(v2.AbstractSyncEncryptionSettingsPro
         )
 
     def get_source_setting_for_copy(
-        self,
-        bucket: Bucket,
-        source_file_version: v2.FileVersion,
+            self,
+            bucket: Bucket,
+            source_file_version: v2.FileVersion,
     ) -> Optional[v2.EncryptionSetting]:
         return self.provider.get_source_setting_for_copy(
             bucket=bucket, source_file_version_info=source_file_version
         )
 
     def get_destination_setting_for_copy(
-        self,
-        bucket: Bucket,
-        dest_b2_file_name: str,
-        source_file_version: v2.FileVersion,
-        target_file_info: Optional[dict] = None,
+            self,
+            bucket: Bucket,
+            dest_b2_file_name: str,
+            source_file_version: v2.FileVersion,
+            target_file_info: Optional[dict] = None,
     ) -> Optional[v2.EncryptionSetting]:
         return self.provider.get_destination_setting_for_copy(
             bucket=bucket,
@@ -66,9 +66,9 @@ class SyncEncryptionSettingsProviderWrapper(v2.AbstractSyncEncryptionSettingsPro
         )
 
     def get_setting_for_download(
-        self,
-        bucket: Bucket,
-        file_version: v2.FileVersion,
+            self,
+            bucket: Bucket,
+            file_version: v2.FileVersion,
     ) -> Optional[v2.EncryptionSetting]:
         return self.provider.get_setting_for_download(
             bucket=bucket,
@@ -86,11 +86,11 @@ def wrap_if_necessary(provider):
 class AbstractSyncEncryptionSettingsProvider(v2.AbstractSyncEncryptionSettingsProvider):
     @abstractmethod
     def get_setting_for_upload(
-        self,
-        bucket: Bucket,
-        b2_file_name: str,
-        file_info: Optional[dict],
-        length: int,
+            self,
+            bucket: Bucket,
+            b2_file_name: str,
+            file_info: Optional[dict],
+            length: int,
     ) -> Optional[v2.EncryptionSetting]:
         """
         Return an EncryptionSetting for uploading an object or None if server should decide.
@@ -98,9 +98,9 @@ class AbstractSyncEncryptionSettingsProvider(v2.AbstractSyncEncryptionSettingsPr
 
     @abstractmethod
     def get_source_setting_for_copy(
-        self,
-        bucket: Bucket,
-        source_file_version_info: FileVersionInfo,
+            self,
+            bucket: Bucket,
+            source_file_version_info: FileVersionInfo,
     ) -> Optional[v2.EncryptionSetting]:
         """
         Return an EncryptionSetting for a source of copying an object or None if not required
@@ -108,11 +108,11 @@ class AbstractSyncEncryptionSettingsProvider(v2.AbstractSyncEncryptionSettingsPr
 
     @abstractmethod
     def get_destination_setting_for_copy(
-        self,
-        bucket: Bucket,
-        dest_b2_file_name: str,
-        source_file_version_info: FileVersionInfo,
-        target_file_info: Optional[dict] = None,
+            self,
+            bucket: Bucket,
+            dest_b2_file_name: str,
+            source_file_version_info: FileVersionInfo,
+            target_file_info: Optional[dict] = None,
     ) -> Optional[v2.EncryptionSetting]:
         """
         Return an EncryptionSetting for a destination for copying an object or None if server should decide
@@ -120,9 +120,9 @@ class AbstractSyncEncryptionSettingsProvider(v2.AbstractSyncEncryptionSettingsPr
 
     @abstractmethod
     def get_setting_for_download(
-        self,
-        bucket: Bucket,
-        file_version_info: FileVersionInfo,
+            self,
+            bucket: Bucket,
+            file_version_info: FileVersionInfo,
     ) -> Optional[v2.EncryptionSetting]:
         """
         Return an EncryptionSetting for downloading an object from, or None if not required

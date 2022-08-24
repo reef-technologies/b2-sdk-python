@@ -58,7 +58,7 @@ class UploadSourceBytes(AbstractUploadSource):
         return '<{classname} data={data} id={id}>'.format(
             classname=self.__class__.__name__,
             data=str(self.data_bytes[:20]) +
-            '...' if len(self.data_bytes) > 20 else self.data_bytes,
+                 '...' if len(self.data_bytes) > 20 else self.data_bytes,
             id=id(self),
         )
 

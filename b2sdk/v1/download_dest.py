@@ -28,15 +28,15 @@ class AbstractDownloadDestination(metaclass=B2TraceMetaAbstract):
         'content_sha1',
     ])
     def make_file_context(
-        self,
-        file_id,
-        file_name,
-        content_length,
-        content_type,
-        content_sha1,
-        file_info,
-        mod_time_millis,
-        range_=None
+            self,
+            file_id,
+            file_name,
+            content_length,
+            content_type,
+            content_sha1,
+            file_info,
+            mod_time_millis,
+            range_=None
     ):
         """
         Return a context manager that yields a binary file-like object to use for
@@ -65,15 +65,15 @@ class DownloadDestLocalFile(AbstractDownloadDestination):
         self.local_file_path = local_file_path
 
     def make_file_context(
-        self,
-        file_id,
-        file_name,
-        content_length,
-        content_type,
-        content_sha1,
-        file_info,
-        mod_time_millis,
-        range_=None
+            self,
+            file_id,
+            file_name,
+            content_length,
+            content_type,
+            content_sha1,
+            file_info,
+            mod_time_millis,
+            range_=None
     ):
         self.file_id = file_id
         self.file_name = file_name
@@ -137,15 +137,15 @@ class DownloadDestBytes(AbstractDownloadDestination):
         self.bytes_written = None
 
     def make_file_context(
-        self,
-        file_id,
-        file_name,
-        content_length,
-        content_type,
-        content_sha1,
-        file_info,
-        mod_time_millis,
-        range_=None
+            self,
+            file_id,
+            file_name,
+            content_length,
+            content_type,
+            content_sha1,
+            file_info,
+            mod_time_millis,
+            range_=None
     ):
         self.file_id = file_id
         self.file_name = file_name
@@ -189,15 +189,15 @@ class DownloadDestProgressWrapper(AbstractDownloadDestination):
         self.progress_listener = progress_listener
 
     def make_file_context(
-        self,
-        file_id,
-        file_name,
-        content_length,
-        content_type,
-        content_sha1,
-        file_info,
-        mod_time_millis,
-        range_=None
+            self,
+            file_id,
+            file_name,
+            content_length,
+            content_type,
+            content_sha1,
+            file_info,
+            mod_time_millis,
+            range_=None
     ):
         return self.write_file_and_report_progress_context(
             file_id, file_name, content_length, content_type, content_sha1, file_info,
@@ -206,12 +206,12 @@ class DownloadDestProgressWrapper(AbstractDownloadDestination):
 
     @contextmanager
     def write_file_and_report_progress_context(
-        self, file_id, file_name, content_length, content_type, content_sha1, file_info,
-        mod_time_millis, range_
+            self, file_id, file_name, content_length, content_type, content_sha1, file_info,
+            mod_time_millis, range_
     ):
         with self.download_dest.make_file_context(
-            file_id, file_name, content_length, content_type, content_sha1, file_info,
-            mod_time_millis, range_
+                file_id, file_name, content_length, content_type, content_sha1, file_info,
+                mod_time_millis, range_
         ) as file_:
             total_bytes = content_length
             if range_ is not None:

@@ -56,23 +56,23 @@ class Bucket(metaclass=B2TraceMeta):
     DEFAULT_CONTENT_TYPE = AUTO_CONTENT_TYPE
 
     def __init__(
-        self,
-        api,
-        id_,
-        name=None,
-        type_=None,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        revision=None,
-        bucket_dict=None,
-        options_set=None,
-        default_server_side_encryption: EncryptionSetting = EncryptionSetting(
-            EncryptionMode.UNKNOWN
-        ),
-        default_retention: BucketRetentionSetting = UNKNOWN_BUCKET_RETENTION,
-        is_file_lock_enabled: Optional[bool] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            api,
+            id_,
+            name=None,
+            type_=None,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            revision=None,
+            bucket_dict=None,
+            options_set=None,
+            default_server_side_encryption: EncryptionSetting = EncryptionSetting(
+                EncryptionMode.UNKNOWN
+            ),
+            default_retention: BucketRetentionSetting = UNKNOWN_BUCKET_RETENTION,
+            is_file_lock_enabled: Optional[bool] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         """
         :param b2sdk.v2.B2Api api: an API object
@@ -141,15 +141,15 @@ class Bucket(metaclass=B2TraceMeta):
         return self.update(bucket_type=bucket_type)
 
     def update(
-        self,
-        bucket_type: Optional[str] = None,
-        bucket_info: Optional[dict] = None,
-        cors_rules: Optional[dict] = None,
-        lifecycle_rules: Optional[list] = None,
-        if_revision_is: Optional[int] = None,
-        default_server_side_encryption: Optional[EncryptionSetting] = None,
-        default_retention: Optional[BucketRetentionSetting] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            bucket_type: Optional[str] = None,
+            bucket_info: Optional[dict] = None,
+            cors_rules: Optional[dict] = None,
+            lifecycle_rules: Optional[list] = None,
+            if_revision_is: Optional[int] = None,
+            default_server_side_encryption: Optional[EncryptionSetting] = None,
+            default_retention: Optional[BucketRetentionSetting] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ) -> 'Bucket':
         """
         Update various bucket parameters.
@@ -189,11 +189,11 @@ class Bucket(metaclass=B2TraceMeta):
         return self.api.cancel_large_file(file_id)
 
     def download_file_by_id(
-        self,
-        file_id: str,
-        progress_listener: Optional[AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            file_id: str,
+            progress_listener: Optional[AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[EncryptionSetting] = None,
     ) -> DownloadedFile:
         """
         Download a file by ID.
@@ -214,11 +214,11 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def download_file_by_name(
-        self,
-        file_name: str,
-        progress_listener: Optional[AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            file_name: str,
+            progress_listener: Optional[AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[EncryptionSetting] = None,
     ) -> DownloadedFile:
         """
         Download a file by name.
@@ -316,11 +316,11 @@ class Bucket(metaclass=B2TraceMeta):
                 return
 
     def ls(
-        self,
-        folder_to_list: str = '',
-        latest_only: bool = True,
-        recursive: bool = False,
-        fetch_count: Optional[int] = 10000
+            self,
+            folder_to_list: str = '',
+            latest_only: bool = True,
+            recursive: bool = False,
+            fetch_count: Optional[int] = 10000
     ):
         """
         Pretend that folders exist and yields the information about the files in a folder.
@@ -431,15 +431,15 @@ class Bucket(metaclass=B2TraceMeta):
 
     @limit_trace_arguments(skip=('data_bytes',))
     def upload_bytes(
-        self,
-        data_bytes,
-        file_name,
-        content_type=None,
-        file_infos=None,
-        progress_listener=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            data_bytes,
+            file_name,
+            content_type=None,
+            file_infos=None,
+            progress_listener=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         """
         Upload bytes in memory to a B2 file.
@@ -467,17 +467,17 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def upload_local_file(
-        self,
-        local_file,
-        file_name,
-        content_type=None,
-        file_infos=None,
-        sha1_sum=None,
-        min_part_size=None,
-        progress_listener=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            local_file,
+            file_name,
+            content_type=None,
+            file_infos=None,
+            sha1_sum=None,
+            min_part_size=None,
+            progress_listener=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         """
         Upload a file on local disk to a B2 file.
@@ -512,16 +512,16 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def upload(
-        self,
-        upload_source,
-        file_name,
-        content_type=None,
-        file_info=None,
-        min_part_size=None,
-        progress_listener=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            upload_source,
+            file_name,
+            content_type=None,
+            file_info=None,
+            min_part_size=None,
+            progress_listener=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         """
         Upload a file to B2, retrying as needed.
@@ -559,19 +559,19 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def create_file(
-        self,
-        write_intents,
-        file_name,
-        content_type=None,
-        file_info=None,
-        progress_listener=None,
-        recommended_upload_part_size=None,
-        continue_large_file_id=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            write_intents,
+            file_name,
+            content_type=None,
+            file_info=None,
+            progress_listener=None,
+            recommended_upload_part_size=None,
+            continue_large_file_id=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         """
         Creates a new file in this bucket using an iterable (list, tuple etc) of remote or local sources.
@@ -616,19 +616,19 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def create_file_stream(
-        self,
-        write_intents_iterator,
-        file_name,
-        content_type=None,
-        file_info=None,
-        progress_listener=None,
-        recommended_upload_part_size=None,
-        continue_large_file_id=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            write_intents_iterator,
+            file_name,
+            content_type=None,
+            file_info=None,
+            progress_listener=None,
+            recommended_upload_part_size=None,
+            continue_large_file_id=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         """
         Creates a new file in this bucket using a stream of multiple remote or local sources.
@@ -675,20 +675,20 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def _create_file(
-        self,
-        emerger_method,
-        write_intents_iterable,
-        file_name,
-        content_type=None,
-        file_info=None,
-        progress_listener=None,
-        recommended_upload_part_size=None,
-        continue_large_file_id=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            emerger_method,
+            write_intents_iterable,
+            file_name,
+            content_type=None,
+            file_info=None,
+            progress_listener=None,
+            recommended_upload_part_size=None,
+            continue_large_file_id=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         validate_b2_file_name(file_name)
         progress_listener = progress_listener or DoNothingProgressListener()
@@ -710,19 +710,19 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def concatenate(
-        self,
-        outbound_sources,
-        file_name,
-        content_type=None,
-        file_info=None,
-        progress_listener=None,
-        recommended_upload_part_size=None,
-        continue_large_file_id=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            outbound_sources,
+            file_name,
+            content_type=None,
+            file_info=None,
+            progress_listener=None,
+            recommended_upload_part_size=None,
+            continue_large_file_id=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         """
         Creates a new file in this bucket by concatenating multiple remote or local sources.
@@ -763,17 +763,17 @@ class Bucket(metaclass=B2TraceMeta):
         )
 
     def concatenate_stream(
-        self,
-        outbound_sources_iterator,
-        file_name,
-        content_type=None,
-        file_info=None,
-        progress_listener=None,
-        recommended_upload_part_size=None,
-        continue_large_file_id=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            outbound_sources_iterator,
+            file_name,
+            content_type=None,
+            file_info=None,
+            progress_listener=None,
+            recommended_upload_part_size=None,
+            continue_large_file_id=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         """
         Creates a new file in this bucket by concatenating stream of multiple remote or local sources.
@@ -834,22 +834,22 @@ class Bucket(metaclass=B2TraceMeta):
         return self.api.file_version_factory.from_api_response(response)
 
     def copy(
-        self,
-        file_id,
-        new_file_name,
-        content_type=None,
-        file_info=None,
-        offset=0,
-        length=None,
-        progress_listener=None,
-        destination_encryption: Optional[EncryptionSetting] = None,
-        source_encryption: Optional[EncryptionSetting] = None,
-        source_file_info: Optional[dict] = None,
-        source_content_type: Optional[str] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            file_id,
+            new_file_name,
+            content_type=None,
+            file_info=None,
+            offset=0,
+            length=None,
+            progress_listener=None,
+            destination_encryption: Optional[EncryptionSetting] = None,
+            source_encryption: Optional[EncryptionSetting] = None,
+            source_file_info: Optional[dict] = None,
+            source_content_type: Optional[str] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         """
         Creates a new file in this bucket by (server-side) copying from an existing file.

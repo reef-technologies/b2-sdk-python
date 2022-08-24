@@ -298,7 +298,7 @@ def _pick_scale_and_suffix(x):
     if suffix == ' ':
         suffix = ''
 
-    scale = 1000**index
+    scale = 1000 ** index
     return (scale, suffix)
 
 

@@ -35,13 +35,13 @@ class B2Api(v2.B2Api):
     FILE_VERSION_FACTORY_CLASS = staticmethod(FileVersionInfoFactory)
 
     def __init__(
-        self,
-        account_info: Optional[AbstractAccountInfo] = None,
-        cache: Optional[AbstractCache] = None,
-        raw_api: v2.B2RawHTTPApi = None,
-        max_upload_workers: int = 10,
-        max_copy_workers: int = 10,
-        api_config: Optional[v2.B2HttpApiConfig] = None,
+            self,
+            account_info: Optional[AbstractAccountInfo] = None,
+            cache: Optional[AbstractCache] = None,
+            raw_api: v2.B2RawHTTPApi = None,
+            max_upload_workers: int = 10,
+            max_copy_workers: int = 10,
+            api_config: Optional[v2.B2HttpApiConfig] = None,
     ):
         """
         Initialize the API using the given account info.
@@ -107,32 +107,32 @@ class B2Api(v2.B2Api):
 
     @overload
     def download_file_by_id(
-        self,
-        file_id: str,
-        download_dest: AbstractDownloadDestination,
-        progress_listener: Optional[v2.AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[v2.EncryptionSetting] = None,
+            self,
+            file_id: str,
+            download_dest: AbstractDownloadDestination,
+            progress_listener: Optional[v2.AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[v2.EncryptionSetting] = None,
     ) -> dict:
         ...
 
     @overload
     def download_file_by_id(
-        self,
-        file_id: str,
-        progress_listener: Optional[v2.AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[v2.EncryptionSetting] = None,
+            self,
+            file_id: str,
+            progress_listener: Optional[v2.AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[v2.EncryptionSetting] = None,
     ) -> v2.DownloadedFile:
         ...
 
     def download_file_by_id(
-        self,
-        file_id: str,
-        download_dest: Optional[AbstractDownloadDestination] = None,
-        progress_listener: Optional[v2.AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[v2.EncryptionSetting] = None,
+            self,
+            file_id: str,
+            download_dest: Optional[AbstractDownloadDestination] = None,
+            progress_listener: Optional[v2.AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[v2.EncryptionSetting] = None,
     ):
         """
         Download a file with the given ID.
@@ -187,12 +187,12 @@ class B2Api(v2.B2Api):
         )
 
     def create_key(
-        self,
-        capabilities: List[str],
-        key_name: str,
-        valid_duration_seconds: Optional[int] = None,
-        bucket_id: Optional[str] = None,
-        name_prefix: Optional[str] = None,
+            self,
+            capabilities: List[str],
+            key_name: str,
+            valid_duration_seconds: Optional[int] = None,
+            bucket_id: Optional[str] = None,
+            name_prefix: Optional[str] = None,
     ):
         return super().create_key(
             capabilities=capabilities,

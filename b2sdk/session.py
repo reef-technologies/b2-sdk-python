@@ -45,10 +45,10 @@ class B2Session:
     B2HTTP_CLASS = staticmethod(B2Http)
 
     def __init__(
-        self,
-        account_info: Optional[AbstractAccountInfo] = None,
-        cache: Optional[AbstractCache] = None,
-        api_config: B2HttpApiConfig = DEFAULT_HTTP_API_CONFIG
+            self,
+            account_info: Optional[AbstractAccountInfo] = None,
+            cache: Optional[AbstractCache] = None,
+            api_config: B2HttpApiConfig = DEFAULT_HTTP_API_CONFIG
     ):
         """
         Initialize Session using given account info.
@@ -138,16 +138,16 @@ class B2Session:
         return self._wrap_default_token(self.raw_api.cancel_large_file, file_id)
 
     def create_bucket(
-        self,
-        account_id,
-        bucket_name,
-        bucket_type,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        default_server_side_encryption=None,
-        is_file_lock_enabled: Optional[bool] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            account_id,
+            bucket_name,
+            bucket_type,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            default_server_side_encryption=None,
+            is_file_lock_enabled: Optional[bool] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         return self._wrap_default_token(
             self.raw_api.create_bucket,
@@ -163,7 +163,7 @@ class B2Session:
         )
 
     def create_key(
-        self, account_id, capabilities, key_name, valid_duration_seconds, bucket_id, name_prefix
+            self, account_id, capabilities, key_name, valid_duration_seconds, bucket_id, name_prefix
     ):
         return self._wrap_default_token(
             self.raw_api.create_key,
@@ -185,7 +185,7 @@ class B2Session:
         return self._wrap_default_token(self.raw_api.delete_file_version, file_id, file_name)
 
     def download_file_from_url(
-        self, url, range_=None, encryption: Optional[EncryptionSetting] = None
+            self, url, range_=None, encryption: Optional[EncryptionSetting] = None
     ):
         return self._wrap_token(
             self.raw_api.download_file_from_url,
@@ -228,11 +228,11 @@ class B2Session:
         )
 
     def list_file_names(
-        self,
-        bucket_id,
-        start_file_name=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            bucket_id,
+            start_file_name=None,
+            max_file_count=None,
+            prefix=None,
     ):
         return self._wrap_default_token(
             self.raw_api.list_file_names,
@@ -243,12 +243,12 @@ class B2Session:
         )
 
     def list_file_versions(
-        self,
-        bucket_id,
-        start_file_name=None,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            bucket_id,
+            start_file_name=None,
+            start_file_id=None,
+            max_file_count=None,
+            prefix=None,
     ):
         return self._wrap_default_token(
             self.raw_api.list_file_versions,
@@ -273,11 +273,11 @@ class B2Session:
         )
 
     def list_unfinished_large_files(
-        self,
-        bucket_id,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            bucket_id,
+            start_file_id=None,
+            max_file_count=None,
+            prefix=None,
     ):
         return self._wrap_default_token(
             self.raw_api.list_unfinished_large_files,
@@ -288,14 +288,14 @@ class B2Session:
         )
 
     def start_large_file(
-        self,
-        bucket_id,
-        file_name,
-        content_type,
-        file_info,
-        server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            file_name,
+            content_type,
+            file_info,
+            server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         return self._wrap_default_token(
             self.raw_api.start_large_file,
@@ -309,17 +309,17 @@ class B2Session:
         )
 
     def update_bucket(
-        self,
-        account_id,
-        bucket_id,
-        bucket_type=None,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        if_revision_is=None,
-        default_server_side_encryption: Optional[EncryptionSetting] = None,
-        default_retention: Optional[BucketRetentionSetting] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            account_id,
+            bucket_id,
+            bucket_type=None,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            if_revision_is=None,
+            default_server_side_encryption: Optional[EncryptionSetting] = None,
+            default_retention: Optional[BucketRetentionSetting] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         return self._wrap_default_token(
             self.raw_api.update_bucket,
@@ -336,17 +336,17 @@ class B2Session:
         )
 
     def upload_file(
-        self,
-        bucket_id,
-        file_name,
-        content_length,
-        content_type,
-        content_sha1,
-        file_infos,
-        data_stream,
-        server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            file_name,
+            content_length,
+            content_type,
+            content_sha1,
+            file_infos,
+            data_stream,
+            server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         return self._wrap_token(
             self.raw_api.upload_file,
@@ -364,13 +364,13 @@ class B2Session:
         )
 
     def upload_part(
-        self,
-        file_id,
-        part_number,
-        content_length,
-        sha1_sum,
-        input_stream,
-        server_side_encryption: Optional[EncryptionSetting] = None,
+            self,
+            file_id,
+            part_number,
+            content_length,
+            sha1_sum,
+            input_stream,
+            server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         return self._wrap_token(
             self.raw_api.upload_part,
@@ -392,18 +392,18 @@ class B2Session:
         )
 
     def copy_file(
-        self,
-        source_file_id,
-        new_file_name,
-        bytes_range=None,
-        metadata_directive=None,
-        content_type=None,
-        file_info=None,
-        destination_bucket_id=None,
-        destination_server_side_encryption: Optional[EncryptionSetting] = None,
-        source_server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            source_file_id,
+            new_file_name,
+            bytes_range=None,
+            metadata_directive=None,
+            content_type=None,
+            file_info=None,
+            destination_bucket_id=None,
+            destination_server_side_encryption: Optional[EncryptionSetting] = None,
+            source_server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         return self._wrap_default_token(
             self.raw_api.copy_file,
@@ -421,13 +421,13 @@ class B2Session:
         )
 
     def copy_part(
-        self,
-        source_file_id,
-        large_file_id,
-        part_number,
-        bytes_range=None,
-        destination_server_side_encryption: Optional[EncryptionSetting] = None,
-        source_server_side_encryption: Optional[EncryptionSetting] = None,
+            self,
+            source_file_id,
+            large_file_id,
+            part_number,
+            bytes_range=None,
+            destination_server_side_encryption: Optional[EncryptionSetting] = None,
+            source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         return self._wrap_default_token(
             self.raw_api.copy_part,
@@ -541,11 +541,11 @@ class B2Session:
         return response
 
     def update_file_retention(
-        self,
-        file_id,
-        file_name,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+            self,
+            file_id,
+            file_name,
+            file_retention: FileRetentionSetting,
+            bypass_governance: bool = False,
     ):
         return self._wrap_default_token(
             self.raw_api.update_file_retention,
@@ -556,10 +556,10 @@ class B2Session:
         )
 
     def update_file_legal_hold(
-        self,
-        file_id,
-        file_name,
-        legal_hold: LegalHold,
+            self,
+            file_id,
+            file_name,
+            legal_hold: LegalHold,
     ):
         return self._wrap_default_token(
             self.raw_api.update_file_legal_hold,

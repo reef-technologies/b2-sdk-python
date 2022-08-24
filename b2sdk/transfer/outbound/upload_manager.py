@@ -42,16 +42,16 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         return self.services.session.account_info
 
     def upload_file(
-        self,
-        bucket_id,
-        upload_source,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            upload_source,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         f = self._thread_pool.submit(
             self._upload_small_file,
@@ -68,14 +68,14 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         return f
 
     def upload_part(
-        self,
-        bucket_id,
-        file_id,
-        part_upload_source,
-        part_number,
-        large_file_upload_state,
-        finished_parts=None,
-        encryption: EncryptionSetting = None,
+            self,
+            bucket_id,
+            file_id,
+            part_upload_source,
+            part_number,
+            large_file_upload_state,
+            finished_parts=None,
+            encryption: EncryptionSetting = None,
     ):
         f = self._thread_pool.submit(
             self._upload_part,
@@ -90,14 +90,14 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         return f
 
     def _upload_part(
-        self,
-        bucket_id,
-        file_id,
-        part_upload_source,
-        part_number,
-        large_file_upload_state,
-        finished_parts,
-        encryption: EncryptionSetting,
+            self,
+            bucket_id,
+            file_id,
+            part_upload_source,
+            part_number,
+            large_file_upload_state,
+            finished_parts,
+            encryption: EncryptionSetting,
     ):
         """
         Upload a file part to started large file.
@@ -171,16 +171,16 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         raise MaxRetriesExceeded(self.MAX_UPLOAD_ATTEMPTS, exception_list)
 
     def _upload_small_file(
-        self,
-        bucket_id,
-        upload_source,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            upload_source,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         content_length = upload_source.get_content_length()
         exception_info_list = []

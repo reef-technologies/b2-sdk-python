@@ -53,11 +53,11 @@ class Synchronizer(SynchronizerV1):
 
 
 def get_synchronizer_from_args(
-    args,
-    max_workers,
-    policies_manager=DEFAULT_SCAN_MANAGER,
-    dry_run=False,
-    allow_empty_source=False,
+        args,
+        max_workers,
+        policies_manager=DEFAULT_SCAN_MANAGER,
+        dry_run=False,
+        allow_empty_source=False,
 ):
     if args.replaceNewer and args.skipNewer:
         raise CommandError('--skipNewer and --replaceNewer are incompatible')
@@ -107,14 +107,14 @@ def get_synchronizer_from_args(
 
 
 def make_folder_sync_actions(
-    source_folder,
-    dest_folder,
-    args,
-    now_millis,
-    reporter,
-    policies_manager=DEFAULT_SCAN_MANAGER,
-    encryption_settings_provider:
-    AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+        source_folder,
+        dest_folder,
+        args,
+        now_millis,
+        reporter,
+        policies_manager=DEFAULT_SCAN_MANAGER,
+        encryption_settings_provider:
+        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
 ):
     """
     This is deprecated. Use the new Synchronizer class.
@@ -155,18 +155,18 @@ def make_folder_sync_actions(
 
 @trace_call(logger)
 def sync_folders(
-    source_folder,
-    dest_folder,
-    args,
-    now_millis,
-    stdout,
-    no_progress,
-    max_workers,
-    policies_manager=DEFAULT_SCAN_MANAGER,
-    dry_run=False,
-    allow_empty_source=False,
-    encryption_settings_provider:
-    AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+        source_folder,
+        dest_folder,
+        args,
+        now_millis,
+        stdout,
+        no_progress,
+        max_workers,
+        policies_manager=DEFAULT_SCAN_MANAGER,
+        dry_run=False,
+        allow_empty_source=False,
+        encryption_settings_provider:
+        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
 ):
     """
     This is deprecated. Use the new Synchronizer class.

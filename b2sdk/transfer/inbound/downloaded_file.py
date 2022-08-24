@@ -87,15 +87,15 @@ class DownloadedFile:
     """
 
     def __init__(
-        self,
-        download_version: DownloadVersion,
-        download_manager: 'DownloadManager',
-        range_: Optional[Tuple[int, int]],
-        response: Response,
-        encryption: Optional[EncryptionSetting],
-        progress_listener: AbstractProgressListener,
-        write_buffer_size=None,
-        check_hash=True,
+            self,
+            download_version: DownloadVersion,
+            download_manager: 'DownloadManager',
+            range_: Optional[Tuple[int, int]],
+            response: Response,
+            encryption: Optional[EncryptionSetting],
+            progress_listener: AbstractProgressListener,
+            write_buffer_size=None,
+            check_hash=True,
     ):
         self.download_version = download_version
         self.download_manager = download_manager
@@ -115,8 +115,8 @@ class DownloadedFile:
                 raise TruncatedOutput(bytes_read, self.download_version.content_length)
 
             if (
-                self.check_hash and self.download_version.content_sha1 != 'none' and
-                actual_sha1 != self.download_version.content_sha1
+                    self.check_hash and self.download_version.content_sha1 != 'none' and
+                    actual_sha1 != self.download_version.content_sha1
             ):
                 raise ChecksumMismatch(
                     checksum_type='sha1',
@@ -168,9 +168,9 @@ class DownloadedFile:
                               (parallel strategies) will be discarded.
         """
         with MtimeUpdatedFile(
-            path_,
-            mod_time_millis=self.download_version.mod_time_millis,
-            mode=mode,
-            buffering=self.write_buffer_size,
+                path_,
+                mod_time_millis=self.download_version.mod_time_millis,
+                mode=mode,
+                buffering=self.write_buffer_size,
         ) as file:
             self.save(file, allow_seeking=allow_seeking)

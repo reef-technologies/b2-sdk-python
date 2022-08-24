@@ -519,11 +519,11 @@ class CopyArgumentsMismatch(InvalidUserInput):
 
 @trace_call(logger)
 def interpret_b2_error(
-    status: int,
-    code: Optional[str],
-    message: Optional[str],
-    response_headers: Dict[str, Any],
-    post_params: Optional[Dict[str, Any]] = None
+        status: int,
+        code: Optional[str],
+        message: Optional[str],
+        response_headers: Dict[str, Any],
+        post_params: Optional[Dict[str, Any]] = None
 ) -> B2Error:
     post_params = post_params or {}
     if status == 400 and code == "already_hidden":
@@ -531,8 +531,8 @@ def interpret_b2_error(
     elif status == 400 and code == 'bad_json':
         return BadJson(message)
     elif (
-        (status == 400 and code in ("no_such_file", "file_not_present")) or
-        (status == 404 and code == "not_found")
+            (status == 400 and code in ("no_such_file", "file_not_present")) or
+            (status == 404 and code == "not_found")
     ):
         # hide_file returns 400 and "no_such_file"
         # delete_file_version returns 400 and "file_not_present"

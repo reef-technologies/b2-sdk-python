@@ -56,13 +56,13 @@ class Services:
     DOWNLOAD_MANAGER_CLASS = staticmethod(DownloadManager)
 
     def __init__(
-        self,
-        api,
-        max_upload_workers: Optional[int] = None,
-        max_copy_workers: Optional[int] = None,
-        max_download_workers: Optional[int] = None,
-        save_to_buffer_size: Optional[int] = None,
-        check_download_hash: bool = True,
+            self,
+            api,
+            max_upload_workers: Optional[int] = None,
+            max_copy_workers: Optional[int] = None,
+            max_download_workers: Optional[int] = None,
+            save_to_buffer_size: Optional[int] = None,
+            check_download_hash: bool = True,
     ):
         """
         Initialize Services object using given session.
@@ -119,15 +119,15 @@ class B2Api(metaclass=B2TraceMeta):
     DEFAULT_LIST_KEY_COUNT = 1000
 
     def __init__(
-        self,
-        account_info: Optional[AbstractAccountInfo] = None,
-        cache: Optional[AbstractCache] = None,
-        max_upload_workers: Optional[int] = None,
-        max_copy_workers: Optional[int] = None,
-        api_config: B2HttpApiConfig = DEFAULT_HTTP_API_CONFIG,
-        max_download_workers: Optional[int] = None,
-        save_to_buffer_size: Optional[int] = None,
-        check_download_hash: bool = True,
+            self,
+            account_info: Optional[AbstractAccountInfo] = None,
+            cache: Optional[AbstractCache] = None,
+            max_upload_workers: Optional[int] = None,
+            max_copy_workers: Optional[int] = None,
+            api_config: B2HttpApiConfig = DEFAULT_HTTP_API_CONFIG,
+            max_download_workers: Optional[int] = None,
+            save_to_buffer_size: Optional[int] = None,
+            check_download_hash: bool = True,
     ):
         """
         Initialize the API using the given account info.
@@ -205,15 +205,15 @@ class B2Api(metaclass=B2TraceMeta):
     # buckets
 
     def create_bucket(
-        self,
-        name,
-        bucket_type,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        default_server_side_encryption: Optional[EncryptionSetting] = None,
-        is_file_lock_enabled: Optional[bool] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            name,
+            bucket_type,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            default_server_side_encryption: Optional[EncryptionSetting] = None,
+            is_file_lock_enabled: Optional[bool] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         """
         Create a bucket.
@@ -253,11 +253,11 @@ class B2Api(metaclass=B2TraceMeta):
         return bucket
 
     def download_file_by_id(
-        self,
-        file_id: str,
-        progress_listener: Optional[AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            file_id: str,
+            progress_listener: Optional[AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[EncryptionSetting] = None,
     ) -> DownloadedFile:
         """
         Download a file with the given ID.
@@ -277,11 +277,11 @@ class B2Api(metaclass=B2TraceMeta):
         )
 
     def update_file_retention(
-        self,
-        file_id: str,
-        file_name: str,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+            self,
+            file_id: str,
+            file_name: str,
+            file_retention: FileRetentionSetting,
+            bypass_governance: bool = False,
     ) -> FileRetentionSetting:
         return FileRetentionSetting.from_server_response(
             self.session.update_file_retention(
@@ -293,10 +293,10 @@ class B2Api(metaclass=B2TraceMeta):
         )
 
     def update_file_legal_hold(
-        self,
-        file_id: str,
-        file_name: str,
-        legal_hold: LegalHold,
+            self,
+            file_id: str,
+            file_name: str,
+            legal_hold: LegalHold,
     ) -> LegalHold:
         return LegalHold.from_server_response(
             self.session.update_file_legal_hold(
@@ -457,12 +457,12 @@ class B2Api(metaclass=B2TraceMeta):
 
     # keys
     def create_key(
-        self,
-        capabilities: List[str],
-        key_name: str,
-        valid_duration_seconds: Optional[int] = None,
-        bucket_id: Optional[str] = None,
-        name_prefix: Optional[str] = None,
+            self,
+            capabilities: List[str],
+            key_name: str,
+            valid_duration_seconds: Optional[int] = None,
+            bucket_id: Optional[str] = None,
+            name_prefix: Optional[str] = None,
     ):
         """
         Create a new :term:`application key`.
@@ -509,7 +509,7 @@ class B2Api(metaclass=B2TraceMeta):
         return ApplicationKey.from_api_response(response)
 
     def list_keys(self, start_application_key_id: Optional[str] = None
-                 ) -> Generator[ApplicationKey, None, None]:
+                  ) -> Generator[ApplicationKey, None, None]:
         """
         List application keys. Lazily perform requests to B2 cloud and return all keys.
 

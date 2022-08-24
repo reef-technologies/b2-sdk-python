@@ -19,7 +19,7 @@ class Bucket(v1.Bucket):
         return self.api.session.list_file_names(self.id_, start_filename, max_entries, prefix)
 
     def list_file_versions(
-        self, start_filename=None, start_file_id=None, max_entries=None, prefix=None
+            self, start_filename=None, start_file_id=None, max_entries=None, prefix=None
     ):
         """
         Legacy interface which just returns whatever remote API returns.

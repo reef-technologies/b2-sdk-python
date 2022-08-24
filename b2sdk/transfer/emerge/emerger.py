@@ -41,20 +41,20 @@ class Emerger(metaclass=B2TraceMetaAbstract):
         self.emerge_executor = EmergeExecutor(services)
 
     def emerge(
-        self,
-        bucket_id,
-        write_intents,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        recommended_upload_part_size=None,
-        continue_large_file_id=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            bucket_id,
+            write_intents,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            recommended_upload_part_size=None,
+            continue_large_file_id=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         """
         Create a new file (object in the cloud, really) from an iterable (list, tuple etc) of write intents.
@@ -93,21 +93,21 @@ class Emerger(metaclass=B2TraceMetaAbstract):
         )
 
     def emerge_stream(
-        self,
-        bucket_id,
-        write_intent_iterator,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        recommended_upload_part_size=None,
-        continue_large_file_id=None,
-        max_queue_size=DEFAULT_STREAMING_MAX_QUEUE_SIZE,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            bucket_id,
+            write_intent_iterator,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            recommended_upload_part_size=None,
+            continue_large_file_id=None,
+            max_queue_size=DEFAULT_STREAMING_MAX_QUEUE_SIZE,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         """
         Create a new file (object in the cloud, really) from a stream of write intents.
@@ -153,10 +153,10 @@ class Emerger(metaclass=B2TraceMetaAbstract):
         )
 
     def get_emerge_planner(
-        self,
-        recommended_upload_part_size=None,
-        min_part_size=None,
-        max_part_size=None,
+            self,
+            recommended_upload_part_size=None,
+            min_part_size=None,
+            max_part_size=None,
     ):
         return EmergePlanner.from_account_info(
             self.services.session.account_info,

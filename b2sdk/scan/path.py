@@ -46,9 +46,9 @@ class LocalPath(AbstractPath):
 
     def __eq__(self, other):
         return (
-            self.absolute_path == other.absolute_path and
-            self.relative_path == other.relative_path and self.mod_time == other.mod_time and
-            self.size == other.size
+                self.absolute_path == other.absolute_path and
+                self.relative_path == other.relative_path and self.mod_time == other.mod_time and
+                self.size == other.size
         )
 
 
@@ -56,7 +56,7 @@ class B2Path(AbstractPath):
     __slots__ = ['relative_path', 'selected_version', 'all_versions']
 
     def __init__(
-        self, relative_path: str, selected_version: FileVersion, all_versions: List[FileVersion]
+            self, relative_path: str, selected_version: FileVersion, all_versions: List[FileVersion]
     ):
         self.selected_version = selected_version
         self.all_versions = all_versions
@@ -86,7 +86,7 @@ class B2Path(AbstractPath):
 
     def __eq__(self, other):
         return (
-            self.relative_path == other.relative_path and
-            self.selected_version == other.selected_version and
-            self.all_versions == other.all_versions
+                self.relative_path == other.relative_path and
+                self.selected_version == other.selected_version and
+                self.all_versions == other.all_versions
         )

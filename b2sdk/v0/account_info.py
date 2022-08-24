@@ -33,17 +33,17 @@ class OldAccountInfoMethods:
         None,
     )
     def set_auth_data(
-        self,
-        account_id,
-        auth_token,
-        api_url,
-        download_url,
-        minimum_part_size,
-        application_key,
-        realm,
-        allowed=None,
-        application_key_id=None,
-        s3_api_url=None,
+            self,
+            account_id,
+            auth_token,
+            api_url,
+            download_url,
+            minimum_part_size,
+            application_key,
+            realm,
+            allowed=None,
+            application_key_id=None,
+            s3_api_url=None,
     ):
         # we need to enumerate all the parameters and cannot just "*args, **kwargs" because
         # the deprecation decorator doesn't feel safe with the kwargs approach

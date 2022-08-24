@@ -21,11 +21,11 @@ class B2Session(v2.B2Session):
     SQLITE_ACCOUNT_INFO_CLASS = staticmethod(SqliteAccountInfo)
 
     def __init__(
-        self,
-        account_info=None,
-        cache=None,
-        raw_api: v2.B2RawHTTPApi = None,
-        api_config: Optional[v2.B2HttpApiConfig] = None
+            self,
+            account_info=None,
+            cache=None,
+            raw_api: v2.B2RawHTTPApi = None,
+            api_config: Optional[v2.B2HttpApiConfig] = None
     ):
         if raw_api is not None and api_config is not None:
             raise InvalidArgument(

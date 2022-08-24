@@ -190,13 +190,13 @@ class B2Http:
         self.callbacks.append(callback)
 
     def post_content_return_json(
-        self,
-        url,
-        headers,
-        data,
-        try_count: int = TRY_COUNT_DATA,
-        post_params=None,
-        _timeout: Optional[int] = None,
+            self,
+            url,
+            headers,
+            data,
+            try_count: int = TRY_COUNT_DATA,
+            post_params=None,
+            _timeout: Optional[int] = None,
     ):
         """
         Use like this:
@@ -321,10 +321,10 @@ class B2Http:
         return ResponseContextManager(response)
 
     def head_content(
-        self,
-        url: str,
-        headers: Dict[str, Any],
-        try_count: int = TRY_COUNT_HEAD,
+            self,
+            url: str,
+            headers: Dict[str, Any],
+            try_count: int = TRY_COUNT_HEAD,
     ) -> Dict[str, Any]:
         """
         Does a HEAD instead of a GET for the URL.
@@ -524,7 +524,7 @@ def test_http():
     # Successful get
     print('TEST: get')
     with b2_http.get_content(
-        'https://api.backblazeb2.com/test/echo_zeros?length=10', {}
+            'https://api.backblazeb2.com/test/echo_zeros?length=10', {}
     ) as response:
         assert response.status_code == 200
         response_data = b''.join(response.iter_content())

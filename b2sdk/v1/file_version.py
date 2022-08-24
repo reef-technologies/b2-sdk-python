@@ -27,23 +27,23 @@ class FileVersionInfo(v2.FileVersion):
     LS_ENTRY_TEMPLATE = '%83s  %6s  %10s  %8s  %9d  %s'  # order is file_id, action, date, time, size, name
 
     def __init__(
-        self,
-        id_,
-        file_name,
-        size,
-        content_type,
-        content_sha1,
-        file_info,
-        upload_timestamp,
-        action,
-        account_id: Optional[str] = None,
-        bucket_id: Optional[str] = None,
-        content_md5=None,
-        server_side_encryption: Optional[v2.EncryptionSetting] = None,
-        file_retention: Optional[v2.FileRetentionSetting] = None,
-        legal_hold: Optional[v2.LegalHold] = None,
-        api: Optional['v1api.B2Api'] = None,
-        **kwargs
+            self,
+            id_,
+            file_name,
+            size,
+            content_type,
+            content_sha1,
+            file_info,
+            upload_timestamp,
+            action,
+            account_id: Optional[str] = None,
+            bucket_id: Optional[str] = None,
+            content_md5=None,
+            server_side_encryption: Optional[v2.EncryptionSetting] = None,
+            file_retention: Optional[v2.FileRetentionSetting] = None,
+            legal_hold: Optional[v2.LegalHold] = None,
+            api: Optional['v1api.B2Api'] = None,
+            **kwargs
     ):
         self.id_ = id_
         self.file_name = file_name
@@ -143,11 +143,9 @@ def translate_single_file_version(func):
 
 # override to return old style FileVersionInfo
 class FileVersionInfoFactory(v2.FileVersionFactory):
-
     from_api_response = translate_single_file_version(v2.FileVersionFactory.from_api_response)
 
     def from_response_headers(self, headers):
-
         file_info = v2.DownloadVersionFactory.file_info_from_headers(headers)
         return FileVersionInfo(
             api=self.api,

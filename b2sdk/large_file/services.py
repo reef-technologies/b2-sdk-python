@@ -40,7 +40,7 @@ class LargeFileServices:
                 break
 
     def list_unfinished_large_files(
-        self, bucket_id, start_file_id=None, batch_size=None, prefix=None
+            self, bucket_id, start_file_id=None, batch_size=None, prefix=None
     ):
         """
         A generator that yields an :py:class:`b2sdk.v2.UnfinishedLargeFile` for each
@@ -79,14 +79,14 @@ class LargeFileServices:
         return unfinished_large_file
 
     def start_large_file(
-        self,
-        bucket_id,
-        file_name,
-        content_type=None,
-        file_info=None,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            file_name,
+            content_type=None,
+            file_info=None,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         """
         Start a large file transfer.

@@ -88,10 +88,10 @@ class EncryptionSetting:
     """
 
     def __init__(
-        self,
-        mode: EncryptionMode,
-        algorithm: EncryptionAlgorithm = None,
-        key: EncryptionKey = None,
+            self,
+            mode: EncryptionMode,
+            algorithm: EncryptionAlgorithm = None,
+            key: EncryptionKey = None,
     ):
         """
         :param b2sdk.v2.EncryptionMode mode: encryption mode
@@ -346,7 +346,7 @@ class EncryptionSettingFactory:
         return EncryptionSetting(EncryptionMode.NONE)
 
 
-SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
+SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE, )
 """
 Commonly used "no encryption" setting
 """

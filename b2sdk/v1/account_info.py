@@ -36,17 +36,17 @@ class OldAccountInfoMethods:
         ]
     )
     def set_auth_data(
-        self,
-        account_id,
-        auth_token,
-        api_url,
-        download_url,
-        minimum_part_size,
-        application_key,
-        realm,
-        allowed=None,
-        application_key_id=None,
-        s3_api_url=None,
+            self,
+            account_id,
+            auth_token,
+            api_url,
+            download_url,
+            minimum_part_size,
+            application_key,
+            realm,
+            allowed=None,
+            application_key_id=None,
+            s3_api_url=None,
     ):
 
         if 's3_api_url' in inspect.getfullargspec(self._set_auth_data).args:
@@ -74,17 +74,17 @@ class OldAccountInfoMethods:
 # translate legacy "minimum_part_size" to new style "recommended_part_size"
 class MinimumPartSizeTranslator:
     def _set_auth_data(
-        self,
-        account_id,
-        auth_token,
-        api_url,
-        download_url,
-        minimum_part_size,
-        application_key,
-        realm,
-        s3_api_url=None,
-        allowed=None,
-        application_key_id=None
+            self,
+            account_id,
+            auth_token,
+            api_url,
+            download_url,
+            minimum_part_size,
+            application_key,
+            realm,
+            s3_api_url=None,
+            allowed=None,
+            application_key_id=None
     ):
         if 's3_api_url' in inspect.getfullargspec(super()._set_auth_data).args:
             s3_kwargs = dict(s3_api_url=s3_api_url)
@@ -153,8 +153,8 @@ class AbstractAccountInfo(OldAccountInfoMethods, v2.AbstractAccountInfo):
 
     @abstractmethod
     def _set_auth_data(
-        self, account_id, auth_token, api_url, download_url, minimum_part_size, application_key,
-        realm, s3_api_url, allowed, application_key_id
+            self, account_id, auth_token, api_url, download_url, minimum_part_size, application_key,
+            realm, s3_api_url, allowed, application_key_id
     ):
         """
         Actually store the auth data.  Can assume that 'allowed' is present and valid.

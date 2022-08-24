@@ -15,7 +15,8 @@ from enum import Enum, unique
 from logging import getLogger
 from typing import Any, Dict, Optional
 
-from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault, AccessDenied, SSECKeyError, RetentionWriteError
+from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, \
+    WrongEncryptionModeForBucketDefault, AccessDenied, SSECKeyError, RetentionWriteError
 from .encryption.setting import EncryptionMode, EncryptionSetting
 from .replication.setting import ReplicationConfiguration
 from .file_lock import BucketRetentionSetting, FileRetentionSetting, LegalHold
@@ -85,68 +86,68 @@ class AbstractRawApi(metaclass=ABCMeta):
 
     @abstractmethod
     def copy_file(
-        self,
-        api_url,
-        account_auth_token,
-        source_file_id,
-        new_file_name,
-        bytes_range=None,
-        metadata_directive=None,
-        content_type=None,
-        file_info=None,
-        destination_bucket_id=None,
-        destination_server_side_encryption: Optional[EncryptionSetting] = None,
-        source_server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            api_url,
+            account_auth_token,
+            source_file_id,
+            new_file_name,
+            bytes_range=None,
+            metadata_directive=None,
+            content_type=None,
+            file_info=None,
+            destination_bucket_id=None,
+            destination_server_side_encryption: Optional[EncryptionSetting] = None,
+            source_server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         pass
 
     @abstractmethod
     def copy_part(
-        self,
-        api_url,
-        account_auth_token,
-        source_file_id,
-        large_file_id,
-        part_number,
-        bytes_range=None,
-        destination_server_side_encryption: Optional[EncryptionSetting] = None,
-        source_server_side_encryption: Optional[EncryptionSetting] = None,
+            self,
+            api_url,
+            account_auth_token,
+            source_file_id,
+            large_file_id,
+            part_number,
+            bytes_range=None,
+            destination_server_side_encryption: Optional[EncryptionSetting] = None,
+            source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         pass
 
     @abstractmethod
     def create_bucket(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        bucket_name,
-        bucket_type,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        default_server_side_encryption: Optional[EncryptionSetting] = None,
-        is_file_lock_enabled: Optional[bool] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            bucket_name,
+            bucket_type,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            default_server_side_encryption: Optional[EncryptionSetting] = None,
+            is_file_lock_enabled: Optional[bool] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         pass
 
     @abstractmethod
     def create_key(
-        self, api_url, account_auth_token, account_id, capabilities, key_name,
-        valid_duration_seconds, bucket_id, name_prefix
+            self, api_url, account_auth_token, account_id, capabilities, key_name,
+            valid_duration_seconds, bucket_id, name_prefix
     ):
         pass
 
     @abstractmethod
     def download_file_from_url(
-        self,
-        account_auth_token_or_none,
-        url,
-        range_=None,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            account_auth_token_or_none,
+            url,
+            range_=None,
+            encryption: Optional[EncryptionSetting] = None,
     ):
         pass
 
@@ -168,7 +169,7 @@ class AbstractRawApi(metaclass=ABCMeta):
 
     @abstractmethod
     def get_download_authorization(
-        self, api_url, account_auth_token, bucket_id, file_name_prefix, valid_duration_in_seconds
+            self, api_url, account_auth_token, bucket_id, file_name_prefix, valid_duration_in_seconds
     ):
         pass
 
@@ -179,7 +180,7 @@ class AbstractRawApi(metaclass=ABCMeta):
 
     @abstractmethod
     def get_file_info_by_name(
-        self, download_url: str, account_auth_token: str, bucket_name: str, file_name: str
+            self, download_url: str, account_auth_token: str, bucket_name: str, file_name: str
     ) -> Dict[str, Any]:
         pass
 
@@ -197,48 +198,48 @@ class AbstractRawApi(metaclass=ABCMeta):
 
     @abstractmethod
     def list_buckets(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        bucket_id=None,
-        bucket_name=None,
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            bucket_id=None,
+            bucket_name=None,
     ):
         pass
 
     @abstractmethod
     def list_file_names(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        start_file_name=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            start_file_name=None,
+            max_file_count=None,
+            prefix=None,
     ):
         pass
 
     @abstractmethod
     def list_file_versions(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        start_file_name=None,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            start_file_name=None,
+            start_file_id=None,
+            max_file_count=None,
+            prefix=None,
     ):
         pass
 
     @abstractmethod
     def list_keys(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        max_key_count=None,
-        start_application_key_id=None
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            max_key_count=None,
+            start_application_key_id=None
     ):
         pass
 
@@ -248,73 +249,73 @@ class AbstractRawApi(metaclass=ABCMeta):
 
     @abstractmethod
     def list_unfinished_large_files(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            start_file_id=None,
+            max_file_count=None,
+            prefix=None,
     ):
         pass
 
     @abstractmethod
     def start_large_file(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        file_name,
-        content_type,
-        file_info,
-        server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            file_name,
+            content_type,
+            file_info,
+            server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         pass
 
     @abstractmethod
     def update_bucket(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        bucket_id,
-        bucket_type=None,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        if_revision_is=None,
-        default_server_side_encryption: Optional[EncryptionSetting] = None,
-        default_retention: Optional[BucketRetentionSetting] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            bucket_id,
+            bucket_type=None,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            if_revision_is=None,
+            default_server_side_encryption: Optional[EncryptionSetting] = None,
+            default_retention: Optional[BucketRetentionSetting] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         pass
 
     @abstractmethod
     def update_file_retention(
-        self,
-        api_url,
-        account_auth_token,
-        file_id,
-        file_name,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+            self,
+            api_url,
+            account_auth_token,
+            file_id,
+            file_name,
+            file_retention: FileRetentionSetting,
+            bypass_governance: bool = False,
     ):
         pass
 
     @classmethod
     def get_upload_file_headers(
-        cls,
-        upload_auth_token: str,
-        file_name: str,
-        content_length: int,
-        content_type: str,
-        content_sha1: str,
-        file_infos: dict,
-        server_side_encryption: Optional[EncryptionSetting],
-        file_retention: Optional[FileRetentionSetting],
-        legal_hold: Optional[LegalHold],
+            cls,
+            upload_auth_token: str,
+            file_name: str,
+            content_length: int,
+            content_type: str,
+            content_sha1: str,
+            file_infos: dict,
+            server_side_encryption: Optional[EncryptionSetting],
+            file_retention: Optional[FileRetentionSetting],
+            legal_hold: Optional[LegalHold],
     ) -> dict:
         headers = {
             'Authorization': upload_auth_token,
@@ -341,31 +342,31 @@ class AbstractRawApi(metaclass=ABCMeta):
 
     @abstractmethod
     def upload_file(
-        self,
-        upload_url,
-        upload_auth_token,
-        file_name,
-        content_length,
-        content_type,
-        content_sha1,
-        file_infos,
-        data_stream,
-        server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            upload_url,
+            upload_auth_token,
+            file_name,
+            content_length,
+            content_type,
+            content_sha1,
+            file_infos,
+            data_stream,
+            server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         pass
 
     @abstractmethod
     def upload_part(
-        self,
-        upload_url,
-        upload_auth_token,
-        part_number,
-        content_length,
-        sha1_sum,
-        input_stream,
-        server_side_encryption: Optional[EncryptionSetting] = None,
+            self,
+            upload_url,
+            upload_auth_token,
+            part_number,
+            content_length,
+            sha1_sum,
+            input_stream,
+            server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         pass
 
@@ -421,18 +422,18 @@ class B2RawHTTPApi(AbstractRawApi):
         return self._post_json(api_url, 'b2_cancel_large_file', account_auth_token, fileId=file_id)
 
     def create_bucket(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        bucket_name,
-        bucket_type,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        default_server_side_encryption: Optional[EncryptionSetting] = None,
-        is_file_lock_enabled: Optional[bool] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            bucket_name,
+            bucket_type,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            default_server_side_encryption: Optional[EncryptionSetting] = None,
+            is_file_lock_enabled: Optional[bool] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         kwargs = dict(
             accountId=account_id,
@@ -449,7 +450,7 @@ class B2RawHTTPApi(AbstractRawApi):
             if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
                 raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs['defaultServerSideEncryption'
-                  ] = default_server_side_encryption.serialize_to_json_for_request()
+            ] = default_server_side_encryption.serialize_to_json_for_request()
         if is_file_lock_enabled is not None:
             kwargs['fileLockEnabled'] = is_file_lock_enabled
         if replication is not None:
@@ -462,8 +463,8 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def create_key(
-        self, api_url, account_auth_token, account_id, capabilities, key_name,
-        valid_duration_seconds, bucket_id, name_prefix
+            self, api_url, account_auth_token, account_id, capabilities, key_name,
+            valid_duration_seconds, bucket_id, name_prefix
     ):
         return self._post_json(
             api_url,
@@ -504,11 +505,11 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def download_file_from_url(
-        self,
-        account_auth_token_or_none,
-        url,
-        range_=None,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            account_auth_token_or_none,
+            url,
+            range_=None,
+            encryption: Optional[EncryptionSetting] = None,
     ):
         """
         Issue a streaming request for download of a file, potentially authorized.
@@ -545,7 +546,7 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def get_download_authorization(
-        self, api_url, account_auth_token, bucket_id, file_name_prefix, valid_duration_in_seconds
+            self, api_url, account_auth_token, bucket_id, file_name_prefix, valid_duration_in_seconds
     ):
         return self._post_json(
             api_url,
@@ -561,7 +562,7 @@ class B2RawHTTPApi(AbstractRawApi):
         return self._post_json(api_url, 'b2_get_file_info', account_auth_token, fileId=file_id)
 
     def get_file_info_by_name(
-        self, download_url: str, account_auth_token: str, bucket_name: str, file_name: str
+            self, download_url: str, account_auth_token: str, bucket_name: str, file_name: str
     ) -> Dict[str, Any]:
         download_url = self.get_download_url_by_name(download_url, bucket_name, file_name)
         try:
@@ -587,12 +588,12 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def list_buckets(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        bucket_id=None,
-        bucket_name=None,
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            bucket_id=None,
+            bucket_name=None,
     ):
         return self._post_json(
             api_url,
@@ -605,13 +606,13 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def list_file_names(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        start_file_name=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            start_file_name=None,
+            max_file_count=None,
+            prefix=None,
     ):
         return self._post_json(
             api_url,
@@ -624,14 +625,14 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def list_file_versions(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        start_file_name=None,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            start_file_name=None,
+            start_file_id=None,
+            max_file_count=None,
+            prefix=None,
     ):
         return self._post_json(
             api_url,
@@ -645,12 +646,12 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def list_keys(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        max_key_count=None,
-        start_application_key_id=None
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            max_key_count=None,
+            start_application_key_id=None
     ):
         return self._post_json(
             api_url,
@@ -672,13 +673,13 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def list_unfinished_large_files(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        start_file_id=None,
-        max_file_count=None,
-        prefix=None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            start_file_id=None,
+            max_file_count=None,
+            prefix=None,
     ):
         return self._post_json(
             api_url,
@@ -691,16 +692,16 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def start_large_file(
-        self,
-        api_url,
-        account_auth_token,
-        bucket_id,
-        file_name,
-        content_type,
-        file_info,
-        server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            api_url,
+            account_auth_token,
+            bucket_id,
+            file_name,
+            content_type,
+            file_info,
+            server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         kwargs = {}
         if server_side_encryption is not None:
@@ -727,19 +728,19 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def update_bucket(
-        self,
-        api_url,
-        account_auth_token,
-        account_id,
-        bucket_id,
-        bucket_type=None,
-        bucket_info=None,
-        cors_rules=None,
-        lifecycle_rules=None,
-        if_revision_is=None,
-        default_server_side_encryption: Optional[EncryptionSetting] = None,
-        default_retention: Optional[BucketRetentionSetting] = None,
-        replication: Optional[ReplicationConfiguration] = None,
+            self,
+            api_url,
+            account_auth_token,
+            account_id,
+            bucket_id,
+            bucket_type=None,
+            bucket_info=None,
+            cors_rules=None,
+            lifecycle_rules=None,
+            if_revision_is=None,
+            default_server_side_encryption: Optional[EncryptionSetting] = None,
+            default_retention: Optional[BucketRetentionSetting] = None,
+            replication: Optional[ReplicationConfiguration] = None,
     ):
         kwargs = {}
         if if_revision_is is not None:
@@ -756,7 +757,7 @@ class B2RawHTTPApi(AbstractRawApi):
             if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
                 raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs['defaultServerSideEncryption'
-                  ] = default_server_side_encryption.serialize_to_json_for_request()
+            ] = default_server_side_encryption.serialize_to_json_for_request()
         if default_retention is not None:
             kwargs['defaultRetention'] = default_retention.serialize_to_json_for_request()
         if replication is not None:
@@ -774,13 +775,13 @@ class B2RawHTTPApi(AbstractRawApi):
         )
 
     def update_file_retention(
-        self,
-        api_url,
-        account_auth_token,
-        file_id,
-        file_name,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+            self,
+            api_url,
+            account_auth_token,
+            file_id,
+            file_name,
+            file_retention: FileRetentionSetting,
+            bypass_governance: bool = False,
     ):
         kwargs = {}
         kwargs['fileRetention'] = file_retention.serialize_to_json_for_request()
@@ -798,12 +799,12 @@ class B2RawHTTPApi(AbstractRawApi):
             raise RetentionWriteError()
 
     def update_file_legal_hold(
-        self,
-        api_url,
-        account_auth_token,
-        file_id,
-        file_name,
-        legal_hold: LegalHold,
+            self,
+            api_url,
+            account_auth_token,
+            file_id,
+            file_name,
+            legal_hold: LegalHold,
     ):
         try:
             return self._post_json(
@@ -865,18 +866,18 @@ class B2RawHTTPApi(AbstractRawApi):
             raise UnusableFileName("Filename segment too long (maximum 250 bytes in utf-8).")
 
     def upload_file(
-        self,
-        upload_url,
-        upload_auth_token,
-        file_name,
-        content_length,
-        content_type,
-        content_sha1,
-        file_infos,
-        data_stream,
-        server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            upload_url,
+            upload_auth_token,
+            file_name,
+            content_length,
+            content_type,
+            content_sha1,
+            file_infos,
+            data_stream,
+            server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         """
         Upload one, small file to b2.
@@ -907,14 +908,14 @@ class B2RawHTTPApi(AbstractRawApi):
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 
     def upload_part(
-        self,
-        upload_url,
-        upload_auth_token,
-        part_number,
-        content_length,
-        content_sha1,
-        data_stream,
-        server_side_encryption: Optional[EncryptionSetting] = None,
+            self,
+            upload_url,
+            upload_auth_token,
+            part_number,
+            content_length,
+            content_sha1,
+            data_stream,
+            server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         headers = {
             'Authorization': upload_auth_token,
@@ -931,20 +932,20 @@ class B2RawHTTPApi(AbstractRawApi):
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 
     def copy_file(
-        self,
-        api_url,
-        account_auth_token,
-        source_file_id,
-        new_file_name,
-        bytes_range=None,
-        metadata_directive=None,
-        content_type=None,
-        file_info=None,
-        destination_bucket_id=None,
-        destination_server_side_encryption: Optional[EncryptionSetting] = None,
-        source_server_side_encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            api_url,
+            account_auth_token,
+            source_file_id,
+            new_file_name,
+            bytes_range=None,
+            metadata_directive=None,
+            content_type=None,
+            file_info=None,
+            destination_bucket_id=None,
+            destination_server_side_encryption: Optional[EncryptionSetting] = None,
+            source_server_side_encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         kwargs = {}
         if bytes_range is not None:
@@ -955,7 +956,7 @@ class B2RawHTTPApi(AbstractRawApi):
         if metadata_directive is not None:
             assert metadata_directive in tuple(MetadataDirectiveMode)
             if metadata_directive is MetadataDirectiveMode.COPY and (
-                content_type is not None or file_info is not None
+                    content_type is not None or file_info is not None
             ):
                 raise InvalidMetadataDirective(
                     'content_type and file_info should be None when metadata_directive is COPY'
@@ -977,11 +978,11 @@ class B2RawHTTPApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['destinationServerSideEncryption'
-                  ] = destination_server_side_encryption.serialize_to_json_for_request()
+            ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode == EncryptionMode.SSE_C
             kwargs['sourceServerSideEncryption'
-                  ] = source_server_side_encryption.serialize_to_json_for_request()
+            ] = source_server_side_encryption.serialize_to_json_for_request()
 
         if legal_hold is not None:
             kwargs['legalHold'] = legal_hold.to_server()
@@ -1002,15 +1003,15 @@ class B2RawHTTPApi(AbstractRawApi):
             raise SSECKeyError()
 
     def copy_part(
-        self,
-        api_url,
-        account_auth_token,
-        source_file_id,
-        large_file_id,
-        part_number,
-        bytes_range=None,
-        destination_server_side_encryption: Optional[EncryptionSetting] = None,
-        source_server_side_encryption: Optional[EncryptionSetting] = None,
+            self,
+            api_url,
+            account_auth_token,
+            source_file_id,
+            large_file_id,
+            part_number,
+            bytes_range=None,
+            destination_server_side_encryption: Optional[EncryptionSetting] = None,
+            source_server_side_encryption: Optional[EncryptionSetting] = None,
     ):
         kwargs = {}
         if bytes_range is not None:
@@ -1022,13 +1023,13 @@ class B2RawHTTPApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['destinationServerSideEncryption'
-                  ] = destination_server_side_encryption.serialize_to_json_for_request()
+            ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode in (
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['sourceServerSideEncryption'
-                  ] = source_server_side_encryption.serialize_to_json_for_request()
+            ] = source_server_side_encryption.serialize_to_json_for_request()
         try:
             return self._post_json(
                 api_url,

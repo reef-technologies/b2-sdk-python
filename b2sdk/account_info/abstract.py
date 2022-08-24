@@ -133,7 +133,7 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
         if account_id == application_key_id:
             return True  # old style
         if len(application_key_id
-              ) == (3 + len(account_id) + len(new_style_master_key_suffix)):  # 3 for cluster id
+               ) == (3 + len(account_id) + len(new_style_master_key_suffix)):  # 3 for cluster id
             # new style
             if application_key_id.endswith(account_id + new_style_master_key_suffix):
                 return True
@@ -243,18 +243,18 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
         ]
     )
     def set_auth_data(
-        self,
-        account_id,
-        auth_token,
-        api_url,
-        download_url,
-        recommended_part_size,
-        absolute_minimum_part_size,
-        application_key,
-        realm,
-        s3_api_url,
-        allowed,
-        application_key_id,
+            self,
+            account_id,
+            auth_token,
+            api_url,
+            download_url,
+            recommended_part_size,
+            absolute_minimum_part_size,
+            application_key,
+            realm,
+            s3_api_url,
+            allowed,
+            application_key_id,
     ):
         """
         Check permission correctness and stores the results of ``b2_authorize_account``.
@@ -328,15 +328,15 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
         :rtype: bool
         """
         return (
-            ('bucketId' in allowed) and ('bucketName' in allowed) and
-            ((allowed['bucketId'] is not None) or (allowed['bucketName'] is None)) and
-            ('capabilities' in allowed) and ('namePrefix' in allowed)
+                ('bucketId' in allowed) and ('bucketName' in allowed) and
+                ((allowed['bucketId'] is not None) or (allowed['bucketName'] is None)) and
+                ('capabilities' in allowed) and ('namePrefix' in allowed)
         )
 
     @abstractmethod
     def _set_auth_data(
-        self, account_id, auth_token, api_url, download_url, recommended_part_size,
-        absolute_minimum_part_size, application_key, realm, s3_api_url, allowed, application_key_id
+            self, account_id, auth_token, api_url, download_url, recommended_part_size,
+            absolute_minimum_part_size, application_key, realm, s3_api_url, allowed, application_key_id
     ):
         """
         Actually store the auth data.  Can assume that 'allowed' is present and valid.

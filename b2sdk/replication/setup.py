@@ -57,13 +57,13 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
     )
 
     def setup_both(
-        self,
-        source_bucket: Bucket,
-        destination_bucket: Bucket,
-        name: Optional[str] = None,  #: name for the new replication rule
-        priority: int = None,  #: priority for the new replication rule
-        prefix: Optional[str] = None,
-        include_existing_files: bool = False,
+            self,
+            source_bucket: Bucket,
+            destination_bucket: Bucket,
+            name: Optional[str] = None,  #: name for the new replication rule
+            priority: int = None,  #: priority for the new replication rule
+            prefix: Optional[str] = None,
+            include_existing_files: bool = False,
     ) -> Tuple[Bucket, Bucket]:
 
         # setup source key
@@ -93,9 +93,9 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
         return new_source_bucket, new_destination_bucket
 
     def setup_destination(
-        self,
-        source_key_id: str,
-        destination_bucket: Bucket,
+            self,
+            source_key_id: str,
+            destination_bucket: Bucket,
     ) -> Bucket:
         api: B2Api = destination_bucket.api
 
@@ -125,9 +125,9 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _get_destination_key(
-        cls,
-        api: B2Api,
-        destination_bucket: Bucket,
+            cls,
+            api: B2Api,
+            destination_bucket: Bucket,
     ):
         keys_to_purge = []
         if destination_bucket.replication is not None:
@@ -148,7 +148,7 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
                 keys_to_purge.append(current_destination_key_id)
                 continue
             if current_destination_key.has_capabilities(
-                cls.DEFAULT_DESTINATION_CAPABILITIES
+                    cls.DEFAULT_DESTINATION_CAPABILITIES
             ) and not current_destination_key.name_prefix:
                 logger.debug('matching destination key found: %s', current_destination_key_id)
                 key = current_destination_key
@@ -165,14 +165,14 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
         return keys_to_purge, key
 
     def setup_source(
-        self,
-        source_bucket: Bucket,
-        source_key: ApplicationKey,
-        destination_bucket: Bucket,
-        prefix: Optional[str] = None,
-        name: Optional[str] = None,  #: name for the new replication rule
-        priority: int = None,  #: priority for the new replication rule
-        include_existing_files: bool = False,
+            self,
+            source_bucket: Bucket,
+            source_key: ApplicationKey,
+            destination_bucket: Bucket,
+            prefix: Optional[str] = None,
+            name: Optional[str] = None,  #: name for the new replication rule
+            priority: int = None,  #: priority for the new replication rule
+            include_existing_files: bool = False,
     ) -> Bucket:
         if prefix is None:
             prefix = ""
@@ -213,10 +213,10 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _get_source_key(
-        cls,
-        source_bucket: Bucket,
-        prefix: str,
-        current_replication_configuration: ReplicationConfiguration,
+            cls,
+            source_bucket: Bucket,
+            prefix: str,
+            current_replication_configuration: ReplicationConfiguration,
     ) -> ApplicationKey:
         api = source_bucket.api
 
@@ -238,9 +238,9 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _should_make_new_source_key(
-        cls,
-        current_replication_configuration: ReplicationConfiguration,
-        current_source_key: Optional[ApplicationKey],
+            cls,
+            current_replication_configuration: ReplicationConfiguration,
+            current_source_key: Optional[ApplicationKey],
     ) -> bool:
         if current_replication_configuration.source_key_id is None:
             logger.debug('will create a new source key because no key is set')
@@ -271,10 +271,10 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _create_source_key(
-        cls,
-        name: str,
-        bucket: Bucket,
-        prefix: Optional[str] = None,
+            cls,
+            name: str,
+            bucket: Bucket,
+            prefix: Optional[str] = None,
     ) -> ApplicationKey:
         # in this implementation we ignore the prefix and create a full key, because
         # if someone would need a different (wider) key later, all replication
@@ -287,21 +287,21 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _create_destination_key(
-        cls,
-        name: str,
-        bucket: Bucket,
-        prefix: Optional[str] = None,
+            cls,
+            name: str,
+            bucket: Bucket,
+            prefix: Optional[str] = None,
     ) -> ApplicationKey:
         capabilities = cls.DEFAULT_DESTINATION_CAPABILITIES
         return cls._create_key(name, bucket, prefix, capabilities)
 
     @classmethod
     def _create_key(
-        cls,
-        name: str,
-        bucket: Bucket,
-        prefix: Optional[str] = None,
-        capabilities=tuple(),
+            cls,
+            name: str,
+            bucket: Bucket,
+            prefix: Optional[str] = None,
+            capabilities=tuple(),
     ) -> ApplicationKey:
         api: B2Api = bucket.api
         return api.create_key(
@@ -313,9 +313,9 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _get_priority_for_new_rule(
-        cls,
-        current_rules: Iterable[ReplicationRule],
-        priority: Optional[int] = None,
+            cls,
+            current_rules: Iterable[ReplicationRule],
+            priority: Optional[int] = None,
     ):
         if priority is not None:
             return priority
@@ -327,10 +327,10 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
 
     @classmethod
     def _get_new_rule_name(
-        cls,
-        current_rules: Iterable[ReplicationRule],
-        destination_bucket: Bucket,
-        name: Optional[str] = None,
+            cls,
+            current_rules: Iterable[ReplicationRule],
+            destination_bucket: Bucket,
+            name: Optional[str] = None,
     ):
         if name is not None:
             return name

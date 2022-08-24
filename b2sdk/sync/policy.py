@@ -19,7 +19,8 @@ from ..scan.exception import InvalidArgument
 from ..scan.folder import AbstractFolder
 from ..scan.path import AbstractPath
 from .action import B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction, LocalDeleteAction
-from .encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER, AbstractSyncEncryptionSettingsProvider
+from .encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER, \
+    AbstractSyncEncryptionSettingsProvider
 
 ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 
@@ -321,7 +322,6 @@ class CopyPolicy(AbstractFileSyncPolicy):
     SOURCE_PREFIX = 'b2://'
 
     def _make_transfer_action(self):
-
         return B2CopyAction(
             self._source_folder.make_full_path(self._source_path.relative_path),
             self._source_path,

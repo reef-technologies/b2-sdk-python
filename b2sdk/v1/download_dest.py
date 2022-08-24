@@ -24,9 +24,11 @@ class AbstractDownloadDestination(metaclass=B2TraceMetaAbstract):
     """
 
     @abstractmethod
-    @limit_trace_arguments(skip=[
-        'content_sha1',
-    ])
+    @limit_trace_arguments(
+        skip=[
+            'content_sha1',
+        ]
+    )
     def make_file_context(
         self,
         file_id,

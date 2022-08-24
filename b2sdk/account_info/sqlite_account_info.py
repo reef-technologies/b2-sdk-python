@@ -30,6 +30,8 @@ B2_ACCOUNT_INFO_PROFILE_NAME_REGEXP = re.compile(r'[a-zA-Z0-9_\-]{1,64}')
 XDG_CONFIG_HOME_ENV_VAR = 'XDG_CONFIG_HOME'
 
 DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE = 5000000  # this value is used ONLY in migrating db, and in v1 wrapper, it is not
+
+
 # meant to be a default for other applications
 
 

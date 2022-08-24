@@ -147,7 +147,6 @@ class FileVersionInfoFactory(v2.FileVersionFactory):
     from_api_response = translate_single_file_version(v2.FileVersionFactory.from_api_response)
 
     def from_response_headers(self, headers):
-
         file_info = v2.DownloadVersionFactory.file_info_from_headers(headers)
         return FileVersionInfo(
             api=self.api,

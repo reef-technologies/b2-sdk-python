@@ -109,8 +109,10 @@ class BasicSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider
     def get_source_setting_for_copy(self, bucket, *args, **kwargs) -> None:
         return self.read_bucket_settings.get(bucket.name)
 
-    def get_destination_setting_for_copy(self, bucket, *args,
-                                         **kwargs) -> Optional[EncryptionSetting]:
+    def get_destination_setting_for_copy(
+        self, bucket, *args,
+        **kwargs
+    ) -> Optional[EncryptionSetting]:
         return self.write_bucket_settings.get(bucket.name)
 
     def get_setting_for_download(self, bucket, *args, **kwargs) -> None:

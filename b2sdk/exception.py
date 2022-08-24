@@ -349,8 +349,10 @@ class InvalidAuthToken(Unauthorized):
     """
 
     def __init__(self, message, code):
-        super(InvalidAuthToken,
-              self).__init__('Invalid authorization token. Server said: ' + message, code)
+        super(
+            InvalidAuthToken,
+            self
+        ).__init__('Invalid authorization token. Server said: ' + message, code)
 
 
 class RestrictedBucket(B2Error):

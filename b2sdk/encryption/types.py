@@ -33,7 +33,7 @@ class EncryptionMode(Enum):
     SSE_B2 = 'SSE-B2'  #: server-side encryption with key maintained by B2
     SSE_C = 'SSE-C'  #: server-side encryption with key provided by the client
 
-    #CLIENT = 'CLIENT'  #: client-side encryption
+    # CLIENT = 'CLIENT'  #: client-side encryption
 
     def can_be_set_as_bucket_default(self):
         return self in BUCKET_DEFAULT_ENCRYPTION_MODES

@@ -186,7 +186,7 @@ class ReplicationConfiguration:
             ],
             source_key_id=source_dict.get('sourceApplicationKeyId'),
             source_to_destination_key_mapping=destination_dict.get('sourceToDestinationKeyMapping')
-            or {},
+                                              or {},
         )
 
 

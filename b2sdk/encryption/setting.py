@@ -346,7 +346,7 @@ class EncryptionSettingFactory:
         return EncryptionSetting(EncryptionMode.NONE)
 
 
-SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
+SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE, )
 """
 Commonly used "no encryption" setting
 """

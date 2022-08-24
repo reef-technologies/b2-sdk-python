@@ -508,8 +508,9 @@ class B2Api(metaclass=B2TraceMeta):
         response = self.session.delete_key(application_key_id=application_key_id)
         return ApplicationKey.from_api_response(response)
 
-    def list_keys(self, start_application_key_id: Optional[str] = None
-                 ) -> Generator[ApplicationKey, None, None]:
+    def list_keys(
+        self, start_application_key_id: Optional[str] = None
+    ) -> Generator[ApplicationKey, None, None]:
         """
         List application keys. Lazily perform requests to B2 cloud and return all keys.
 

@@ -8,10 +8,11 @@
 #
 ######################################################################
 
-from typing import Optional, Callable, Type
+from typing import Optional, Callable, Type, Union
 import requests
 
 from .raw_api import AbstractRawApi, B2RawHTTPApi
+from .utils.curl import CurlSession
 
 
 class B2HttpApiConfig:
@@ -20,7 +21,7 @@ class B2HttpApiConfig:
 
     def __init__(
         self,
-        http_session_factory: Callable[[], requests.Session] = requests.Session,
+        http_session_factory: Callable[[], Union[requests.Session, CurlSession]] = CurlSession,
         install_clock_skew_hook: bool = True,
         user_agent_append: Optional[str] = None,
         _raw_api_class: Optional[Type[AbstractRawApi]] = None,

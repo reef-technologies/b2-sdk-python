@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial, partialmethod
 from io import BytesIO
 from typing import Dict, Generator, List, Literal, Optional, Union
@@ -8,10 +8,21 @@ import pycurl
 
 from requests.utils import CaseInsensitiveDict
 
+from b2sdk.stream.progress import ReadingStreamWithProgress
 
+
+@dataclass
 class CurlAdapters:
+    adapters: dict = field(default_factory=dict)
+
     def clear(self):
-        pass
+        self.adapters = {}
+
+
+@dataclass
+class CurlRequest:
+    url: str
+    headers: CaseInsensitiveDict
 
 
 @dataclass
@@ -19,6 +30,7 @@ class CurlResponse:
     status_code: int
     headers: CaseInsensitiveDict
     stream: BytesIO
+    request: CurlRequest
 
     @property
     def ok(self) -> bool:
@@ -85,14 +97,13 @@ def headers_to_list(headers: Dict[str, str]) -> List[str]:
 
 
 class CurlSession:
-    adapters = CurlAdapters()
     TIMEOUT = 5
 
     def __init__(self, *args, **kwargs):
-        pass
+        self.adapters = CurlAdapters()
 
-    def mount(self, *args, **kwargs):
-        pass
+    def mount(self, scheme, adapter):
+        self.adapters.adapters[scheme] = adapter
 
     def request(
         self,
@@ -103,6 +114,7 @@ class CurlSession:
         timeout: int = TIMEOUT,
         stream: bool = False,  # TODO
     ) -> CurlResponse:
+        from b2sdk.b2http import NotDecompressingHTTPAdapter
 
         output = BytesIO()
         output_headers = CaseInsensitiveDict()
@@ -122,9 +134,18 @@ class CurlSession:
             curl.setopt(curl.POST, 1)
             data = data or BytesIO()
             curl.setopt(curl.READDATA, data)
-            curl.setopt(curl.POSTFIELDSIZE, len(data.getvalue()))  # TODO: needed?
+            content_length = data.length if isinstance(data, ReadingStreamWithProgress) else len(data.getvalue())
+            curl.setopt(curl.POSTFIELDSIZE, content_length)
         curl.setopt(curl.TIMEOUT_MS, timeout * 1000)
         curl.setopt(curl.HEADERFUNCTION, partial(read_headers, output=output_headers))
+        if any(
+            isinstance(adapter, NotDecompressingHTTPAdapter)
+            for adapter in self.adapters.adapters.values()
+        ):
+            curl.setopt(curl.HTTP_CONTENT_DECODING, False)
+        else:
+            curl.setopt(curl.HTTP_CONTENT_DECODING, True)
+            curl.setopt(curl.ACCEPT_ENCODING, '')
 
         curl.perform()
         status_code = curl.getinfo(curl.RESPONSE_CODE)
@@ -135,6 +156,7 @@ class CurlSession:
             status_code=status_code,
             headers=output_headers,
             stream=output,
+            request=CurlRequest(url=url, headers=headers),
         )
 
     head = partialmethod(request, method='head')

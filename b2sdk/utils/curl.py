@@ -73,6 +73,9 @@ def read_headers(header_line: bytes, output: CaseInsensitiveDict):
 def headers_to_list(headers: Dict[str, str]) -> List[str]:
     result = []
     for key, value in headers.items():
+        if value is None:
+            continue
+
         if isinstance(value, bytes):
             value = value.decode('utf8')
 
@@ -109,8 +112,6 @@ class CurlSession:
         curl.setopt(curl.URL, url)
         if headers:
             curl.setopt(curl.HTTPHEADER, headers_to_list(headers))
-        # print(f'{headers=}')
-        # curl.setopt(curl.USERAGENT, USER_AGENT)
         curl.setopt(curl.BUFFERSIZE, 10 * 1024 * 1024)  # TODO
         # curl.setopt(curl.NOSIGNAL, 1)
         curl.setopt(curl.CAINFO, certifi.where())

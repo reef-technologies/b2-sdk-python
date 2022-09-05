@@ -98,6 +98,7 @@ def headers_to_list(headers: Dict[str, str]) -> List[str]:
 
 class CurlSession:
     TIMEOUT = 5
+    EXPECT_100_TIMEOUT = 10
 
     def __init__(self, *args, **kwargs):
         self.adapters = CurlAdapters()
@@ -124,6 +125,7 @@ class CurlSession:
         curl.setopt(curl.URL, url)
         if headers:
             curl.setopt(curl.HTTPHEADER, headers_to_list(headers))
+        curl.setopt(curl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT * 1000)
         curl.setopt(curl.BUFFERSIZE, 10 * 1024 * 1024)  # TODO
         # curl.setopt(curl.NOSIGNAL, 1)
         curl.setopt(curl.CAINFO, certifi.where())

@@ -134,7 +134,9 @@ class CurlSession:
             curl.setopt(curl.POST, 1)
             data = data or BytesIO()
             curl.setopt(curl.READDATA, data)
-            content_length = data.length if isinstance(data, ReadingStreamWithProgress) else len(data.getvalue())
+            content_length = data.length if isinstance(data, ReadingStreamWithProgress) else len(
+                data.getvalue()
+            )
             curl.setopt(curl.POSTFIELDSIZE, content_length)
         curl.setopt(curl.TIMEOUT_MS, timeout * 1000)
         curl.setopt(curl.HEADERFUNCTION, partial(read_headers, output=output_headers))

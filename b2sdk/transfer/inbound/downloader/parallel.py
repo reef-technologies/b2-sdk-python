@@ -26,6 +26,56 @@ from b2sdk.utils.range_ import Range
 logger = logging.getLogger(__name__)
 
 
+class WriterThread(threading.Thread):
+    """
+    A thread responsible for keeping a queue of data chunks to write to a file-like object and for actually writing them down.
+    Since a single thread is responsible for synchronization of the writes, we avoid a lot of issues between userspace and kernelspace
+    that would normally require flushing buffers between the switches of the writer. That would kill performance and not synchronizing
+    would cause data corruption (probably we'd end up with a file with unexpected blocks of zeros preceding the range of the writer
+    that comes second and writes further into the file).
+
+    The object of this class is also responsible for backpressure: if items are added to the queue faster than they can be written
+    (see GCP VMs with standard PD storage with faster CPU and network than local storage,
+    https://github.com/Backblaze/B2_Command_Line_Tool/issues/595), then ``obj.queue.put(item)`` will block, slowing down the producer.
+
+    The recommended minimum value of ``max_queue_depth`` is equal to the amount of producer threads, so that if all producers
+    submit a part at the exact same time (right after network issue, for example, or just after starting the read), they can continue
+    their work without blocking. The writer should be able to store at least one data chunk before a new one is retrieved, but
+    it is not guaranteed.
+
+    Therefore, the recommended value of ``max_queue_depth`` is higher - a double of the amount of producers, so that spikes on either
+    end (many producers submit at the same time / consumer has a latency spike) can be accommodated without sacrificing performance.
+
+    Please note that a size of the chunk and the queue depth impact the memory footprint. In a default setting as of writing this,
+    that might be 10 downloads, 8 producers, 1MB buffers, 2 buffers each = 8*2*10 = 160 MB (+ python buffers, operating system etc).
+    """
+
+    def __init__(self, file, max_queue_depth):
+        self.file = file
+        self.queue = queue.Queue(max_queue_depth)
+        self.total = 0
+        super(WriterThread, self).__init__()
+
+    def run(self):
+        file = self.file
+        queue_get = self.queue.get
+        while 1:
+            shutdown, offset, data = queue_get()
+            if shutdown:
+                break
+            file.seek(offset)
+            file.write(data)
+            self.total += len(data)
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.queue.put((True, None, None))
+        self.join()
+
+
 class ParallelDownloader(AbstractDownloader):
     # situations to consider:
     #
@@ -173,56 +223,6 @@ class ParallelDownloader(AbstractDownloader):
             streams.append(stream)
 
         futures.wait(streams)
-
-
-class WriterThread(threading.Thread):
-    """
-    A thread responsible for keeping a queue of data chunks to write to a file-like object and for actually writing them down.
-    Since a single thread is responsible for synchronization of the writes, we avoid a lot of issues between userspace and kernelspace
-    that would normally require flushing buffers between the switches of the writer. That would kill performance and not synchronizing
-    would cause data corruption (probably we'd end up with a file with unexpected blocks of zeros preceding the range of the writer
-    that comes second and writes further into the file).
-
-    The object of this class is also responsible for backpressure: if items are added to the queue faster than they can be written
-    (see GCP VMs with standard PD storage with faster CPU and network than local storage,
-    https://github.com/Backblaze/B2_Command_Line_Tool/issues/595), then ``obj.queue.put(item)`` will block, slowing down the producer.
-
-    The recommended minimum value of ``max_queue_depth`` is equal to the amount of producer threads, so that if all producers
-    submit a part at the exact same time (right after network issue, for example, or just after starting the read), they can continue
-    their work without blocking. The writer should be able to store at least one data chunk before a new one is retrieved, but
-    it is not guaranteed.
-
-    Therefore, the recommended value of ``max_queue_depth`` is higher - a double of the amount of producers, so that spikes on either
-    end (many producers submit at the same time / consumer has a latency spike) can be accommodated without sacrificing performance.
-
-    Please note that a size of the chunk and the queue depth impact the memory footprint. In a default setting as of writing this,
-    that might be 10 downloads, 8 producers, 1MB buffers, 2 buffers each = 8*2*10 = 160 MB (+ python buffers, operating system etc).
-    """
-
-    def __init__(self, file, max_queue_depth):
-        self.file = file
-        self.queue = queue.Queue(max_queue_depth)
-        self.total = 0
-        super(WriterThread, self).__init__()
-
-    def run(self):
-        file = self.file
-        queue_get = self.queue.get
-        while 1:
-            shutdown, offset, data = queue_get()
-            if shutdown:
-                break
-            file.seek(offset)
-            file.write(data)
-            self.total += len(data)
-
-    def __enter__(self):
-        self.start()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.queue.put((True, None, None))
-        self.join()
 
 
 def download_first_part(

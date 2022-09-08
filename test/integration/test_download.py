@@ -16,6 +16,7 @@ from typing import Optional
 from unittest import mock
 
 from b2sdk.v2 import *
+from b2sdk.transfer.inbound.downloader.parallel import LiburingDownloader
 
 from .fixtures import *  # pyflakes: disable
 from .helpers import authorize
@@ -33,7 +34,7 @@ class TestDownload(IntegrationTestBase):
                 download_manager,
                 'strategies',
                 new=[
-                    ParallelDownloader(
+                    LiburingDownloader(
                         min_part_size=self.info.get_absolute_minimum_part_size(),
                         min_chunk_size=download_manager.MIN_CHUNK_SIZE,
                         max_chunk_size=download_manager.MAX_CHUNK_SIZE,

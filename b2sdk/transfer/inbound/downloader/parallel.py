@@ -14,6 +14,10 @@ from typing import Optional
 import logging
 import queue
 import threading
+import abc
+import os
+import liburing
+from pathlib import Path
 
 from requests.models import Response
 
@@ -26,7 +30,18 @@ from b2sdk.utils.range_ import Range
 logger = logging.getLogger(__name__)
 
 
-class WriterThread(threading.Thread):
+class Writer(abc.ABC):
+    def __init__(self, file, max_queue_depth):
+        ...
+
+    def __enter__(self):
+        ...
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        ...
+
+
+class WriterThread(threading.Thread, Writer):
     """
     A thread responsible for keeping a queue of data chunks to write to a file-like object and for actually writing them down.
     Since a single thread is responsible for synchronization of the writes, we avoid a lot of issues between userspace and kernelspace
@@ -97,6 +112,7 @@ class ParallelDownloader(AbstractDownloader):
     #      cloud file start                                         cloud file end
     #
     FINISH_HASHING_BUFFER_SIZE = 1024**2
+    WRITER_CLASS: Writer = WriterThread
 
     def __init__(self, min_part_size: int, max_streams: Optional[int] = None, **kwargs):
         """
@@ -150,7 +166,7 @@ class ParallelDownloader(AbstractDownloader):
 
         hasher = self._get_hasher()
 
-        with WriterThread(file, max_queue_depth=len(parts_to_download) * 2) as writer:
+        with self.WRITER_CLASS(file, max_queue_depth=len(parts_to_download) * 2) as writer:
             self._get_parts(
                 response,
                 session,
@@ -223,6 +239,128 @@ class ParallelDownloader(AbstractDownloader):
             streams.append(stream)
 
         futures.wait(streams)
+
+
+class LiburingWriter(Writer):
+
+    file_path = Path('downloaded_file')  # TODO: don't hardcode this
+    file_descriptor = 0
+    total = 0
+
+    def __init__(self, file: IOBase, max_queue_depth: int):
+        self.file = file
+        self.ring = liburing.io_uring()
+        self.completion_queue = liburing.io_uring_cqes()
+        self.lock = threading.Lock()
+
+        self.file_path.unlink(missing_ok=True)
+
+        liburing.io_uring_queue_init(8, self.ring, 0)  # TODO max_queue_depth?
+
+        class Queue:
+            @staticmethod
+            def put(payload):
+                _, offset, data = payload
+                self._write(offset, data)
+
+        self.queue = Queue  # this is an implementation of writer.queue.put(...) interface
+
+    # def run(self):
+        # file = self.file
+        # queue_get = self.queue.get
+        # while 1:
+        #     shutdown, offset, data = queue_get()
+        #     if shutdown:
+        #         break
+        #     file.seek(offset)
+        #     file.write(data)
+        #     self.total += len(data)
+
+    def __enter__(self):
+        logging.debug('Starting %s', self.__class__.__name__)
+        self._open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._close()
+
+    @property  # TODO: do we need to call this every time, or we may cache?
+    def submission_queue(self) -> int:  # not sure about return type
+        return liburing.io_uring_get_sqe(self.ring)
+
+    def _submit_and_wait(self) -> int:
+        logger.debug('- Submitting an action')
+        liburing.io_uring_submit(self.ring)
+        logger.debug('- Waiting for completion')
+        liburing.io_uring_wait_cqe(self.ring, self.completion_queue)
+        completion_queue_entry = self.completion_queue[0]
+        logger.debug('- Got completion queue entry: %s', completion_queue_entry)
+        result = liburing.trap_error(completion_queue_entry.res)
+        logger.debug('- Marking completion queue entry as seen')
+        liburing.io_uring_cqe_seen(self.ring, completion_queue_entry)
+        logger.debug('- Returning result: %s', result)
+        return result
+
+    def _open(self) -> int:
+        with self.lock:
+            assert not self.file_descriptor
+            logger.debug('Preparing to open file')
+            liburing.io_uring_prep_openat(
+                self.submission_queue,
+                liburing.AT_FDCWD,
+                str(self.file_path).encode(),
+                os.O_CREAT | os.O_RDWR,
+                0o660,
+            )
+            breakpoint()
+            logger.debug('Submitting file open operation and waiting for result')
+            self.file_descriptor = self._submit_and_wait()  # liburing.io_uring_submit_and_wait(self.ring)
+            logger.debug('Success, opened file descriptor: %s', self.file_descriptor)
+
+    def _write(self, offset: int, data: bytes):
+        with self.lock:
+            logger.debug('Preparing file write operation')
+            iov = liburing.iovec(bytearray(data))
+            liburing.io_uring_prep_write(
+                self.submission_queue,
+                self.file_descriptor,
+                iov[0].iov_base,
+                iov[0].iov_len,
+                offset,
+            )
+            logger.debug('Submitting file write operation and waiting')
+            self.total += self._submit_and_wait()
+            logger.debug('File write operation completed')
+            # breakpoint()
+            pass
+
+            # logger.debug('Submitting file write operation')
+            # liburing.io_uring_submit(self.ring)
+            # logger.debug('Submitted file write operation, not waiting')
+
+    def _close(self):
+        with self.lock:
+            assert self.file_descriptor
+
+            # logger.debug('Closing, completion queue size: %s', len(self.completion_queue))
+            # for i in range(len(self.completion_queue)):
+            #     logger.debug('Waiting for completion queue entry #%s', i)
+            #     liburing.io_uring_wait_cqe(self.ring, self.completion_queue)  # TODO: does it wait for one entry, or for all of them?
+            #     completion_queue_entry = self.completion_queue[0]
+            #     logger.debug('Retrieving completion queue entry %s result', completion_queue_entry)
+            #     self.total += liburing.trap_error(completion_queue_entry.res)
+            #     logger.debug('Marking completion queue entry %s as seen', completion_queue_entry)
+            #     liburing.io_uring_cqe_seen(self.ring, completion_queue_entry)
+
+            logger.debug('Preparing file close operation')
+            liburing.io_uring_prep_close(self.submission_queue, self.file_descriptor)
+            logger.debug('Submitting file close operation and waiting')
+            self._submit_and_wait()
+            logger.debug('File closed')
+
+
+class LiburingDownloader(ParallelDownloader):
+    WRITER_CLASS: Writer = LiburingWriter
 
 
 def download_first_part(

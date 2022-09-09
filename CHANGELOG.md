@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Logging performance summary of parallel download threads
 * Add `max_download_streams_per_file` parameter to B2Api class and underlying structures
 * Add `is_file_lock_enabled` parameter to `Bucket.update()` and related methods
+* Add `BucketTrackingMixin` class for tracking buckets created by `B2Api` instances
 
 ### Fixed
 * Replace `ReplicationScanResult.source_has_sse_c_enabled` with `source_encryption_mode`

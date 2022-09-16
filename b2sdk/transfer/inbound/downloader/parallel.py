@@ -283,9 +283,9 @@ class LiburingWriter(Writer):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._close()
+        liburing.io_uring_queue_exit(self.ring)  # TODO: is it needed?
 
-    @property  # TODO: do we need to call this every time, or we may cache?
-    def submission_queue(self) -> int:  # not sure about return type
+    def get_submission_queue_entry(self) -> int:  # not sure about return type
         return liburing.io_uring_get_sqe(self.ring)
 
     def _submit_and_wait(self) -> int:
@@ -306,15 +306,16 @@ class LiburingWriter(Writer):
             assert not self.file_descriptor
             logger.debug('Preparing to open file')
             liburing.io_uring_prep_openat(
-                self.submission_queue,
+                self.get_submission_queue_entry(),
                 liburing.AT_FDCWD,
                 str(self.file_path).encode(),
                 os.O_CREAT | os.O_RDWR,
                 0o660,
             )
-            breakpoint()
+
             logger.debug('Submitting file open operation and waiting for result')
-            self.file_descriptor = self._submit_and_wait()  # liburing.io_uring_submit_and_wait(self.ring)
+            self.file_descriptor = self._submit_and_wait()
+            assert self.file_path.exists()
             logger.debug('Success, opened file descriptor: %s', self.file_descriptor)
 
     def _write(self, offset: int, data: bytes):
@@ -322,7 +323,7 @@ class LiburingWriter(Writer):
             logger.debug('Preparing file write operation')
             iov = liburing.iovec(bytearray(data))
             liburing.io_uring_prep_write(
-                self.submission_queue,
+                self.get_submission_queue_entry(),
                 self.file_descriptor,
                 iov[0].iov_base,
                 iov[0].iov_len,
@@ -331,8 +332,6 @@ class LiburingWriter(Writer):
             logger.debug('Submitting file write operation and waiting')
             self.total += self._submit_and_wait()
             logger.debug('File write operation completed')
-            # breakpoint()
-            pass
 
             # logger.debug('Submitting file write operation')
             # liburing.io_uring_submit(self.ring)
@@ -352,11 +351,17 @@ class LiburingWriter(Writer):
             #     logger.debug('Marking completion queue entry %s as seen', completion_queue_entry)
             #     liburing.io_uring_cqe_seen(self.ring, completion_queue_entry)
 
-            logger.debug('Preparing file close operation')
-            liburing.io_uring_prep_close(self.submission_queue, self.file_descriptor)
-            logger.debug('Submitting file close operation and waiting')
+            # logger.debug('Preparing file close operation')
+            liburing.io_uring_prep_close(self.get_submission_queue_entry(), self.file_descriptor)
+            # logger.debug('Submitting file close operation and waiting')
             self._submit_and_wait()
-            logger.debug('File closed')
+            # logger.debug('File closed')
+
+            # breakpoint()
+            # TODO: hack to read file content into IOBase
+            self.file.seek(0)
+            data = self.file_path.read_bytes()
+            self.file.write(data)
 
 
 class LiburingDownloader(ParallelDownloader):

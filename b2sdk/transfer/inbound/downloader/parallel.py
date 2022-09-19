@@ -16,10 +16,10 @@ import queue
 import threading
 import abc
 import os
-import liburing
 from pathlib import Path
 
 from requests.models import Response
+from liburing import io_uring, io_uring_queue_init, io_uring_queue_exit, io_uring_cqes
 
 from .abstract import AbstractDownloader
 from b2sdk.encryption.setting import EncryptionSetting
@@ -304,6 +304,8 @@ class LiburingWriter(Writer):
         self.file = file
         self.lock = threading.Lock()
         self.file_path.unlink(missing_ok=True)
+        self.ring = io_uring()
+        self.cqes = io_uring_cqes()
 
         # liburing.io_uring_queue_init(32, self.ring, 0)  # TODO max_queue_depth?
 
@@ -318,68 +320,71 @@ class LiburingWriter(Writer):
 
     def __enter__(self):
         logging.debug('Starting %s', self.__class__.__name__)
+        io_uring_queue_init(8, self.ring, 0)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        io_uring_queue_exit(self.ring)
+
         # TODO: temp hack to read file content into IOBase
         self.file.seek(0)
         data = self.file_path.read_bytes()
         self.file.write(data)
 
-    def get_submission_queue_entry(self) -> int:  # not sure about return type
-        return liburing.io_uring_get_sqe(self.ring)
+    # def get_submission_queue_entry(self) -> int:  # not sure about return type
+    #     return liburing.io_uring_get_sqe(self.ring)
 
-    def _submit(self):
-        logger.debug('- Submitting an action')
-        liburing.io_uring_submit(self.ring)
+    # def _submit(self):
+    #     logger.debug('- Submitting an action')
+    #     liburing.io_uring_submit(self.ring)
 
-    def _wait(self) -> int:
-        logger.debug('- Waiting for completion')
-        liburing.io_uring_wait_cqe(self.ring, self.completion_queue)
-        completion_queue_entry = self.completion_queue[0]
-        logger.debug('- Got completion queue entry: %s', completion_queue_entry)
-        result = liburing.trap_error(completion_queue_entry.res)
-        logger.debug('- Marking completion queue entry as seen')
-        liburing.io_uring_cqe_seen(self.ring, completion_queue_entry)
-        logger.debug('- Returning result: %s', result)
-        return result
+    # def _wait(self) -> int:
+    #     logger.debug('- Waiting for completion')
+    #     liburing.io_uring_wait_cqe(self.ring, self.completion_queue)
+    #     completion_queue_entry = self.completion_queue[0]
+    #     logger.debug('- Got completion queue entry: %s', completion_queue_entry)
+    #     result = liburing.trap_error(completion_queue_entry.res)
+    #     logger.debug('- Marking completion queue entry as seen')
+    #     liburing.io_uring_cqe_seen(self.ring, completion_queue_entry)
+    #     logger.debug('- Returning result: %s', result)
+    #     return result
 
-    def _open(self):
-        # with self.lock:
-        assert not self.file_descriptor
-        logger.debug('Preparing to open file')
+    # def _open(self):
+    #     # with self.lock:
+    #     assert not self.file_descriptor
+    #     logger.debug('Preparing to open file')
 
-        entry = self.get_submission_queue_entry()
-        liburing.io_uring_prep_openat(
-            entry,
-            liburing.AT_FDCWD,
-            str(self.file_path).encode(),
-            os.O_CREAT | os.O_RDWR,
-            0o660,
-        )
+    #     entry = self.get_submission_queue_entry()
+    #     liburing.io_uring_prep_openat(
+    #         entry,
+    #         liburing.AT_FDCWD,
+    #         str(self.file_path).encode(),
+    #         os.O_CREAT | os.O_RDWR,
+    #         0o660,
+    #     )
 
-        logger.debug('Submitting file open operation and waiting for result')
-        self.file_descriptor = self._submit() or self._wait()
-        assert self.file_path.exists()
-        logger.debug('Success, opened file descriptor: %s', self.file_descriptor)
+    #     logger.debug('Submitting file open operation and waiting for result')
+    #     self.file_descriptor = self._submit() or self._wait()
+    #     assert self.file_path.exists()
+    #     logger.debug('Success, opened file descriptor: %s', self.file_descriptor)
 
-        # # TODO: TEST, REMOVE
-        # self._fd = open(self._ring, self._cqes, str(self._test_file), os.O_CREAT | os.O_RDWR)
-        # print('fd:', self._fd)
+    #     # # TODO: TEST, REMOVE
+    #     # self._fd = open(self._ring, self._cqes, str(self._test_file), os.O_CREAT | os.O_RDWR)
+    #     # print('fd:', self._fd)
 
-        # # TODO: TEST, REMOVE
-        # length = write(self._ring, self._cqes, self._fd, b'hello world')
-        # print('wrote:', length)
-        # # content = read(self._ring, self._cqes, fd, length)
-        # # print('read:', content)
-        # if not hasattr(self, '_shut_up'):
-        #     self._shut_up = True
-        #     close(self._ring, self._cqes, self._fd)
-        #     print('closed')
-        #     io_uring_queue_exit(self._ring)
-        #     assert self._test_file.exists()
-        #     assert self._test_file.read_bytes() == b'hello world'
-        #     assert False, "hoho trololo"
+    #     # # TODO: TEST, REMOVE
+    #     # length = write(self._ring, self._cqes, self._fd, b'hello world')
+    #     # print('wrote:', length)
+    #     # # content = read(self._ring, self._cqes, fd, length)
+    #     # # print('read:', content)
+    #     # if not hasattr(self, '_shut_up'):
+    #     #     self._shut_up = True
+    #     #     close(self._ring, self._cqes, self._fd)
+    #     #     print('closed')
+    #     #     io_uring_queue_exit(self._ring)
+    #     #     assert self._test_file.exists()
+    #     #     assert self._test_file.read_bytes() == b'hello world'
+    #     #     assert False, "hoho trololo"
 
     def _write(self, offset: int, data: bytes):
         with self.lock:
@@ -404,20 +409,10 @@ class LiburingWriter(Writer):
             # # liburing.io_uring_queue_exit(self.ring)
             # logger.debug('Submitted file write operation, not waiting')
 
-            ring = io_uring()
-            cqes = io_uring_cqes()
-            try:
-                io_uring_queue_init(8, ring, 0)
+            fd = open(self.ring, self.cqes, str(self.file_path), os.O_CREAT | os.O_RDWR)
+            self.total += write(self.ring, self.cqes, fd, data, offset)
+            close(self.ring, self.cqes, fd)
 
-                fd = open(ring, cqes, str(self.file_path), os.O_CREAT | os.O_RDWR)
-                length = write(ring, cqes, fd, data, offset)
-                self.total += length
-
-                close(ring, cqes, fd)
-            finally:
-                io_uring_queue_exit(ring)
-
-            # breakpoint()
 
     # def _close(self):
     #     # with self.lock:

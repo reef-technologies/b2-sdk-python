@@ -249,6 +249,7 @@ class ParallelDownloader(AbstractDownloader):
 class LiburingWriter(Writer):
     file_path = Path('/tmp/downloaded_file')  # TODO: don't hardcode this
     file_descriptor = 0
+    parts = 0
     total = 0
 
     def __init__(self, file: IOBase, max_queue_depth: int):
@@ -259,7 +260,7 @@ class LiburingWriter(Writer):
         self.ring = io_uring()
         self.cqes = io_uring_cqes()
 
-        # liburing.io_uring_queue_init(32, self.ring, 0)  # TODO max_queue_depth?
+        self._buffers = []
 
         class Queue:
             """ Dummy implementation of writer.queue.put(...) interface """
@@ -272,10 +273,16 @@ class LiburingWriter(Writer):
 
     def __enter__(self):
         logging.debug('Starting %s', self.__class__.__name__)
-        io_uring_queue_init(8, self.ring, 0)
+        io_uring_queue_init(128, self.ring, 0)  # TODO: buffer size?
+        self._open()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        with self.lock:
+            for _ in range(self.parts):
+                self.total += self._wait()
+
+        self._close()
         io_uring_queue_exit(self.ring)
 
         # TODO: temp hack to read file content into IOBase
@@ -284,37 +291,45 @@ class LiburingWriter(Writer):
         self.file.write(data)
 
     def write(self, offset: int, data: bytes):
-        with self.lock:
-            fd = self._open()
-            self.total += self._write(self.ring, self.cqes, fd, data, offset)
-            self._close(fd)
+        self._write(data, offset)
 
     def _open(self) -> int:
+        assert not self.file_descriptor
         _path = str(self.file_path).encode()
         sqe = io_uring_get_sqe(self.ring)
         io_uring_prep_openat(sqe, AT_FDCWD, _path, os.O_CREAT | os.O_RDWR, 0o660)
-        return self._submit_and_wait(self.ring, self.cqes)
+        self.file_descriptor = self._submit() or self._wait()
 
-    def _write(self, ring, cqes, fd, data, offset=0) -> int:
+    def _write(self, data, offset=0) -> int:
+        # DON'T TOUCH THESE TWO LINES:
         buffer = bytearray(data)
         iov = iovec(buffer)
 
-        sqe = io_uring_get_sqe(ring)
-        io_uring_prep_write(sqe, fd, iov[0].iov_base, iov[0].iov_len, offset)
-        return self._submit_and_wait(ring, cqes)
+        self._buffers += [data, buffer, iov]  # hold reference
 
-    def _close(self, fd):
+        with self.lock:
+            sqe = io_uring_get_sqe(self.ring)
+            io_uring_prep_write(sqe, self.file_descriptor, iov[0].iov_base, iov[0].iov_len, offset)
+            self.parts += 1
+            return self._submit() or 0 # or self._wait()
+
+
+    def _close(self):
+        assert self.file_descriptor
         sqe = io_uring_get_sqe(self.ring)
-        io_uring_prep_close(sqe, fd)
-        self._submit_and_wait(self.ring, self.cqes)
+        io_uring_prep_close(sqe, self.file_descriptor)
+        self._submit() or self._wait()
+        self.file_descriptor = None
 
-    def _submit_and_wait(self, ring, cqes) -> int:
-        io_uring_submit(ring)
-        io_uring_wait_cqe(ring, cqes)
-        cqe = cqes[0]
+    def _submit(self):
+        io_uring_submit(self.ring)
+
+    def _wait(self) -> int:
+        io_uring_wait_cqe(self.ring, self.cqes)
+        cqe = self.cqes[0]
         result = trap_error(cqe.res)
 
-        io_uring_cqe_seen(ring, cqe)
+        io_uring_cqe_seen(self.ring, cqe)
         return result
 
 

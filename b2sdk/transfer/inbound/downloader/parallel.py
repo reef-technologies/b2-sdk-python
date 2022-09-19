@@ -27,6 +27,7 @@ from b2sdk.file_version import DownloadVersion
 from b2sdk.session import B2Session
 from b2sdk.utils.range_ import Range
 
+from ..downloaded_file import MtimeUpdatedFile, WritingStreamWithProgress
 from .abstract import AbstractDownloader
 
 
@@ -247,20 +248,25 @@ class ParallelDownloader(AbstractDownloader):
 
 
 class LiburingWriter(Writer):
-    file_path = Path('/tmp/downloaded_file')  # TODO: don't hardcode this
     file_descriptor = None
     num_parts = 0
     total = 0
 
     def __init__(self, file: IOBase, max_queue_depth: int):
-        self.file = file
         self.lock = threading.Lock()
-        self.file_path.unlink(missing_ok=True)
+
         self.ring = io_uring()
         self.cqes = io_uring_cqes()
         self.max_queue_depth = max_queue_depth
-
         self._buffers = []
+
+        # here we ignore file stream and write directly to specific file path
+        if isinstance(file, WritingStreamWithProgress):
+            file = file.stream
+        assert isinstance(file, MtimeUpdatedFile)
+        self.file_path = Path(file.path_)
+
+        self.file_path.unlink(missing_ok=True)
 
         class Queue:
             """ Dummy implementation of writer.queue.put(...) interface """
@@ -282,11 +288,6 @@ class LiburingWriter(Writer):
 
         self._close()
         io_uring_queue_exit(self.ring)
-
-        # TODO: temp hack to read file content into IOBase
-        self.file.seek(0)
-        data = self.file_path.read_bytes()
-        self.file.write(data)
 
     def _open(self) -> int:
         assert not self.file_descriptor

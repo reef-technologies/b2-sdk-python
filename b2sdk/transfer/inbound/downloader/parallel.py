@@ -32,31 +32,6 @@ from .abstract import AbstractDownloader
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------
-
-
-def write(ring, cqes, fd, data, offset=0):
-    buffer = bytearray(data)
-    iov = iovec(buffer)
-
-    sqe = io_uring_get_sqe(ring)
-    io_uring_prep_write(sqe, fd, iov[0].iov_base, iov[0].iov_len, offset)
-    return _submit_and_wait(ring, cqes)  # returns length(s) of bytes written
-
-
-def _submit_and_wait(ring, cqes):
-    io_uring_submit(ring)  # submit entry
-    io_uring_wait_cqe(ring, cqes)  # wait for entry to finish
-    cqe = cqes[0]  # cqe(completion queue entry)
-    result = trap_error(cqe.res)  # auto raise appropriate exception if failed
-    # note `cqe.res` returns results, if `< 0` its an error, if `>= 0` its the value
-
-    # done with current entry so clear it from completion queue.
-    io_uring_cqe_seen(ring, cqe)
-    return result  # type: int
-
-# -----------------------------------
-
 
 class Writer(abc.ABC):
     def __init__(self, file, max_queue_depth):
@@ -291,7 +266,7 @@ class LiburingWriter(Writer):
             @staticmethod
             def put(payload):
                 _, offset, data = payload
-                self._write(offset, data)
+                self.write(offset, data)
 
         self.queue = Queue
 
@@ -308,22 +283,39 @@ class LiburingWriter(Writer):
         data = self.file_path.read_bytes()
         self.file.write(data)
 
-    def _write(self, offset: int, data: bytes):
+    def write(self, offset: int, data: bytes):
         with self.lock:
             fd = self._open()
-            self.total += write(self.ring, self.cqes, fd, data, offset)
+            self.total += self._write(self.ring, self.cqes, fd, data, offset)
             self._close(fd)
 
     def _open(self) -> int:
         _path = str(self.file_path).encode()
-        sqe = io_uring_get_sqe(self.ring)  # sqe(submission queue entry)
+        sqe = io_uring_get_sqe(self.ring)
         io_uring_prep_openat(sqe, AT_FDCWD, _path, os.O_CREAT | os.O_RDWR, 0o660)
-        return _submit_and_wait(self.ring, self.cqes)  # returns fd
+        return self._submit_and_wait(self.ring, self.cqes)
+
+    def _write(self, ring, cqes, fd, data, offset=0) -> int:
+        buffer = bytearray(data)
+        iov = iovec(buffer)
+
+        sqe = io_uring_get_sqe(ring)
+        io_uring_prep_write(sqe, fd, iov[0].iov_base, iov[0].iov_len, offset)
+        return self._submit_and_wait(ring, cqes)
 
     def _close(self, fd):
         sqe = io_uring_get_sqe(self.ring)
         io_uring_prep_close(sqe, fd)
-        _submit_and_wait(self.ring, self.cqes)  # no error means success!
+        self._submit_and_wait(self.ring, self.cqes)
+
+    def _submit_and_wait(self, ring, cqes) -> int:
+        io_uring_submit(ring)
+        io_uring_wait_cqe(ring, cqes)
+        cqe = cqes[0]
+        result = trap_error(cqe.res)
+
+        io_uring_cqe_seen(ring, cqe)
+        return result
 
 
 class LiburingDownloader(ParallelDownloader):

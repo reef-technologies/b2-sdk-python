@@ -248,17 +248,17 @@ class ParallelDownloader(AbstractDownloader):
 
 class LiburingWriter(Writer):
     file_path = Path('/tmp/downloaded_file')  # TODO: don't hardcode this
-    file_descriptor = 0
-    parts = 0
+    file_descriptor = None
+    num_parts = 0
     total = 0
 
     def __init__(self, file: IOBase, max_queue_depth: int):
-        logging.debug('Initializing uring')
         self.file = file
         self.lock = threading.Lock()
         self.file_path.unlink(missing_ok=True)
         self.ring = io_uring()
         self.cqes = io_uring_cqes()
+        self.max_queue_depth = max_queue_depth
 
         self._buffers = []
 
@@ -267,20 +267,18 @@ class LiburingWriter(Writer):
             @staticmethod
             def put(payload):
                 _, offset, data = payload
-                self.write(offset, data)
+                self._write(data, offset)
 
         self.queue = Queue
 
     def __enter__(self):
-        logging.debug('Starting %s', self.__class__.__name__)
-        io_uring_queue_init(128, self.ring, 0)  # TODO: buffer size?
+        io_uring_queue_init(self.max_queue_depth, self.ring, 0)
         self._open()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        with self.lock:
-            for _ in range(self.parts):
-                self.total += self._wait()
+        for _ in range(self.num_parts):
+            self.total += self._wait()
 
         self._close()
         io_uring_queue_exit(self.ring)
@@ -289,9 +287,6 @@ class LiburingWriter(Writer):
         self.file.seek(0)
         data = self.file_path.read_bytes()
         self.file.write(data)
-
-    def write(self, offset: int, data: bytes):
-        self._write(data, offset)
 
     def _open(self) -> int:
         assert not self.file_descriptor
@@ -305,14 +300,13 @@ class LiburingWriter(Writer):
         buffer = bytearray(data)
         iov = iovec(buffer)
 
-        self._buffers += [data, buffer, iov]  # hold reference
+        self._buffers += [buffer]  # prevent GC from collecting buffer
 
         with self.lock:
             sqe = io_uring_get_sqe(self.ring)
             io_uring_prep_write(sqe, self.file_descriptor, iov[0].iov_base, iov[0].iov_len, offset)
-            self.parts += 1
-            return self._submit() or 0 # or self._wait()
-
+            self.num_parts += 1
+            self._submit()
 
     def _close(self):
         assert self.file_descriptor

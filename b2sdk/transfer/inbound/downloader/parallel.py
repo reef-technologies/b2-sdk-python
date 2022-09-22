@@ -17,6 +17,7 @@ import threading
 from concurrent import futures
 from io import IOBase
 from pathlib import Path
+from time import time_ns
 from typing import Optional
 
 from liburing import AT_FDCWD, io_uring, io_uring_cqe_seen, io_uring_cqes, io_uring_get_sqe, io_uring_prep_close, io_uring_prep_openat, io_uring_prep_write, io_uring_queue_exit, io_uring_queue_init, io_uring_submit, io_uring_wait_cqe, iovec, trap_error
@@ -250,10 +251,9 @@ class ParallelDownloader(AbstractDownloader):
 class LiburingWriter(threading.Thread, Writer):
     file_descriptor = None
     total = 0
-    URING_QUEUE_SIZE = 16
+    URING_QUEUE_SIZE = 8
 
     def __init__(self, file: IOBase, max_queue_depth: int):
-        logger.debug('Initializing writer')
         self.lock = threading.Lock()
         self.queue = queue.Queue(max_queue_depth)
 
@@ -266,39 +266,29 @@ class LiburingWriter(threading.Thread, Writer):
         assert isinstance(file, MtimeUpdatedFile)
         self.file_path = Path(file.path_)
 
-        self.file_path.unlink(missing_ok=True)
-
-        logger.info('Initializing thread')
+        # self.file_path.unlink(missing_ok=True)
         super().__init__()
-        logger.info('Thread initialized')
 
     def __enter__(self):
-        logger.info('Entering')
         # TODO: does uring block when queue size is exceeded?
         io_uring_queue_init(self.URING_QUEUE_SIZE, self.ring, 0)
-        logger.info('Opening')
         self._open()
-        logger.info('Starting')
         self.start()
         return self
 
     def run(self):
-        logger.info('Starting consuming thread')
-        queue_get = self.queue.get
+        queue_get, task_done = self.queue.get, self.queue.task_done
         while True:
-            logger.info('Queue size: %s', self.queue.qsize())
+            # logger.info('Queue size: %s', self.queue.qsize())
             shutdown, offset, data = queue_get()
             if shutdown:
-                logger.info('Shutting down write thread')
                 break
-            logger.info('Writing data')
             self.total += self._write(data, offset)
-            logger.info('Total: %s', self.total)
+            task_done()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.queue.put((True, None, None))
         self.join()
-        logger.info('Exiting')
         self._close()
         io_uring_queue_exit(self.ring)
 
@@ -330,18 +320,66 @@ class LiburingWriter(threading.Thread, Writer):
         io_uring_submit(self.ring)
 
     def _wait(self) -> int:
-        logger.info('Waiting')
         io_uring_wait_cqe(self.ring, self.cqes)
         cqe = self.cqes[0]
         result = trap_error(cqe.res)
 
-        logger.info('Mark seen')
         io_uring_cqe_seen(self.ring, cqe)
         return result
 
 
+class LiburingBatchWriter(LiburingWriter):
+    URING_QUEUE_SIZE = 16
+    MAX_WAIT_TIME = 300_000_000  # ns
+
+    def run(self):
+        queue_get = self.queue.get
+        task_done = self.queue.task_done
+        queue_full = self.queue.full
+        queue_qsize = self.queue.qsize
+
+        last_submission_time = time_ns()
+        while True:
+            if (
+                queue_full() or
+                time_ns() - last_submission_time > self.MAX_WAIT_TIME
+            ):
+                num_tasks = queue_qsize()
+                buffers = []
+                for _ in range(num_tasks):
+                    shutdown, offset, data = queue_get()
+                    if not shutdown:
+                        buffers.append(  # store buffer reference until operation is completed
+                            self._write(data, offset)
+                        )
+                    task_done()
+
+                for _ in range(num_tasks - int(shutdown)):
+                    self.total += self._wait()
+
+                last_submission_time = time_ns()
+
+                if shutdown:
+                    break
+
+    def _write(self, data, offset=0) -> bytearray:
+        # DON'T TOUCH THESE TWO LINES:
+        buffer = bytearray(data)
+        iov = iovec(buffer)
+
+        with self.lock:
+            sqe = io_uring_get_sqe(self.ring)
+            io_uring_prep_write(sqe, self.file_descriptor, iov[0].iov_base, iov[0].iov_len, offset)
+            self._submit()
+        return buffer
+
+
 class LiburingDownloader(ParallelDownloader):
     WRITER_CLASS: Writer = LiburingWriter
+
+
+class LiburingBatchDownloader(LiburingDownloader):
+    WRITER_CLASS: Writer = LiburingBatchWriter
 
 
 def download_first_part(

@@ -16,7 +16,7 @@ from typing import Optional
 from unittest import mock
 
 from b2sdk.v2 import *
-from b2sdk.transfer.inbound.downloader.parallel import LiburingBatchDownloader
+from b2sdk.transfer.inbound.downloader.parallel import LiburingDownloader, LiburingBatchDownloader
 
 from .fixtures import *  # pyflakes: disable
 from .helpers import authorize
@@ -30,30 +30,35 @@ class TestDownload(IntegrationTestBase):
             self.info, '_recommended_part_size', new=self.info.get_absolute_minimum_part_size()
         ):
             download_manager = self.b2_api.services.download_manager
-            with mock.patch.object(
-                download_manager,
-                'strategies',
-                new=[
-                    LiburingBatchDownloader(
-                        min_part_size=self.info.get_absolute_minimum_part_size(),
-                        min_chunk_size=download_manager.MIN_CHUNK_SIZE,
-                        max_chunk_size=download_manager.MAX_CHUNK_SIZE,
-                        thread_pool=download_manager._thread_pool,
-                    )
-                ]
-            ):
+            for downloader_class in [
+                ParallelDownloader,
+                LiburingDownloader,
+                LiburingBatchDownloader,
+            ]:
+                with mock.patch.object(
+                    download_manager,
+                    'strategies',
+                    new=[
+                        downloader_class(
+                            min_part_size=self.info.get_absolute_minimum_part_size(),
+                            min_chunk_size=download_manager.MIN_CHUNK_SIZE,
+                            max_chunk_size=download_manager.MAX_CHUNK_SIZE,
+                            thread_pool=download_manager._thread_pool,
+                        )
+                    ]
+                ):
 
-                # let's check that small file downloads fail with these settings
-                zero = bucket.upload_bytes(b'0', 'a_single_zero')
-                with pytest.raises(ValueError) as exc_info:
-                    with io.BytesIO() as io_:
-                        bucket.download_file_by_name('a_single_zero').save(io_)
-                assert exc_info.value.args == ('no strategy suitable for download was found!',)
+                    # let's check that small file downloads fail with these settings
+                    zero = bucket.upload_bytes(b'0', 'a_single_zero')
+                    with pytest.raises(ValueError) as exc_info:
+                        with io.BytesIO() as io_:
+                            bucket.download_file_by_name('a_single_zero').save(io_)
+                    assert exc_info.value.args == ('no strategy suitable for download was found!',)
 
-                f = self._file_helper(bucket)
-                if zero._type() != 'large':
-                    # if we are here, that's not the production server!
-                    assert f.download_version.content_sha1_verified  # large files don't have sha1, lets not check
+                    f = self._file_helper(bucket)
+                    if zero._type() != 'large':
+                        # if we are here, that's not the production server!
+                        assert f.download_version.content_sha1_verified  # large files don't have sha1, lets not check
 
     def _file_helper(
         self, bucket, sha1_sum=None, bytes_to_write: Optional[int] = None

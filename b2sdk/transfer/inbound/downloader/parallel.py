@@ -344,7 +344,10 @@ class LiburingBatchWriter(LiburingWriter):
                 queue_full() or
                 time_ns() - last_submission_time > self.MAX_WAIT_TIME
             ):
+                last_submission_time = time_ns()
                 num_tasks = queue_qsize()
+                if not num_tasks:
+                    continue
                 buffers = []
                 for _ in range(num_tasks):
                     shutdown, offset, data = queue_get()
@@ -356,8 +359,6 @@ class LiburingBatchWriter(LiburingWriter):
 
                 for _ in range(num_tasks - int(shutdown)):
                     self.total += self._wait()
-
-                last_submission_time = time_ns()
 
                 if shutdown:
                     break

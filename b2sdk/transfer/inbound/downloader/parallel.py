@@ -316,8 +316,8 @@ class LiburingWriter(threading.Thread, Writer):
         self._submit() or self._wait()
         self.file_descriptor = None
 
-    def _submit(self) -> int:
-        return io_uring_submit(self.ring)
+    def _submit(self):
+        io_uring_submit(self.ring)
 
     def _wait(self) -> int:
         io_uring_wait_cqe(self.ring, self.cqes)

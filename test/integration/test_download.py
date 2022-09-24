@@ -16,7 +16,7 @@ from typing import Optional
 from unittest import mock
 
 from b2sdk.v2 import *
-from b2sdk.transfer.inbound.downloader.parallel import LiburingDownloader, LiburingBatchDownloader
+from b2sdk.transfer.inbound.downloader.parallel import LiburingDownloader, LiburingBatchDownloader, LiburingAsyncDownloader
 
 from .fixtures import *  # pyflakes: disable
 from .helpers import authorize
@@ -34,6 +34,7 @@ class TestDownload(IntegrationTestBase):
                 ParallelDownloader,
                 LiburingDownloader,
                 LiburingBatchDownloader,
+                LiburingAsyncDownloader,
             ]:
                 with mock.patch.object(
                     download_manager,

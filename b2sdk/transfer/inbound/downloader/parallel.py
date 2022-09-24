@@ -20,7 +20,7 @@ from pathlib import Path
 from time import time_ns
 from typing import Optional
 
-from liburing import AT_FDCWD, io_uring, io_uring_cqe_seen, io_uring_cqes, io_uring_get_sqe, io_uring_prep_close, io_uring_prep_openat, io_uring_prep_write, io_uring_queue_exit, io_uring_queue_init, io_uring_submit, io_uring_wait_cqe, iovec, trap_error
+from liburing import AT_FDCWD, io_uring, io_uring_cqe_seen, io_uring_cqes, io_uring_get_sqe, io_uring_prep_close, io_uring_prep_openat, io_uring_prep_write, io_uring_queue_exit, io_uring_queue_init, io_uring_sqe_set_data, io_uring_submit, io_uring_wait_cqe, iovec, trap_error
 from requests.models import Response
 
 from b2sdk.encryption.setting import EncryptionSetting
@@ -316,8 +316,8 @@ class LiburingWriter(threading.Thread, Writer):
         self._submit() or self._wait()
         self.file_descriptor = None
 
-    def _submit(self):
-        io_uring_submit(self.ring)
+    def _submit(self) -> int:
+        return io_uring_submit(self.ring)
 
     def _wait(self) -> int:
         io_uring_wait_cqe(self.ring, self.cqes)
@@ -326,6 +326,10 @@ class LiburingWriter(threading.Thread, Writer):
 
         io_uring_cqe_seen(self.ring, cqe)
         return result
+
+
+class LiburingDownloader(ParallelDownloader):
+    WRITER_CLASS: Writer = LiburingWriter
 
 
 class LiburingBatchWriter(LiburingWriter):
@@ -375,12 +379,58 @@ class LiburingBatchWriter(LiburingWriter):
         return buffer
 
 
-class LiburingDownloader(ParallelDownloader):
-    WRITER_CLASS: Writer = LiburingWriter
-
-
 class LiburingBatchDownloader(LiburingDownloader):
     WRITER_CLASS: Writer = LiburingBatchWriter
+
+
+class LiburingAsyncWriter(LiburingWriter):
+    def __init__(self, file: IOBase, max_queue_depth: int):
+        super().__init__(file, max_queue_depth)
+        self.buffers = {}
+        self.shutdown = False
+        self.last_id = 0
+
+        class Queue:
+            @classmethod
+            def put(cls, item: tuple):
+                shutdown, offset, data = item
+                if not shutdown:
+                    self._write(data, offset)
+                self.shutdown = shutdown
+
+        self.queue = Queue
+
+    def _write(self, data, offset=0):
+        # DON'T TOUCH THESE TWO LINES:
+        buffer = bytearray(data)
+        iov = iovec(buffer)
+
+        with self.lock:
+            sqe = io_uring_get_sqe(self.ring)
+            self.last_id += 1
+            io_uring_sqe_set_data(sqe, self.last_id)
+            io_uring_prep_write(sqe, self.file_descriptor, iov[0].iov_base, iov[0].iov_len, offset)
+            self._submit()
+        self.buffers[sqe.user_data] = buffer
+
+    def run(self):
+        while not (self.shutdown and not self.buffers):
+            self.total += self._wait()
+
+    def _wait(self) -> int:
+        io_uring_wait_cqe(self.ring, self.cqes)
+        cqe = self.cqes[0]
+        result = trap_error(cqe.res)
+        # logger.info('User data (%s) %s', type(cqe.user_data), cqe.user_data[:100] if hasattr(cqe.user_data, '__iter__') else cqe.user_data)
+        id_ = cqe.user_data
+        del self.buffers[id_]
+
+        io_uring_cqe_seen(self.ring, cqe)
+        return result
+
+
+class LiburingAsyncDownloader(LiburingDownloader):
+    WRITER_CLASS: Writer = LiburingAsyncWriter
 
 
 def download_first_part(

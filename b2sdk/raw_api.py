@@ -10,15 +10,41 @@
 
 import base64
 import re
-from abc import ABCMeta, abstractmethod
-from enum import Enum, unique
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
+from enum import (
+    Enum,
+    unique,
+)
 from logging import getLogger
-from typing import Any, Dict, Optional
+from typing import (
+    Any,
+    Dict,
+    Optional,
+)
 
-from .exception import FileOrBucketNotFound, ResourceNotFound, UnusableFileName, InvalidMetadataDirective, WrongEncryptionModeForBucketDefault, AccessDenied, SSECKeyError, RetentionWriteError
-from .encryption.setting import EncryptionMode, EncryptionSetting
+from .exception import (
+    FileOrBucketNotFound,
+    ResourceNotFound,
+    UnusableFileName,
+    InvalidMetadataDirective,
+    WrongEncryptionModeForBucketDefault,
+    AccessDenied,
+    SSECKeyError,
+    RetentionWriteError,
+)
+from .encryption.setting import (
+    EncryptionMode,
+    EncryptionSetting,
+)
 from .replication.setting import ReplicationConfiguration
-from .file_lock import BucketRetentionSetting, FileRetentionSetting, LegalHold
+from .file_lock import (
+    BucketRetentionSetting,
+    FileRetentionSetting,
+    LegalHold,
+)
 from .utils import b2_url_encode
 from b2sdk.http_constants import FILE_INFO_HEADER_PREFIX
 
@@ -409,7 +435,9 @@ class B2RawHTTPApi(AbstractRawApi):
         :rtype: dict
         """
         url = '%s/b2api/%s/%s' % (base_url, API_VERSION, api_name)
-        headers = {'Authorization': auth}
+        headers = {
+            'Authorization': auth
+        }
         return self.b2_http.post_json_return_json(url, headers, params)
 
     def authorize_account(self, realm_url, application_key_id, application_key):
@@ -450,7 +478,7 @@ class B2RawHTTPApi(AbstractRawApi):
             if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
                 raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs['defaultServerSideEncryption'
-                  ] = default_server_side_encryption.serialize_to_json_for_request()
+            ] = default_server_side_encryption.serialize_to_json_for_request()
         if is_file_lock_enabled is not None:
             kwargs['fileLockEnabled'] = is_file_lock_enabled
         if replication is not None:
@@ -567,7 +595,9 @@ class B2RawHTTPApi(AbstractRawApi):
         download_url = self.get_download_url_by_name(download_url, bucket_name, file_name)
         try:
             response = self.b2_http.head_content(
-                download_url, headers={"Authorization": account_auth_token}
+                download_url, headers={
+                    "Authorization": account_auth_token
+                }
             )
             return response.headers
         except ResourceNotFound:
@@ -758,7 +788,7 @@ class B2RawHTTPApi(AbstractRawApi):
             if not default_server_side_encryption.mode.can_be_set_as_bucket_default():
                 raise WrongEncryptionModeForBucketDefault(default_server_side_encryption.mode)
             kwargs['defaultServerSideEncryption'
-                  ] = default_server_side_encryption.serialize_to_json_for_request()
+            ] = default_server_side_encryption.serialize_to_json_for_request()
         if default_retention is not None:
             kwargs['defaultRetention'] = default_retention.serialize_to_json_for_request()
         if replication is not None:
@@ -981,11 +1011,11 @@ class B2RawHTTPApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['destinationServerSideEncryption'
-                  ] = destination_server_side_encryption.serialize_to_json_for_request()
+            ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode == EncryptionMode.SSE_C
             kwargs['sourceServerSideEncryption'
-                  ] = source_server_side_encryption.serialize_to_json_for_request()
+            ] = source_server_side_encryption.serialize_to_json_for_request()
 
         if legal_hold is not None:
             kwargs['legalHold'] = legal_hold.to_server()
@@ -1026,13 +1056,13 @@ class B2RawHTTPApi(AbstractRawApi):
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['destinationServerSideEncryption'
-                  ] = destination_server_side_encryption.serialize_to_json_for_request()
+            ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
             assert source_server_side_encryption.mode in (
                 EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
             )
             kwargs['sourceServerSideEncryption'
-                  ] = source_server_side_encryption.serialize_to_json_for_request()
+            ] = source_server_side_encryption.serialize_to_json_for_request()
         try:
             return self._post_json(
                 api_url,

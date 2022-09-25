@@ -55,7 +55,9 @@ class RetentionPeriod:
             }
         """
         assert period_dict['unit'] in cls.KNOWN_UNITS
-        return cls(**{period_dict['unit']: period_dict['duration']})
+        return cls(**{
+            period_dict['unit']: period_dict['duration']
+        })
 
     def as_dict(self):
         return {

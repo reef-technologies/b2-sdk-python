@@ -8,8 +8,14 @@
 #
 ######################################################################
 
-from abc import ABCMeta, abstractmethod
-from typing import Dict, Optional
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
+from typing import (
+    Dict,
+    Optional,
+)
 
 from ..encryption.setting import EncryptionSetting
 from ..bucket import Bucket

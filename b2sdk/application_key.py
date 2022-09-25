@@ -8,7 +8,10 @@
 #
 ######################################################################
 
-from typing import List, Optional
+from typing import (
+    List,
+    Optional,
+)
 
 
 class BaseApplicationKey:

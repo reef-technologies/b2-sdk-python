@@ -8,7 +8,10 @@
 #
 ######################################################################
 
-from .bucket import Bucket, BucketFactory
+from .bucket import (
+    Bucket,
+    BucketFactory,
+)
 from b2sdk import v1
 
 

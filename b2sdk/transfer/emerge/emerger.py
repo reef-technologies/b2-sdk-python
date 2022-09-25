@@ -12,7 +12,10 @@ import logging
 from typing import Optional
 
 from b2sdk.encryption.setting import EncryptionSetting
-from b2sdk.file_lock import FileRetentionSetting, LegalHold
+from b2sdk.file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+)
 from b2sdk.utils import B2TraceMetaAbstract
 from b2sdk.transfer.emerge.executor import EmergeExecutor
 from b2sdk.transfer.emerge.planner.planner import EmergePlanner

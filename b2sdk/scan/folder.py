@@ -14,28 +14,48 @@ import platform
 import re
 import sys
 
-from abc import ABCMeta, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 from typing import Iterator
 
-from ..utils import fix_windows_path_limit, get_file_mtime, is_file_readable
-from .exception import EmptyDirectory, EnvironmentEncodingError, NotADirectory, UnableToCreateDirectory, UnsupportedFilename
-from .path import AbstractPath, B2Path, LocalPath
-from .policies import DEFAULT_SCAN_MANAGER, ScanPoliciesManager
+from ..utils import (
+    fix_windows_path_limit,
+    get_file_mtime,
+    is_file_readable,
+)
+from .exception import (
+    EmptyDirectory,
+    EnvironmentEncodingError,
+    NotADirectory,
+    UnableToCreateDirectory,
+    UnsupportedFilename,
+)
+from .path import (
+    AbstractPath,
+    B2Path,
+    LocalPath,
+)
+from .policies import (
+    DEFAULT_SCAN_MANAGER,
+    ScanPoliciesManager,
+)
 from .report import ProgressReport
 
 DRIVE_MATCHER = re.compile(r"^([A-Za-z]):([/\\])")
 ABSOLUTE_PATH_MATCHER = re.compile(r"^(/)|^(\\)")
 RELATIVE_PATH_MATCHER = re.compile(
-                           # "abc" and "xyz" represent anything, including "nothing"
-    r"^(\.\.[/\\])|" +     # ../abc or ..\abc
-    r"^(\.[/\\])|" +       # ./abc or .\abc
-    r"([/\\]\.\.[/\\])|" + # abc/../xyz or abc\..\xyz or abc\../xyz or abc/..\xyz
-    r"([/\\]\.[/\\])|" +   # abc/./xyz or abc\.\xyz or abc\./xyz or abc/.\xyz
-    r"([/\\]\.\.)$|" +     # abc/.. or abc\..
-    r"([/\\]\.)$|" +       # abc/. or abc\.
-    r"^(\.\.)$|" +         # just ".."
-    r"([/\\][/\\])|" +     # abc\/xyz or abc/\xyz or abc//xyz or abc\\xyz
-    r"^(\.)$"              # just "."
+    # "abc" and "xyz" represent anything, including "nothing"
+    r"^(\.\.[/\\])|" +  # ../abc or ..\abc
+    r"^(\.[/\\])|" +  # ./abc or .\abc
+    r"([/\\]\.\.[/\\])|" +  # abc/../xyz or abc\..\xyz or abc\../xyz or abc/..\xyz
+    r"([/\\]\.[/\\])|" +  # abc/./xyz or abc\.\xyz or abc\./xyz or abc/.\xyz
+    r"([/\\]\.\.)$|" +  # abc/.. or abc\..
+    r"([/\\]\.)$|" +  # abc/. or abc\.
+    r"^(\.\.)$|" +  # just ".."
+    r"([/\\][/\\])|" +  # abc\/xyz or abc/\xyz or abc//xyz or abc\\xyz
+    r"^(\.)$"  # just "."
 )  # yapf: disable
 
 logger = logging.getLogger(__name__)

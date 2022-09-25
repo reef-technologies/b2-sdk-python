@@ -18,9 +18,18 @@ import tempfile
 import time
 import concurrent.futures as futures
 from decimal import Decimal
-from urllib.parse import quote, unquote_plus
+from urllib.parse import (
+    quote,
+    unquote_plus,
+)
 
-from logfury.v1 import DefaultTraceAbstractMeta, DefaultTraceMeta, limit_trace_arguments, disable_trace, trace_call
+from logfury.v1 import (
+    DefaultTraceAbstractMeta,
+    DefaultTraceMeta,
+    limit_trace_arguments,
+    disable_trace,
+    trace_call,
+)
 
 
 def b2_url_encode(s):
@@ -298,7 +307,7 @@ def _pick_scale_and_suffix(x):
     if suffix == ' ':
         suffix = ''
 
-    scale = 1000**index
+    scale = 1000 ** index
     return (scale, suffix)
 
 

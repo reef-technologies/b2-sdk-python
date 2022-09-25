@@ -12,13 +12,19 @@ import logging
 
 from typing import Optional
 
-from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
+from b2sdk.encryption.setting import (
+    EncryptionMode,
+    EncryptionSetting,
+)
 from b2sdk.exception import (
     AlreadyFailed,
     B2Error,
     MaxRetriesExceeded,
 )
-from b2sdk.file_lock import FileRetentionSetting, LegalHold
+from b2sdk.file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+)
 from b2sdk.stream.progress import ReadingStreamWithProgress
 from b2sdk.stream.hashing import StreamWithHash
 from b2sdk.http_constants import HEX_DIGITS_AT_END
@@ -123,7 +129,9 @@ class UploadManager(TransferManager, ThreadPoolMixin):
             large_file_upload_state.update_part_bytes(part_upload_source.get_content_length())
 
             # Return SHA1 hash
-            return {'contentSha1': part.content_sha1}
+            return {
+                'contentSha1': part.content_sha1
+            }
 
         # Set up a progress listener
         part_progress_listener = PartProgressReporter(large_file_upload_state)

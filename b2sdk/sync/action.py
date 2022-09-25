@@ -10,7 +10,10 @@
 
 import logging
 import os
-from abc import ABCMeta, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 
 from ..bucket import Bucket
 from ..http_constants import SRC_LAST_MODIFIED_MILLIS
@@ -129,7 +132,9 @@ class B2UploadAction(AbstractAction):
             progress_listener = SyncFileReporter(reporter)
         else:
             progress_listener = None
-        file_info = {SRC_LAST_MODIFIED_MILLIS: str(self.mod_time_millis)}
+        file_info = {
+            SRC_LAST_MODIFIED_MILLIS: str(self.mod_time_millis)
+        }
         encryption = self.encryption_settings_provider.get_setting_for_upload(
             bucket=bucket,
             b2_file_name=self.b2_file_name,
@@ -291,9 +296,9 @@ class B2DownloadAction(AbstractAction):
     def __str__(self):
         return (
             'b2_download(%s, %s, %s, %d)' % (
-                self.b2_file_name, self.source_path.selected_version.id_, self.local_full_path,
-                self.source_path.mod_time
-            )
+            self.b2_file_name, self.source_path.selected_version.id_, self.local_full_path,
+            self.source_path.mod_time
+        )
         )
 
 
@@ -382,9 +387,9 @@ class B2CopyAction(AbstractAction):
     def __str__(self):
         return (
             'b2_copy(%s, %s, %s, %d)' % (
-                self.b2_file_name, self.source_path.selected_version.id_, self.dest_b2_file_name,
-                self.source_path.mod_time
-            )
+            self.b2_file_name, self.source_path.selected_version.id_, self.dest_b2_file_name,
+            self.source_path.mod_time
+        )
         )
 
 

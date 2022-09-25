@@ -18,7 +18,12 @@
 # b2 replication-deny destinationBucketName sourceKeyId
 
 from collections.abc import Iterable
-from typing import ClassVar, List, Optional, Tuple
+from typing import (
+    ClassVar,
+    List,
+    Optional,
+    Tuple,
+)
 import itertools
 import logging
 
@@ -26,7 +31,10 @@ from b2sdk.api import B2Api
 from b2sdk.application_key import ApplicationKey
 from b2sdk.bucket import Bucket
 from b2sdk.utils import B2TraceMeta
-from b2sdk.replication.setting import ReplicationConfiguration, ReplicationRule
+from b2sdk.replication.setting import (
+    ReplicationConfiguration,
+    ReplicationRule,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +112,9 @@ class ReplicationSetupHelper(metaclass=B2TraceMeta):
         ) if destination_bucket.replication else {}
 
         destination_configuration = destination_bucket.replication.get_destination_configuration_as_dict(
-        ) if destination_bucket.replication else {'source_to_destination_key_mapping': {}}
+        ) if destination_bucket.replication else {
+            'source_to_destination_key_mapping': {}
+        }
 
         keys_to_purge, destination_key = self._get_destination_key(
             api,

@@ -11,7 +11,10 @@
 import concurrent.futures as futures
 import logging
 
-from enum import Enum, unique
+from enum import (
+    Enum,
+    unique,
+)
 
 from ..bounded_queue_executor import BoundedQueueExecutor
 from ..scan.exception import InvalidArgument
@@ -19,10 +22,19 @@ from ..scan.folder import AbstractFolder
 from ..scan.path import AbstractPath
 from ..scan.policies import DEFAULT_SCAN_MANAGER
 from ..scan.scan import zip_folders
-from .encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER, AbstractSyncEncryptionSettingsProvider
+from .encryption_provider import (
+    SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+    AbstractSyncEncryptionSettingsProvider,
+)
 from .exception import IncompleteSync
-from .policy import CompareVersionMode, NewerFileSyncMode
-from .policy_manager import POLICY_MANAGER, SyncPolicyManager
+from .policy import (
+    CompareVersionMode,
+    NewerFileSyncMode,
+)
+from .policy_manager import (
+    POLICY_MANAGER,
+    SyncPolicyManager,
+)
 from .report import SyncReport
 
 logger = logging.getLogger(__name__)

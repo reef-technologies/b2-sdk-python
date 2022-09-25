@@ -189,4 +189,6 @@ class SqliteAccountInfo(MinimumPartSizeTranslator, OldAccountInfoMethods, v2.Sql
 
 
 class StubAccountInfo(MinimumPartSizeTranslator, OldAccountInfoMethods, v2.StubAccountInfo):
-    REALM_URLS = {'production': 'http://production.example.com'}
+    REALM_URLS = {
+        'production': 'http://production.example.com'
+    }

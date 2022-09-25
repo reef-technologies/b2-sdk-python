@@ -10,7 +10,11 @@
 
 import io
 import logging
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import (
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+)
 
 from requests.models import Response
 

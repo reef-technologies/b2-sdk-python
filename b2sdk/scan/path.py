@@ -8,7 +8,10 @@
 #
 ######################################################################
 
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 from typing import List
 
 from ..file_version import FileVersion

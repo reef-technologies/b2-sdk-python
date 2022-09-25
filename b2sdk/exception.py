@@ -13,9 +13,16 @@ from abc import ABCMeta
 import logging
 import re
 import warnings
-from typing import Any, Dict, Optional
+from typing import (
+    Any,
+    Dict,
+    Optional,
+)
 
-from .utils import camelcase_to_underscore, trace_call
+from .utils import (
+    camelcase_to_underscore,
+    trace_call,
+)
 
 UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE = re.compile(
     r'^more than one upload using auth token (?P<token>[^)]+)$'

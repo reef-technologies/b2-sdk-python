@@ -15,7 +15,10 @@ from dataclasses import dataclass
 
 from ..progress import AbstractProgressListener
 from ..scan.report import ProgressReport
-from ..utils import format_and_scale_fraction, format_and_scale_number
+from ..utils import (
+    format_and_scale_fraction,
+    format_and_scale_number,
+)
 
 logger = logging.getLogger(__name__)
 

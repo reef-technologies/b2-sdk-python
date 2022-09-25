@@ -39,7 +39,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
     # block size used when downloading file. If it is set to a high value,
     # progress reporting will be jumpy, if it's too low, it impacts CPU
     MIN_CHUNK_SIZE = 8192  # ~1MB file will show ~1% progress increment
-    MAX_CHUNK_SIZE = 1024**2
+    MAX_CHUNK_SIZE = 1024 ** 2
 
     PARALLEL_DOWNLOADER_CLASS = staticmethod(ParallelDownloader)
     SIMPLE_DOWNLOADER_CLASS = staticmethod(SimpleDownloader)

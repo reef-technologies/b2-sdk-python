@@ -48,7 +48,7 @@ class ParallelDownloader(AbstractDownloader):
     #      |                                                                     |
     #      cloud file start                                         cloud file end
     #
-    FINISH_HASHING_BUFFER_SIZE = 1024**2
+    FINISH_HASHING_BUFFER_SIZE = 1024 ** 2
 
     def __init__(self, min_part_size: int, max_streams: Optional[int] = None, **kwargs):
         """

@@ -11,7 +11,10 @@
 from b2sdk import v2
 from .. import exception
 
-from .folder import LocalFolder, B2Folder
+from .folder import (
+    LocalFolder,
+    B2Folder,
+)
 
 
 # Override to use v1 version of "LocalFolder" and "B2Folder" and raise old style CommandError

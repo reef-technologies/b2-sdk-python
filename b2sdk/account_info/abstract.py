@@ -12,7 +12,10 @@ from typing import Optional
 
 from b2sdk.account_info import exception
 from b2sdk.raw_api import ALL_CAPABILITIES
-from b2sdk.utils import B2TraceMetaAbstract, limit_trace_arguments
+from b2sdk.utils import (
+    B2TraceMetaAbstract,
+    limit_trace_arguments,
+)
 
 
 class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
@@ -133,7 +136,7 @@ class AbstractAccountInfo(metaclass=B2TraceMetaAbstract):
         if account_id == application_key_id:
             return True  # old style
         if len(application_key_id
-              ) == (3 + len(account_id) + len(new_style_master_key_suffix)):  # 3 for cluster id
+               ) == (3 + len(account_id) + len(new_style_master_key_suffix)):  # 3 for cluster id
             # new style
             if application_key_id.endswith(account_id + new_style_master_key_suffix):
                 return True

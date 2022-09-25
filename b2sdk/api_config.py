@@ -8,10 +8,17 @@
 #
 ######################################################################
 
-from typing import Optional, Callable, Type
+from typing import (
+    Optional,
+    Callable,
+    Type,
+)
 import requests
 
-from .raw_api import AbstractRawApi, B2RawHTTPApi
+from .raw_api import (
+    AbstractRawApi,
+    B2RawHTTPApi,
+)
 
 
 class B2HttpApiConfig:

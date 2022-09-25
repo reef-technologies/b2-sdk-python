@@ -19,13 +19,29 @@ import requests
 from requests.adapters import HTTPAdapter
 import time
 
-from typing import Any, Dict, Optional
+from typing import (
+    Any,
+    Dict,
+    Optional,
+)
 
 from .exception import (
-    B2Error, B2RequestTimeoutDuringUpload, BadDateFormat, BrokenPipe, B2ConnectionError,
-    B2RequestTimeout, ClockSkew, ConnectionReset, interpret_b2_error, UnknownError, UnknownHost
+    B2Error,
+    B2RequestTimeoutDuringUpload,
+    BadDateFormat,
+    BrokenPipe,
+    B2ConnectionError,
+    B2RequestTimeout,
+    ClockSkew,
+    ConnectionReset,
+    interpret_b2_error,
+    UnknownError,
+    UnknownHost,
 )
-from .api_config import B2HttpApiConfig, DEFAULT_HTTP_API_CONFIG
+from .api_config import (
+    B2HttpApiConfig,
+    DEFAULT_HTTP_API_CONFIG,
+)
 from .requests import NotDecompressingResponse
 from .version import USER_AGENT
 
@@ -215,7 +231,10 @@ class B2Http:
         :return: a dict that is the decoded JSON
         :rtype: dict
         """
-        request_headers = {**headers, 'User-Agent': self.user_agent}
+        request_headers = {
+            **headers,
+            'User-Agent': self.user_agent
+        }
 
         # Do the HTTP POST.  This may retry, so each post needs to
         # rewind the data back to the beginning.
@@ -306,7 +325,10 @@ class B2Http:
         :param int try_count: a number or retries
         :return: Context manager that returns an object that supports iter_content()
         """
-        request_headers = {**headers, 'User-Agent': self.user_agent}
+        request_headers = {
+            **headers,
+            'User-Agent': self.user_agent
+        }
 
         # Do the HTTP GET.
         def do_get():
@@ -349,7 +371,10 @@ class B2Http:
         :return: the decoded response
         :rtype: dict
         """
-        request_headers = {**headers, 'User-Agent': self.user_agent}
+        request_headers = {
+            **headers,
+            'User-Agent': self.user_agent
+        }
 
         # Do the HTTP HEAD.
         def do_head():

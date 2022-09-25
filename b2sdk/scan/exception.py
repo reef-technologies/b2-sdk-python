@@ -9,9 +9,15 @@
 ######################################################################
 
 from contextlib import contextmanager
-from typing import Iterator, Type
+from typing import (
+    Iterator,
+    Type,
+)
 
-from ..exception import B2Error, B2SimpleError
+from ..exception import (
+    B2Error,
+    B2SimpleError,
+)
 
 
 class EnvironmentEncodingError(B2Error):

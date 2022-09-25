@@ -12,7 +12,10 @@ from math import ceil
 import hashlib
 import json
 
-from abc import ABCMeta, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 from collections import deque
 from itertools import chain
 
@@ -512,9 +515,9 @@ class IntentsState:
 
         if (
             self._current_intent is None and self._next_intent is not None and (
-                self._next_intent.destination_offset != effective_incoming_offset or
-                incoming_offset is None
-            )
+            self._next_intent.destination_offset != effective_incoming_offset or
+            incoming_offset is None
+        )
         ):
             self._set_current_intent(self._next_intent, last_sent_offset)
             self._set_next_intent(None)

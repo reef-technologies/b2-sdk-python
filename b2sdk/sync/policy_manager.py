@@ -9,9 +9,17 @@
 ######################################################################
 
 from ..scan.path import AbstractPath
-from .policy import CopyAndDeletePolicy, CopyAndKeepDaysPolicy, CopyPolicy, \
-    DownAndDeletePolicy, DownAndKeepDaysPolicy, DownPolicy, UpAndDeletePolicy, \
-    UpAndKeepDaysPolicy, UpPolicy
+from .policy import (
+    CopyAndDeletePolicy,
+    CopyAndKeepDaysPolicy,
+    CopyPolicy,
+    DownAndDeletePolicy,
+    DownAndKeepDaysPolicy,
+    DownPolicy,
+    UpAndDeletePolicy,
+    UpAndKeepDaysPolicy,
+    UpPolicy,
+)
 
 
 class SyncPolicyManager:

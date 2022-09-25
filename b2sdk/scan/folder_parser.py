@@ -9,7 +9,10 @@
 ######################################################################
 
 from .exception import InvalidArgument
-from .folder import B2Folder, LocalFolder
+from .folder import (
+    B2Folder,
+    LocalFolder,
+)
 
 
 def parse_folder(folder_name, api, local_folder_class=LocalFolder, b2_folder_class=B2Folder):

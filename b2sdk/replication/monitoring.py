@@ -11,19 +11,39 @@
 import sys
 
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import (
+    dataclass,
+    field,
+)
 from queue import Queue
-from typing import ClassVar, Iterator, Optional, Tuple, Type
+from typing import (
+    ClassVar,
+    Iterator,
+    Optional,
+    Tuple,
+    Type,
+)
 
 from ..api import B2Api
 from ..bucket import Bucket
 from ..encryption.setting import EncryptionMode
-from ..file_lock import NO_RETENTION_FILE_SETTING, LegalHold
+from ..file_lock import (
+    NO_RETENTION_FILE_SETTING,
+    LegalHold,
+)
 from ..scan.folder import B2Folder
 from ..scan.path import B2Path
-from ..scan.policies import DEFAULT_SCAN_MANAGER, ScanPoliciesManager
+from ..scan.policies import (
+    DEFAULT_SCAN_MANAGER,
+    ScanPoliciesManager,
+)
 from ..scan.report import ProgressReport
-from ..scan.scan import AbstractScanReport, AbstractScanResult, CountAndSampleScanReport, zip_folders
+from ..scan.scan import (
+    AbstractScanReport,
+    AbstractScanResult,
+    CountAndSampleScanReport,
+    zip_folders,
+)
 from .setting import ReplicationRule
 from .types import ReplicationStatus
 

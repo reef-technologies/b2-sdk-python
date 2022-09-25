@@ -19,12 +19,18 @@ import time
 from contextlib import contextmanager
 from typing import Optional
 
-from b2sdk.http_constants import FILE_INFO_HEADER_PREFIX, HEX_DIGITS_AT_END
+from b2sdk.http_constants import (
+    FILE_INFO_HEADER_PREFIX,
+    HEX_DIGITS_AT_END,
+)
 from b2sdk.replication.setting import ReplicationConfiguration
 from requests.structures import CaseInsensitiveDict
 
 from .b2http import ResponseContextManager
-from .encryption.setting import EncryptionMode, EncryptionSetting
+from .encryption.setting import (
+    EncryptionMode,
+    EncryptionSetting,
+)
 from .replication.types import ReplicationStatus
 from .exception import (
     BadJson,
@@ -54,9 +60,18 @@ from .file_lock import (
     LegalHold,
 )
 from .file_version import UNVERIFIED_CHECKSUM_PREFIX
-from .raw_api import ALL_CAPABILITIES, AbstractRawApi, MetadataDirectiveMode
+from .raw_api import (
+    ALL_CAPABILITIES,
+    AbstractRawApi,
+    MetadataDirectiveMode,
+)
 from .stream.hashing import StreamWithHash
-from .utils import ConcurrentUsedAuthTokenGuard, b2_url_decode, b2_url_encode, hex_sha1_of_bytes
+from .utils import (
+    ConcurrentUsedAuthTokenGuard,
+    b2_url_decode,
+    b2_url_encode,
+    hex_sha1_of_bytes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +115,7 @@ class KeySimulator:
             applicationKeyId=self.application_key_id,
             capabilities=self.capabilities,
             expirationTimestamp=self.expiration_timestamp_or_none and
-            self.expiration_timestamp_or_none * 1000,
+                                self.expiration_timestamp_or_none * 1000,
             keyName=self.name,
             namePrefix=self.name_prefix_or_none,
         )
@@ -266,9 +281,9 @@ class FileSimulator:
                 headers['X-Bz-Server-Side-Encryption'] = self.server_side_encryption.algorithm.value
             elif self.server_side_encryption.mode == EncryptionMode.SSE_C:
                 headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'
-                       ] = self.server_side_encryption.algorithm.value
+                ] = self.server_side_encryption.algorithm.value
                 headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'
-                       ] = self.server_side_encryption.key.key_md5()
+                ] = self.server_side_encryption.key.key_md5()
             elif self.server_side_encryption.mode in (EncryptionMode.NONE, EncryptionMode.UNKNOWN):
                 pass
             else:
@@ -298,7 +313,7 @@ class FileSimulator:
         )  # yapf: disable
         if self.server_side_encryption is not None:
             result['serverSideEncryption'
-                  ] = self.server_side_encryption.serialize_to_json_for_request()
+            ] = self.server_side_encryption.serialize_to_json_for_request()
         result['fileRetention'] = self._file_retention_dict(account_auth_token)
         result['legalHold'] = self._legal_hold_dict(account_auth_token)
         return result
@@ -319,7 +334,7 @@ class FileSimulator:
         )  # yapf: disable
         if self.server_side_encryption is not None:
             result['serverSideEncryption'
-                  ] = self.server_side_encryption.serialize_to_json_for_request()
+            ] = self.server_side_encryption.serialize_to_json_for_request()
         result['fileRetention'] = self._file_retention_dict(account_auth_token)
         result['legalHold'] = self._legal_hold_dict(account_auth_token)
         return result
@@ -343,7 +358,7 @@ class FileSimulator:
         )  # yapf: disable
         if self.server_side_encryption is not None:
             result['serverSideEncryption'
-                  ] = self.server_side_encryption.serialize_to_json_for_request()
+            ] = self.server_side_encryption.serialize_to_json_for_request()
         result['fileRetention'] = self._file_retention_dict(account_auth_token)
         result['legalHold'] = self._legal_hold_dict(account_auth_token)
         return result
@@ -355,14 +370,20 @@ class FileSimulator:
                 'value': None,
             }
 
-        file_lock_configuration = {'isClientAuthorizedToRead': True}
+        file_lock_configuration = {
+            'isClientAuthorizedToRead': True
+        }
         if self.file_retention is None:
-            file_lock_configuration['value'] = {'mode': None}
+            file_lock_configuration['value'] = {
+                'mode': None
+            }
         else:
-            file_lock_configuration['value'] = {'mode': self.file_retention.mode.value}
+            file_lock_configuration['value'] = {
+                'mode': self.file_retention.mode.value
+            }
             if self.file_retention.retain_until is not None:
                 file_lock_configuration['value']['retainUntilTimestamp'
-                                                ] = self.file_retention.retain_until
+                ] = self.file_retention.retain_until
         return file_lock_configuration
 
     def _legal_hold_dict(self, account_auth_token):
@@ -551,15 +572,21 @@ class BucketSimulator:
         return capability in capabilities
 
     def bucket_dict(self, account_auth_token):
-        default_sse = {'isClientAuthorizedToRead': False}
+        default_sse = {
+            'isClientAuthorizedToRead': False
+        }
         if self.is_allowed_to_read_bucket_encryption_setting(account_auth_token):
             default_sse['isClientAuthorizedToRead'] = True
-            default_sse['value'] = {'mode': self.default_server_side_encryption.mode.value}
+            default_sse['value'] = {
+                'mode': self.default_server_side_encryption.mode.value
+            }
             if self.default_server_side_encryption.algorithm is not None:
                 default_sse['value']['algorithm'
-                                    ] = self.default_server_side_encryption.algorithm.value
+                ] = self.default_server_side_encryption.algorithm.value
         else:
-            default_sse['value'] = {'mode': EncryptionMode.UNKNOWN.value}
+            default_sse['value'] = {
+                'mode': EncryptionMode.UNKNOWN.value
+            }
 
         if self.is_allowed_to_read_bucket_retention(account_auth_token):
             file_lock_configuration = {
@@ -573,7 +600,10 @@ class BucketSimulator:
                 },
             }  # yapf: disable
         else:
-            file_lock_configuration = {'isClientAuthorizedToRead': False, 'value': None}
+            file_lock_configuration = {
+                'isClientAuthorizedToRead': False,
+                'value': None
+            }
 
         replication = self.replication and {
             'isClientAuthorizedToRead': True,
@@ -683,7 +713,7 @@ class BucketSimulator:
 
     def get_upload_part_url(self, account_auth_token, file_id):
         upload_url = 'https://upload.example.com/part/%s/%d/%s' % (
-            file_id, random.randint(1, 10**9), account_auth_token
+            file_id, random.randint(1, 10 ** 9), account_auth_token
         )
         return dict(bucketId=self.bucket_id, uploadUrl=upload_url, authorizationToken=upload_url)
 
@@ -798,14 +828,14 @@ class BucketSimulator:
             copy_file_sim.file_info = file_info or file_sim.file_info
 
         ## long term storage of that file has action="upload", but here we need to return action="copy", just this once
-        #class TestFileVersionFactory(FileVersionFactory):
+        # class TestFileVersionFactory(FileVersionFactory):
         #    FILE_VERSION_CLASS = self.FILE_SIMULATOR_CLASS
 
-        #file_version_dict = copy_file_sim.as_upload_result(account_auth_token)
-        #del file_version_dict['action']
-        #print(file_version_dict)
-        #copy_file_sim_with_action_copy = TestFileVersionFactory(self.api).from_api_response(file_version_dict, force_action='copy')
-        #return copy_file_sim_with_action_copy
+        # file_version_dict = copy_file_sim.as_upload_result(account_auth_token)
+        # del file_version_dict['action']
+        # print(file_version_dict)
+        # copy_file_sim_with_action_copy = TestFileVersionFactory(self.api).from_api_response(file_version_dict, force_action='copy')
+        # return copy_file_sim_with_action_copy
 
         # TODO: the code above cannot be used right now because FileSimulator.__init__ is incompatible with FileVersionFactory / FileVersion.__init__ - refactor is needed
         # for now we'll just return the newly constructed object with a copy action...
@@ -833,7 +863,7 @@ class BucketSimulator:
         prefix=None,
     ):
         assert prefix is None or start_file_name is None or start_file_name.startswith(prefix
-                                                                                      ), locals()
+                                                                                       ), locals()
         start_file_name = start_file_name or ''
         max_file_count = max_file_count or 100
         result_files = []
@@ -865,7 +895,7 @@ class BucketSimulator:
         prefix=None,
     ):
         assert prefix is None or start_file_name is None or start_file_name.startswith(prefix
-                                                                                      ), locals()
+                                                                                       ), locals()
         start_file_name = start_file_name or ''
         start_file_id = start_file_id or ''
         max_file_count = max_file_count or 100
@@ -1766,8 +1796,8 @@ class RawSimulator(AbstractRawApi):
 
         # fix to allow calculating headers on unknown key - only for simulation
         if server_side_encryption is not None \
-           and server_side_encryption.mode == EncryptionMode.SSE_C \
-           and server_side_encryption.key.secret is None:
+            and server_side_encryption.mode == EncryptionMode.SSE_C \
+            and server_side_encryption.key.secret is None:
             server_side_encryption.key.secret = b'secret'
 
         return super().get_upload_file_headers(

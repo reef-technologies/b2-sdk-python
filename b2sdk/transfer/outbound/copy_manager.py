@@ -11,10 +11,20 @@
 import logging
 from typing import Optional
 
-from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
+from b2sdk.encryption.setting import (
+    EncryptionMode,
+    EncryptionSetting,
+)
 from b2sdk.http_constants import SSE_C_KEY_ID_FILE_INFO_KEY_NAME
-from b2sdk.exception import AlreadyFailed, CopyArgumentsMismatch, SSECKeyIdMismatchInCopy
-from b2sdk.file_lock import FileRetentionSetting, LegalHold
+from b2sdk.exception import (
+    AlreadyFailed,
+    CopyArgumentsMismatch,
+    SSECKeyIdMismatchInCopy,
+)
+from b2sdk.file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+)
 from b2sdk.raw_api import MetadataDirectiveMode
 from b2sdk.transfer.transfer_manager import TransferManager
 from b2sdk.utils.thread_pool import ThreadPoolMixin
@@ -119,7 +129,9 @@ class CopyManager(TransferManager, ThreadPoolMixin):
             large_file_upload_state.update_part_bytes(part.content_length)
 
             # Return SHA1 hash
-            return {'contentSha1': part.content_sha1}
+            return {
+                'contentSha1': part.content_sha1
+            }
 
         # if another part has already had an error there's no point in
         # uploading this part
@@ -219,11 +231,11 @@ class CopyManager(TransferManager, ThreadPoolMixin):
         destination_key_id = None
 
         if destination_server_side_encryption is not None and destination_server_side_encryption.key is not None and \
-                destination_server_side_encryption.key.key_id is not None:
+            destination_server_side_encryption.key.key_id is not None:
             destination_key_id = destination_server_side_encryption.key.key_id
 
         if source_server_side_encryption is not None and source_server_side_encryption.key is not None and \
-                source_server_side_encryption.key.key_id is not None:
+            source_server_side_encryption.key.key_id is not None:
             source_key_id = source_server_side_encryption.key.key_id
 
         if source_key_id == destination_key_id:

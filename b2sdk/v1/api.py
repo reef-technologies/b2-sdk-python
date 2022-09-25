@@ -8,15 +8,30 @@
 #
 ######################################################################
 
-from typing import Any, Dict, Optional, overload, Tuple, List
+from typing import (
+    Any,
+    Dict,
+    Optional,
+    overload,
+    Tuple,
+    List,
+)
 
 from .download_dest import AbstractDownloadDestination
 from b2sdk import v2
 from b2sdk.api import Services
 from .account_info import AbstractAccountInfo
-from .bucket import Bucket, BucketFactory, download_file_and_return_info_dict
+from .bucket import (
+    Bucket,
+    BucketFactory,
+    download_file_and_return_info_dict,
+)
 from .cache import AbstractCache
-from .file_version import FileVersionInfo, FileVersionInfoFactory, file_version_info_from_id_and_name
+from .file_version import (
+    FileVersionInfo,
+    FileVersionInfoFactory,
+    file_version_info_from_id_and_name,
+)
 from .session import B2Session
 
 

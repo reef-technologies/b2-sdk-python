@@ -8,14 +8,30 @@
 #
 ######################################################################
 
-from typing import Dict, Optional, Union, Tuple, TYPE_CHECKING
+from typing import (
+    Dict,
+    Optional,
+    Union,
+    Tuple,
+    TYPE_CHECKING,
+)
 import re
 from copy import deepcopy
 
-from .encryption.setting import EncryptionSetting, EncryptionSettingFactory
+from .encryption.setting import (
+    EncryptionSetting,
+    EncryptionSettingFactory,
+)
 from .replication.types import ReplicationStatus
-from .http_constants import FILE_INFO_HEADER_PREFIX_LOWER, SRC_LAST_MODIFIED_MILLIS
-from .file_lock import FileRetentionSetting, LegalHold, NO_RETENTION_FILE_SETTING
+from .http_constants import (
+    FILE_INFO_HEADER_PREFIX_LOWER,
+    SRC_LAST_MODIFIED_MILLIS,
+)
+from .file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+    NO_RETENTION_FILE_SETTING,
+)
 from .progress import AbstractProgressListener
 from .utils.range_ import Range
 from .utils import b2_url_decode
@@ -589,7 +605,11 @@ class FileIdAndName:
 
     def as_dict(self):
         """ represents the object as a dict which looks almost exactly like the raw api output for delete_file_version """
-        return {'action': 'delete', 'fileId': self.file_id, 'fileName': self.file_name}
+        return {
+            'action': 'delete',
+            'fileId': self.file_id,
+            'fileName': self.file_name
+        }
 
     def __eq__(self, other):
         return (self.file_id == other.file_id and self.file_name == other.file_name)

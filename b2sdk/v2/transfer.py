@@ -8,8 +8,14 @@
 #
 ######################################################################
 
-from concurrent.futures import Future, ThreadPoolExecutor
-from typing import Callable, Optional
+from concurrent.futures import (
+    Future,
+    ThreadPoolExecutor,
+)
+from typing import (
+    Callable,
+    Optional,
+)
 
 from b2sdk import _v3 as v3
 

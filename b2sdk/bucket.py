@@ -10,9 +10,15 @@
 
 import logging
 
-from typing import Optional, Tuple
+from typing import (
+    Optional,
+    Tuple,
+)
 
-from .encryption.setting import EncryptionSetting, EncryptionSettingFactory
+from .encryption.setting import (
+    EncryptionSetting,
+    EncryptionSettingFactory,
+)
 from .encryption.types import EncryptionMode
 from .exception import (
     BucketIdNotFound,
@@ -29,14 +35,26 @@ from .file_lock import (
     FileRetentionSetting,
     LegalHold,
 )
-from .file_version import DownloadVersion, FileVersion
-from .progress import AbstractProgressListener, DoNothingProgressListener
-from .replication.setting import ReplicationConfiguration, ReplicationConfigurationFactory
+from .file_version import (
+    DownloadVersion,
+    FileVersion,
+)
+from .progress import (
+    AbstractProgressListener,
+    DoNothingProgressListener,
+)
+from .replication.setting import (
+    ReplicationConfiguration,
+    ReplicationConfigurationFactory,
+)
 from .transfer.emerge.executor import AUTO_CONTENT_TYPE
 from .transfer.emerge.write_intent import WriteIntent
 from .transfer.inbound.downloaded_file import DownloadedFile
 from .transfer.outbound.copy_source import CopySource
-from .transfer.outbound.upload_source import UploadSourceBytes, UploadSourceLocalFile
+from .transfer.outbound.upload_source import (
+    UploadSourceBytes,
+    UploadSourceLocalFile,
+)
 from .utils import (
     B2TraceMeta,
     b2_url_encode,

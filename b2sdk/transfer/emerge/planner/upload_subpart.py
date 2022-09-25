@@ -10,7 +10,10 @@
 
 import io
 
-from abc import ABCMeta, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 from functools import partial
 
 from b2sdk.stream.chained import StreamOpener

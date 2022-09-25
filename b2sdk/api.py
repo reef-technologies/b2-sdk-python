@@ -8,19 +8,46 @@
 #
 ######################################################################
 
-from typing import Optional, Tuple, List, Generator
+from typing import (
+    Optional,
+    Tuple,
+    List,
+    Generator,
+)
 from contextlib import suppress
 
 from .account_info.abstract import AbstractAccountInfo
-from .api_config import B2HttpApiConfig, DEFAULT_HTTP_API_CONFIG
-from .application_key import ApplicationKey, BaseApplicationKey, FullApplicationKey
+from .api_config import (
+    B2HttpApiConfig,
+    DEFAULT_HTTP_API_CONFIG,
+)
+from .application_key import (
+    ApplicationKey,
+    BaseApplicationKey,
+    FullApplicationKey,
+)
 from .cache import AbstractCache
-from .bucket import Bucket, BucketFactory
+from .bucket import (
+    Bucket,
+    BucketFactory,
+)
 from .encryption.setting import EncryptionSetting
 from .replication.setting import ReplicationConfiguration
-from .exception import BucketIdNotFound, NonExistentBucket, RestrictedBucket
-from .file_lock import FileRetentionSetting, LegalHold
-from .file_version import DownloadVersionFactory, FileIdAndName, FileVersion, FileVersionFactory
+from .exception import (
+    BucketIdNotFound,
+    NonExistentBucket,
+    RestrictedBucket,
+)
+from .file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+)
+from .file_version import (
+    DownloadVersionFactory,
+    FileIdAndName,
+    FileVersion,
+    FileVersionFactory,
+)
 from .large_file.services import LargeFileServices
 from .raw_api import API_VERSION
 from .progress import AbstractProgressListener
@@ -32,7 +59,11 @@ from .transfer import (
     UploadManager,
 )
 from .transfer.inbound.downloaded_file import DownloadedFile
-from .utils import B2TraceMeta, b2_url_encode, limit_trace_arguments
+from .utils import (
+    B2TraceMeta,
+    b2_url_encode,
+    limit_trace_arguments,
+)
 
 
 def url_for_api(info, api_name):
@@ -517,7 +548,7 @@ class B2Api(metaclass=B2TraceMeta):
         return ApplicationKey.from_api_response(response)
 
     def list_keys(self, start_application_key_id: Optional[str] = None
-                 ) -> Generator[ApplicationKey, None, None]:
+                  ) -> Generator[ApplicationKey, None, None]:
         """
         List application keys. Lazily perform requests to B2 cloud and return all keys.
 

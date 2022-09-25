@@ -9,7 +9,11 @@
 ######################################################################
 
 import re
-from typing import Optional, Union, Iterable
+from typing import (
+    Optional,
+    Union,
+    Iterable,
+)
 
 from .file import B2FileVersion
 from ..file_version import FileVersionInfo

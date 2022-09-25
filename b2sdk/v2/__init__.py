@@ -15,7 +15,13 @@ from b2sdk._v3 import LocalPath as LocalSyncPath
 
 from .api import B2Api
 from .b2http import B2Http
-from .bucket import Bucket, BucketFactory
+from .bucket import (
+    Bucket,
+    BucketFactory,
+)
 from .session import B2Session
 from .sync import B2SyncPath
-from .transfer import DownloadManager, UploadManager
+from .transfer import (
+    DownloadManager,
+    UploadManager,
+)

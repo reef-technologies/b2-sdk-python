@@ -18,13 +18,13 @@ class FileMetadata:
     UNVERIFIED_CHECKSUM_PREFIX = 'unverified:'
 
     def __init__(
-        self,
-        file_id,
-        file_name,
-        content_type,
-        content_length,
-        content_sha1,
-        file_info,
+            self,
+            file_id,
+            file_name,
+            content_type,
+            content_length,
+            content_sha1,
+            file_info,
     ):
         self.file_id = file_id
         self.file_name = file_name

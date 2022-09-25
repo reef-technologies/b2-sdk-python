@@ -12,7 +12,10 @@ from math import ceil
 import hashlib
 import json
 
-from abc import ABCMeta, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 from collections import deque
 from itertools import chain
 
@@ -87,10 +90,10 @@ class EmergePlanner:
     DEFAULT_MAX_PART_SIZE = 5 * GIGABYTE
 
     def __init__(
-        self,
-        min_part_size=None,
-        recommended_upload_part_size=None,
-        max_part_size=None,
+            self,
+            min_part_size=None,
+            recommended_upload_part_size=None,
+            max_part_size=None,
     ):
         self.min_part_size = min_part_size or self.DEFAULT_MIN_PART_SIZE
         self.recommended_upload_part_size = recommended_upload_part_size or self.DEFAULT_RECOMMENDED_UPLOAD_PART_SIZE
@@ -99,11 +102,11 @@ class EmergePlanner:
 
     @classmethod
     def from_account_info(
-        cls,
-        account_info,
-        min_part_size=None,
-        recommended_upload_part_size=None,
-        max_part_size=None
+            cls,
+            account_info,
+            min_part_size=None,
+            recommended_upload_part_size=None,
+            max_part_size=None
     ):
         if recommended_upload_part_size is None:
             recommended_upload_part_size = account_info.get_recommended_part_size()
@@ -511,18 +514,18 @@ class IntentsState:
             return
 
         if (
-            self._current_intent is None and self._next_intent is not None and (
+                self._current_intent is None and self._next_intent is not None and (
                 self._next_intent.destination_offset != effective_incoming_offset or
                 incoming_offset is None
-            )
+        )
         ):
             self._set_current_intent(self._next_intent, last_sent_offset)
             self._set_next_intent(None)
 
         # current and next can be both not None at this point only if they overlap
         if (
-            self._current_intent is not None and self._next_intent is not None and
-            effective_incoming_offset > self._current_intent_end
+                self._current_intent is not None and self._next_intent is not None and
+                effective_incoming_offset > self._current_intent_end
         ):
             # incoming intent does not overlap with current intent
             # so we switch to next because we are sure that we will have to use it anyway
@@ -535,7 +538,7 @@ class IntentsState:
                 self._set_next_intent(None)
             else:
                 remaining_len = self.protected_intent_length - (
-                    last_sent_offset - self._current_intent_start
+                        last_sent_offset - self._current_intent_start
                 )
                 if remaining_len > 0:
                     last_sent_offset += remaining_len

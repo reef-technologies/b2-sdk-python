@@ -48,7 +48,7 @@ class ParallelDownloader(AbstractDownloader):
     #      |                                                                     |
     #      cloud file start                                         cloud file end
     #
-    FINISH_HASHING_BUFFER_SIZE = 1024**2
+    FINISH_HASHING_BUFFER_SIZE = 1024 ** 2
 
     def __init__(self, min_part_size: int, max_streams: Optional[int] = None, **kwargs):
         """
@@ -77,12 +77,12 @@ class ParallelDownloader(AbstractDownloader):
         return num_streams
 
     def download(
-        self,
-        file: IOBase,
-        response: Response,
-        download_version: DownloadVersion,
-        session: B2Session,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            file: IOBase,
+            response: Response,
+            download_version: DownloadVersion,
+            session: B2Session,
+            encryption: Optional[EncryptionSetting] = None,
     ):
         """
         Download a file from given url using parallel download sessions and stores it in the given download_destination.
@@ -155,8 +155,8 @@ class ParallelDownloader(AbstractDownloader):
                 break
 
     def _get_parts(
-        self, response, session, writer, hasher, first_part, parts_to_download, chunk_size,
-        encryption
+            self, response, session, writer, hasher, first_part, parts_to_download, chunk_size,
+            encryption
     ):
         stream = self._thread_pool.submit(
             download_first_part,
@@ -252,13 +252,13 @@ class WriterThread(threading.Thread):
 
 
 def download_first_part(
-    response: Response,
-    hasher,
-    session: B2Session,
-    writer: WriterThread,
-    first_part: 'PartToDownload',
-    chunk_size: int,
-    encryption: Optional[EncryptionSetting] = None,
+        response: Response,
+        hasher,
+        session: B2Session,
+        writer: WriterThread,
+        first_part: 'PartToDownload',
+        chunk_size: int,
+        encryption: Optional[EncryptionSetting] = None,
 ) -> None:
     """
     :param response: response of the original GET call
@@ -334,9 +334,9 @@ def download_first_part(
             tries_left, bytes_read, cloud_range
         )
         with session.download_file_from_url(
-            url,
-            cloud_range.as_tuple(),
-            encryption=encryption,
+                url,
+                cloud_range.as_tuple(),
+                encryption=encryption,
         ) as response:
             before_read = perf_counter_ns()
             for to_write in response.iter_content(chunk_size=chunk_size):
@@ -359,12 +359,12 @@ def download_first_part(
 
 
 def download_non_first_part(
-    url: str,
-    session: B2Session,
-    writer: WriterThread,
-    part_to_download: 'PartToDownload',
-    chunk_size: int,
-    encryption: Optional[EncryptionSetting] = None,
+        url: str,
+        session: B2Session,
+        writer: WriterThread,
+        part_to_download: 'PartToDownload',
+        chunk_size: int,
+        encryption: Optional[EncryptionSetting] = None,
 ) -> None:
     """
     :param url: download URL
@@ -393,9 +393,9 @@ def download_non_first_part(
         stats_collector_write_append = stats_collector.write.append
         start = before_read = perf_counter_ns()
         with session.download_file_from_url(
-            url,
-            cloud_range.as_tuple(),
-            encryption=encryption,
+                url,
+                cloud_range.as_tuple(),
+                encryption=encryption,
         ) as response:
             before_read = perf_counter_ns()
             for to_write in response.iter_content(chunk_size=chunk_size):

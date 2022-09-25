@@ -8,23 +8,39 @@
 #
 ######################################################################
 
-from abc import ABCMeta, abstractclassmethod, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractclassmethod,
+    abstractmethod,
+)
 from collections import Counter
-from dataclasses import dataclass, field
-from typing import ClassVar, Dict, Optional, Tuple, Type
+from dataclasses import (
+    dataclass,
+    field,
+)
+from typing import (
+    ClassVar,
+    Dict,
+    Optional,
+    Tuple,
+    Type,
+)
 
 from ..file_version import FileVersion
 from .folder import AbstractFolder
 from .path import AbstractPath
-from .policies import DEFAULT_SCAN_MANAGER, ScanPoliciesManager
+from .policies import (
+    DEFAULT_SCAN_MANAGER,
+    ScanPoliciesManager,
+)
 from .report import ProgressReport
 
 
 def zip_folders(
-    folder_a: AbstractFolder,
-    folder_b: AbstractFolder,
-    reporter: ProgressReport,
-    policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER,
+        folder_a: AbstractFolder,
+        folder_b: AbstractFolder,
+        reporter: ProgressReport,
+        policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER,
 ) -> Tuple[Optional[AbstractPath], Optional[AbstractPath]]:
     """
     Iterate over all of the files in the union of two folders,

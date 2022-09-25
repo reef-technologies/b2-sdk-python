@@ -16,13 +16,13 @@ from b2sdk.transfer.outbound.outbound_source import OutboundTransferSource
 
 class CopySource(OutboundTransferSource):
     def __init__(
-        self,
-        file_id,
-        offset=0,
-        length=None,
-        encryption: Optional[EncryptionSetting] = None,
-        source_file_info=None,
-        source_content_type=None,
+            self,
+            file_id,
+            offset=0,
+            length=None,
+            encryption: Optional[EncryptionSetting] = None,
+            source_file_info=None,
+            source_content_type=None,
     ):
         if not length and offset > 0:
             raise ValueError('Cannot copy with non zero offset and unknown or zero length')

@@ -14,13 +14,22 @@ from b2sdk.v1.exception import CommandError
 from b2sdk.v1.exception import DestFileNewer as DestFileNewerV1
 from b2sdk.v1 import trace_call
 from .exception import DestFileNewer
-from b2sdk.v1.exception import InvalidArgument, IncompleteSync
-from b2sdk.v1 import NewerFileSyncMode, CompareVersionMode
+from b2sdk.v1.exception import (
+    InvalidArgument,
+    IncompleteSync,
+)
+from b2sdk.v1 import (
+    NewerFileSyncMode,
+    CompareVersionMode,
+)
 from b2sdk.v1 import KeepOrDeleteMode
 from b2sdk.v1 import DEFAULT_SCAN_MANAGER
 from b2sdk.v1 import SyncReport
 from b2sdk.v1 import Synchronizer as SynchronizerV1
-from b2sdk.v1 import AbstractSyncEncryptionSettingsProvider, SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER
+from b2sdk.v1 import (
+    AbstractSyncEncryptionSettingsProvider,
+    SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -53,11 +62,11 @@ class Synchronizer(SynchronizerV1):
 
 
 def get_synchronizer_from_args(
-    args,
-    max_workers,
-    policies_manager=DEFAULT_SCAN_MANAGER,
-    dry_run=False,
-    allow_empty_source=False,
+        args,
+        max_workers,
+        policies_manager=DEFAULT_SCAN_MANAGER,
+        dry_run=False,
+        allow_empty_source=False,
 ):
     if args.replaceNewer and args.skipNewer:
         raise CommandError('--skipNewer and --replaceNewer are incompatible')
@@ -107,14 +116,14 @@ def get_synchronizer_from_args(
 
 
 def make_folder_sync_actions(
-    source_folder,
-    dest_folder,
-    args,
-    now_millis,
-    reporter,
-    policies_manager=DEFAULT_SCAN_MANAGER,
-    encryption_settings_provider:
-    AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+        source_folder,
+        dest_folder,
+        args,
+        now_millis,
+        reporter,
+        policies_manager=DEFAULT_SCAN_MANAGER,
+        encryption_settings_provider:
+        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
 ):
     """
     This is deprecated. Use the new Synchronizer class.
@@ -155,18 +164,18 @@ def make_folder_sync_actions(
 
 @trace_call(logger)
 def sync_folders(
-    source_folder,
-    dest_folder,
-    args,
-    now_millis,
-    stdout,
-    no_progress,
-    max_workers,
-    policies_manager=DEFAULT_SCAN_MANAGER,
-    dry_run=False,
-    allow_empty_source=False,
-    encryption_settings_provider:
-    AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+        source_folder,
+        dest_folder,
+        args,
+        now_millis,
+        stdout,
+        no_progress,
+        max_workers,
+        policies_manager=DEFAULT_SCAN_MANAGER,
+        dry_run=False,
+        allow_empty_source=False,
+        encryption_settings_provider:
+        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
 ):
     """
     This is deprecated. Use the new Synchronizer class.

@@ -27,12 +27,12 @@ class SimpleDownloader(AbstractDownloader):
     REQUIRES_SEEKING = False
 
     def _download(
-        self,
-        file: IOBase,
-        response: Response,
-        download_version: DownloadVersion,
-        session: B2Session,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            file: IOBase,
+            response: Response,
+            download_version: DownloadVersion,
+            session: B2Session,
+            encryption: Optional[EncryptionSetting] = None,
     ):
         actual_size = self._get_remote_range(response, download_version).size()
         chunk_size = self._get_chunk_size(actual_size)
@@ -65,12 +65,12 @@ class SimpleDownloader(AbstractDownloader):
                 retries_left, bytes_read, new_range
             )
             with session.download_file_from_url(
-                response.request.url,
-                new_range.as_tuple(),
-                encryption=encryption,
+                    response.request.url,
+                    new_range.as_tuple(),
+                    encryption=encryption,
             ) as followup_response:
                 for data in followup_response.iter_content(
-                    chunk_size=self._get_chunk_size(actual_size)
+                        chunk_size=self._get_chunk_size(actual_size)
                 ):
                     file.write(data)
                     digest.update(data)
@@ -79,12 +79,12 @@ class SimpleDownloader(AbstractDownloader):
         return bytes_read, digest.hexdigest()
 
     def download(
-        self,
-        file: IOBase,
-        response: Response,
-        download_version: DownloadVersion,
-        session: B2Session,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            file: IOBase,
+            response: Response,
+            download_version: DownloadVersion,
+            session: B2Session,
+            encryption: Optional[EncryptionSetting] = None,
     ):
         future = self._thread_pool.submit(
             self._download, file, response, download_version, session, encryption

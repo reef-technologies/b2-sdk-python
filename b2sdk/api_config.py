@@ -8,10 +8,17 @@
 #
 ######################################################################
 
-from typing import Optional, Callable, Type
+from typing import (
+    Optional,
+    Callable,
+    Type,
+)
 import requests
 
-from .raw_api import AbstractRawApi, B2RawHTTPApi
+from .raw_api import (
+    AbstractRawApi,
+    B2RawHTTPApi,
+)
 
 
 class B2HttpApiConfig:
@@ -19,12 +26,12 @@ class B2HttpApiConfig:
     DEFAULT_RAW_API_CLASS = B2RawHTTPApi
 
     def __init__(
-        self,
-        http_session_factory: Callable[[], requests.Session] = requests.Session,
-        install_clock_skew_hook: bool = True,
-        user_agent_append: Optional[str] = None,
-        _raw_api_class: Optional[Type[AbstractRawApi]] = None,
-        decode_content: bool = False
+            self,
+            http_session_factory: Callable[[], requests.Session] = requests.Session,
+            install_clock_skew_hook: bool = True,
+            user_agent_append: Optional[str] = None,
+            _raw_api_class: Optional[Type[AbstractRawApi]] = None,
+            decode_content: bool = False
     ):
         """
         A structure with params to be passed to low level API.

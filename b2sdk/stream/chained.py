@@ -10,7 +10,10 @@
 
 import io
 
-from abc import ABCMeta, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 
 from b2sdk.stream.base import ReadOnlyStreamMixin
 

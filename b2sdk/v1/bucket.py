@@ -9,11 +9,19 @@
 ######################################################################
 
 from contextlib import suppress
-from typing import Optional, overload, Tuple
+from typing import (
+    Optional,
+    overload,
+    Tuple,
+)
 
 from .download_dest import AbstractDownloadDestination
 from .file_metadata import FileMetadata
-from .file_version import FileVersionInfo, FileVersionInfoFactory, file_version_info_from_download_version
+from .file_version import (
+    FileVersionInfo,
+    FileVersionInfoFactory,
+    file_version_info_from_download_version,
+)
 from b2sdk import v2
 from b2sdk.utils import validate_b2_file_name
 
@@ -29,17 +37,17 @@ class Bucket(v2.Bucket):
     FILE_VERSION_FACTORY = staticmethod(FileVersionInfoFactory)
 
     def copy_file(
-        self,
-        file_id,
-        new_file_name,
-        bytes_range=None,
-        metadata_directive=None,
-        content_type=None,
-        file_info=None,
-        destination_encryption: Optional[v2.EncryptionSetting] = None,
-        source_encryption: Optional[v2.EncryptionSetting] = None,
-        file_retention: Optional[v2.FileRetentionSetting] = None,
-        legal_hold: Optional[v2.LegalHold] = None,
+            self,
+            file_id,
+            new_file_name,
+            bytes_range=None,
+            metadata_directive=None,
+            content_type=None,
+            file_info=None,
+            destination_encryption: Optional[v2.EncryptionSetting] = None,
+            source_encryption: Optional[v2.EncryptionSetting] = None,
+            file_retention: Optional[v2.FileRetentionSetting] = None,
+            legal_hold: Optional[v2.LegalHold] = None,
     ):
         """
         Creates a new file in this bucket by (server-side) copying from an existing file.
@@ -72,12 +80,12 @@ class Bucket(v2.Bucket):
         )
 
     def start_large_file(
-        self,
-        file_name,
-        content_type=None,
-        file_info=None,
-        file_retention: Optional[v2.FileRetentionSetting] = None,
-        legal_hold: Optional[v2.LegalHold] = None,
+            self,
+            file_name,
+            content_type=None,
+            file_info=None,
+            file_retention: Optional[v2.FileRetentionSetting] = None,
+            legal_hold: Optional[v2.LegalHold] = None,
     ):
         """
         Start a large file transfer.
@@ -99,12 +107,12 @@ class Bucket(v2.Bucket):
         )
 
     def download_file_by_name(
-        self,
-        file_name: str,
-        download_dest: AbstractDownloadDestination,
-        progress_listener: Optional[v2.AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[v2.EncryptionSetting] = None,
+            self,
+            file_name: str,
+            download_dest: AbstractDownloadDestination,
+            progress_listener: Optional[v2.AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[v2.EncryptionSetting] = None,
     ):
         """
         Download a file by name.
@@ -138,32 +146,32 @@ class Bucket(v2.Bucket):
 
     @overload
     def download_file_by_id(
-        self,
-        file_id: str,
-        download_dest: AbstractDownloadDestination = None,
-        progress_listener: Optional[v2.AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[v2.EncryptionSetting] = None,
+            self,
+            file_id: str,
+            download_dest: AbstractDownloadDestination = None,
+            progress_listener: Optional[v2.AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[v2.EncryptionSetting] = None,
     ) -> dict:
         ...
 
     @overload
     def download_file_by_id(
-        self,
-        file_id: str,
-        progress_listener: Optional[v2.AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[v2.EncryptionSetting] = None,
+            self,
+            file_id: str,
+            progress_listener: Optional[v2.AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[v2.EncryptionSetting] = None,
     ) -> v2.DownloadedFile:
         ...
 
     def download_file_by_id(
-        self,
-        file_id: str,
-        download_dest: Optional[AbstractDownloadDestination] = None,
-        progress_listener: Optional[v2.AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[v2.EncryptionSetting] = None,
+            self,
+            file_id: str,
+            download_dest: Optional[AbstractDownloadDestination] = None,
+            progress_listener: Optional[v2.AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[v2.EncryptionSetting] = None,
     ):
         """
         Download a file by ID.
@@ -201,16 +209,16 @@ class Bucket(v2.Bucket):
         return self.api.file_version_factory.from_api_response(self.api.get_file_info(file_id))
 
     def update(
-        self,
-        bucket_type: Optional[str] = None,
-        bucket_info: Optional[dict] = None,
-        cors_rules: Optional[dict] = None,
-        lifecycle_rules: Optional[list] = None,
-        if_revision_is: Optional[int] = None,
-        default_server_side_encryption: Optional[v2.EncryptionSetting] = None,
-        default_retention: Optional[v2.BucketRetentionSetting] = None,
-        is_file_lock_enabled: Optional[bool] = None,
-        **kwargs
+            self,
+            bucket_type: Optional[str] = None,
+            bucket_info: Optional[dict] = None,
+            cors_rules: Optional[dict] = None,
+            lifecycle_rules: Optional[list] = None,
+            if_revision_is: Optional[int] = None,
+            default_server_side_encryption: Optional[v2.EncryptionSetting] = None,
+            default_retention: Optional[v2.BucketRetentionSetting] = None,
+            is_file_lock_enabled: Optional[bool] = None,
+            **kwargs
     ):
         """
         Update various bucket parameters.
@@ -246,11 +254,11 @@ class Bucket(v2.Bucket):
         )
 
     def ls(
-        self,
-        folder_to_list: str = '',
-        show_versions: bool = False,
-        recursive: bool = False,
-        fetch_count: Optional[int] = 10000
+            self,
+            folder_to_list: str = '',
+            show_versions: bool = False,
+            recursive: bool = False,
+            fetch_count: Optional[int] = 10000
     ):
         """
         Pretend that folders exist and yields the information about the files in a folder.
@@ -279,18 +287,18 @@ class Bucket(v2.Bucket):
 
 
 def download_file_and_return_info_dict(
-    downloaded_file: v2.DownloadedFile, download_dest: AbstractDownloadDestination,
-    range_: Optional[Tuple[int, int]]
+        downloaded_file: v2.DownloadedFile, download_dest: AbstractDownloadDestination,
+        range_: Optional[Tuple[int, int]]
 ):
     with download_dest.make_file_context(
-        file_id=downloaded_file.download_version.id_,
-        file_name=downloaded_file.download_version.file_name,
-        content_length=downloaded_file.download_version.size,
-        content_type=downloaded_file.download_version.content_type,
-        content_sha1=downloaded_file.download_version.content_sha1,
-        file_info=downloaded_file.download_version.file_info,
-        mod_time_millis=downloaded_file.download_version.mod_time_millis,
-        range_=range_,
+            file_id=downloaded_file.download_version.id_,
+            file_name=downloaded_file.download_version.file_name,
+            content_length=downloaded_file.download_version.size,
+            content_type=downloaded_file.download_version.content_type,
+            content_sha1=downloaded_file.download_version.content_sha1,
+            file_info=downloaded_file.download_version.file_info,
+            mod_time_millis=downloaded_file.download_version.mod_time_millis,
+            range_=range_,
     ) as file:
         downloaded_file.save(file)
         return FileMetadata.from_download_version(downloaded_file.download_version).as_info_dict()

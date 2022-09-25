@@ -48,19 +48,19 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
     DEFAULT_ALIGN_FACTOR = 4096
 
     def __init__(
-        self,
-        thread_pool: Optional[ThreadPoolExecutor] = None,
-        force_chunk_size: Optional[int] = None,
-        min_chunk_size: Optional[int] = None,
-        max_chunk_size: Optional[int] = None,
-        align_factor: Optional[int] = None,
-        check_hash: bool = True,
-        **kwargs
+            self,
+            thread_pool: Optional[ThreadPoolExecutor] = None,
+            force_chunk_size: Optional[int] = None,
+            min_chunk_size: Optional[int] = None,
+            max_chunk_size: Optional[int] = None,
+            align_factor: Optional[int] = None,
+            check_hash: bool = True,
+            **kwargs
     ):
         align_factor = align_factor or self.DEFAULT_ALIGN_FACTOR
         assert force_chunk_size is not None or (
-            min_chunk_size is not None and max_chunk_size is not None and
-            0 < min_chunk_size <= max_chunk_size and max_chunk_size >= align_factor
+                min_chunk_size is not None and max_chunk_size is not None and
+                0 < min_chunk_size <= max_chunk_size and max_chunk_size >= align_factor
         )
         self._min_chunk_size = min_chunk_size
         self._max_chunk_size = max_chunk_size
@@ -108,12 +108,12 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
 
     @abstractmethod
     def download(
-        self,
-        file: IOBase,
-        response: Response,
-        download_version: DownloadVersion,
-        session: B2Session,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            file: IOBase,
+            response: Response,
+            download_version: DownloadVersion,
+            session: B2Session,
+            encryption: Optional[EncryptionSetting] = None,
     ):
         """
         @returns (bytes_read, actual_sha1)

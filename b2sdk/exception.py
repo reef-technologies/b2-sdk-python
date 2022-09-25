@@ -13,9 +13,16 @@ from abc import ABCMeta
 import logging
 import re
 import warnings
-from typing import Any, Dict, Optional
+from typing import (
+    Any,
+    Dict,
+    Optional,
+)
 
-from .utils import camelcase_to_underscore, trace_call
+from .utils import (
+    camelcase_to_underscore,
+    trace_call,
+)
 
 UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE = re.compile(
     r'^more than one upload using auth token (?P<token>[^)]+)$'
@@ -535,11 +542,11 @@ class EnablingFileLockOnRestrictedBucket(B2Error):
 
 @trace_call(logger)
 def interpret_b2_error(
-    status: int,
-    code: Optional[str],
-    message: Optional[str],
-    response_headers: Dict[str, Any],
-    post_params: Optional[Dict[str, Any]] = None
+        status: int,
+        code: Optional[str],
+        message: Optional[str],
+        response_headers: Dict[str, Any],
+        post_params: Optional[Dict[str, Any]] = None
 ) -> B2Error:
     post_params = post_params or {}
     if status == 400 and code == "already_hidden":
@@ -547,8 +554,8 @@ def interpret_b2_error(
     elif status == 400 and code == 'bad_json':
         return BadJson(message)
     elif (
-        (status == 400 and code in ("no_such_file", "file_not_present")) or
-        (status == 404 and code == "not_found")
+            (status == 400 and code in ("no_such_file", "file_not_present")) or
+            (status == 404 and code == "not_found")
     ):
         # hide_file returns 400 and "no_such_file"
         # delete_file_version returns 400 and "file_not_present"

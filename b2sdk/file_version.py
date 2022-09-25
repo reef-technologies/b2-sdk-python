@@ -8,14 +8,30 @@
 #
 ######################################################################
 
-from typing import Dict, Optional, Union, Tuple, TYPE_CHECKING
+from typing import (
+    Dict,
+    Optional,
+    Union,
+    Tuple,
+    TYPE_CHECKING,
+)
 import re
 from copy import deepcopy
 
-from .encryption.setting import EncryptionSetting, EncryptionSettingFactory
+from .encryption.setting import (
+    EncryptionSetting,
+    EncryptionSettingFactory,
+)
 from .replication.types import ReplicationStatus
-from .http_constants import FILE_INFO_HEADER_PREFIX_LOWER, SRC_LAST_MODIFIED_MILLIS
-from .file_lock import FileRetentionSetting, LegalHold, NO_RETENTION_FILE_SETTING
+from .http_constants import (
+    FILE_INFO_HEADER_PREFIX_LOWER,
+    SRC_LAST_MODIFIED_MILLIS,
+)
+from .file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+    NO_RETENTION_FILE_SETTING,
+)
 from .progress import AbstractProgressListener
 from .utils.range_ import Range
 from .utils import b2_url_decode
@@ -58,19 +74,19 @@ class BaseFileVersion:
     }
 
     def __init__(
-        self,
-        api: 'B2Api',
-        id_: str,
-        file_name: str,
-        size: int,
-        content_type: Optional[str],
-        content_sha1: Optional[str],
-        file_info: Dict[str, str],
-        upload_timestamp: int,
-        server_side_encryption: EncryptionSetting,
-        file_retention: FileRetentionSetting = NO_RETENTION_FILE_SETTING,
-        legal_hold: LegalHold = LegalHold.UNSET,
-        replication_status: Optional[ReplicationStatus] = None,
+            self,
+            api: 'B2Api',
+            id_: str,
+            file_name: str,
+            size: int,
+            content_type: Optional[str],
+            content_sha1: Optional[str],
+            file_info: Dict[str, str],
+            upload_timestamp: int,
+            server_side_encryption: EncryptionSetting,
+            file_retention: FileRetentionSetting = NO_RETENTION_FILE_SETTING,
+            legal_hold: LegalHold = LegalHold.UNSET,
+            replication_status: Optional[ReplicationStatus] = None,
     ):
         self.api = api
         self.id_ = id_
@@ -179,9 +195,9 @@ class BaseFileVersion:
         return self._clone(legal_hold=legal_hold)
 
     def update_retention(
-        self,
-        file_retention: FileRetentionSetting,
-        bypass_governance: bool = False,
+            self,
+            file_retention: FileRetentionSetting,
+            bypass_governance: bool = False,
     ) -> 'BaseFileVersion':
         file_retention = self.api.update_file_retention(
             self.id_, self.file_name, file_retention, bypass_governance
@@ -222,23 +238,23 @@ class FileVersion(BaseFileVersion):
     ADVANCED_HEADERS_LIMIT = 2048
 
     def __init__(
-        self,
-        api: 'B2Api',
-        id_: str,
-        file_name: str,
-        size: Union[int, None, str],
-        content_type: Optional[str],
-        content_sha1: Optional[str],
-        file_info: Dict[str, str],
-        upload_timestamp: int,
-        account_id: str,
-        bucket_id: str,
-        action: str,
-        content_md5: Optional[str],
-        server_side_encryption: EncryptionSetting,
-        file_retention: FileRetentionSetting = NO_RETENTION_FILE_SETTING,
-        legal_hold: LegalHold = LegalHold.UNSET,
-        replication_status: Optional[ReplicationStatus] = None,
+            self,
+            api: 'B2Api',
+            id_: str,
+            file_name: str,
+            size: Union[int, None, str],
+            content_type: Optional[str],
+            content_sha1: Optional[str],
+            file_info: Dict[str, str],
+            upload_timestamp: int,
+            account_id: str,
+            bucket_id: str,
+            action: str,
+            content_md5: Optional[str],
+            server_side_encryption: EncryptionSetting,
+            file_retention: FileRetentionSetting = NO_RETENTION_FILE_SETTING,
+            legal_hold: LegalHold = LegalHold.UNSET,
+            replication_status: Optional[ReplicationStatus] = None,
     ):
         self.account_id = account_id
         self.bucket_id = bucket_id
@@ -292,10 +308,10 @@ class FileVersion(BaseFileVersion):
         return self.api.get_file_info(self.id_)
 
     def download(
-        self,
-        progress_listener: Optional[AbstractProgressListener] = None,
-        range_: Optional[Tuple[int, int]] = None,
-        encryption: Optional[EncryptionSetting] = None,
+            self,
+            progress_listener: Optional[AbstractProgressListener] = None,
+            range_: Optional[Tuple[int, int]] = None,
+            encryption: Optional[EncryptionSetting] = None,
     ) -> 'DownloadedFile':
         return self.api.download_file_by_id(
             self.id_,
@@ -364,26 +380,26 @@ class DownloadVersion(BaseFileVersion):
     ]
 
     def __init__(
-        self,
-        api: 'B2Api',
-        id_: str,
-        file_name: str,
-        size: int,
-        content_type: Optional[str],
-        content_sha1: Optional[str],
-        file_info: Dict[str, str],
-        upload_timestamp: int,
-        server_side_encryption: EncryptionSetting,
-        range_: Range,
-        content_disposition: Optional[str],
-        content_length: int,
-        content_language: Optional[str],
-        expires,
-        cache_control,
-        content_encoding: Optional[str],
-        file_retention: FileRetentionSetting = NO_RETENTION_FILE_SETTING,
-        legal_hold: LegalHold = LegalHold.UNSET,
-        replication_status: Optional[ReplicationStatus] = None,
+            self,
+            api: 'B2Api',
+            id_: str,
+            file_name: str,
+            size: int,
+            content_type: Optional[str],
+            content_sha1: Optional[str],
+            file_info: Dict[str, str],
+            upload_timestamp: int,
+            server_side_encryption: EncryptionSetting,
+            range_: Range,
+            content_disposition: Optional[str],
+            content_length: int,
+            content_language: Optional[str],
+            expires,
+            cache_control,
+            content_encoding: Optional[str],
+            file_retention: FileRetentionSetting = NO_RETENTION_FILE_SETTING,
+            legal_hold: LegalHold = LegalHold.UNSET,
+            replication_status: Optional[ReplicationStatus] = None,
     ):
         self.range_ = range_
         self.content_disposition = content_disposition
@@ -589,7 +605,11 @@ class FileIdAndName:
 
     def as_dict(self):
         """ represents the object as a dict which looks almost exactly like the raw api output for delete_file_version """
-        return {'action': 'delete', 'fileId': self.file_id, 'fileName': self.file_name}
+        return {
+            'action': 'delete',
+            'fileId': self.file_id,
+            'fileName': self.file_name
+        }
 
     def __eq__(self, other):
         return (self.file_id == other.file_id and self.file_name == other.file_name)

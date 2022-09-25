@@ -17,14 +17,21 @@ from b2sdk.api import B2Api
 from b2sdk.api import Services
 from b2sdk.bucket import Bucket
 from b2sdk.bucket import BucketFactory
-from b2sdk.raw_api import ALL_CAPABILITIES, REALM_URLS
+from b2sdk.raw_api import (
+    ALL_CAPABILITIES,
+    REALM_URLS,
+)
 
 # encryption
 
 from b2sdk.encryption.setting import EncryptionSetting
 from b2sdk.encryption.setting import EncryptionSettingFactory
 from b2sdk.encryption.setting import EncryptionKey
-from b2sdk.encryption.setting import SSE_NONE, SSE_B2_AES, UNKNOWN_KEY_ID
+from b2sdk.encryption.setting import (
+    SSE_NONE,
+    SSE_B2_AES,
+    UNKNOWN_KEY_ID,
+)
 from b2sdk.encryption.types import EncryptionAlgorithm
 from b2sdk.encryption.types import EncryptionMode
 from b2sdk.http_constants import SSE_C_KEY_ID_FILE_INFO_KEY_NAME
@@ -44,8 +51,14 @@ from b2sdk.account_info.upload_url_pool import UrlPoolAccountInfo
 
 # version & version utils
 
-from b2sdk.version import VERSION, USER_AGENT
-from b2sdk.version_utils import rename_argument, rename_function
+from b2sdk.version import (
+    VERSION,
+    USER_AGENT,
+)
+from b2sdk.version_utils import (
+    rename_argument,
+    rename_function,
+)
 
 # utils
 
@@ -197,7 +210,11 @@ from b2sdk.scan.folder import AbstractFolder
 from b2sdk.scan.folder import B2Folder
 from b2sdk.scan.folder import LocalFolder
 from b2sdk.scan.folder_parser import parse_folder
-from b2sdk.scan.path import AbstractPath, B2Path, LocalPath
+from b2sdk.scan.path import (
+    AbstractPath,
+    B2Path,
+    LocalPath,
+)
 from b2sdk.scan.policies import convert_dir_regex_to_dir_prefix_regex
 from b2sdk.scan.policies import DEFAULT_SCAN_MANAGER
 from b2sdk.scan.policies import IntegerRange

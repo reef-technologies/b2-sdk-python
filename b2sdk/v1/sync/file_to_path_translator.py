@@ -12,12 +12,17 @@ from typing import Tuple
 
 from b2sdk import v2
 
-from .file import B2File, B2FileVersion, File, FileVersion
+from .file import (
+    B2File,
+    B2FileVersion,
+    File,
+    FileVersion,
+)
 
 
 # The goal is to create v1.File objects together with v1.FileVersion objects from v2.SyncPath objects
 def make_files_from_paths(
-    dest_path: v2.AbstractSyncPath, source_path: v2.AbstractSyncPath, sync_type: str
+        dest_path: v2.AbstractSyncPath, source_path: v2.AbstractSyncPath, sync_type: str
 ) -> Tuple[File, File]:
     assert sync_type in ('b2-to-b2', 'b2-to-local', 'local-to-b2')
     sync_type_split = sync_type.split('-')
@@ -47,7 +52,10 @@ def _translate_local_path_to_file(path: v2.LocalSyncPath) -> File:
     return File(path.relative_path, [version])
 
 
-_path_translation_map = {'b2': _translate_b2_path_to_file, 'local': _translate_local_path_to_file}
+_path_translation_map = {
+    'b2': _translate_b2_path_to_file,
+    'local': _translate_local_path_to_file
+}
 
 
 # The goal is to create v2.SyncPath objects from v1.File objects
@@ -82,4 +90,7 @@ def _translate_local_file_to_path(file: File) -> v2.AbstractSyncPath:
     )
 
 
-_file_translation_map = {'b2': _translate_b2_file_to_path, 'local': _translate_local_file_to_path}
+_file_translation_map = {
+    'b2': _translate_b2_file_to_path,
+    'local': _translate_local_file_to_path
+}

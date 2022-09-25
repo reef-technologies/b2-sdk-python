@@ -10,10 +10,16 @@
 
 from b2sdk import _v3 as v3
 from b2sdk._v3.exception import BucketIdNotFound as v3BucketIdNotFound
-from .bucket import Bucket, BucketFactory
+from .bucket import (
+    Bucket,
+    BucketFactory,
+)
 from .exception import BucketIdNotFound
 from .session import B2Session
-from .transfer import DownloadManager, UploadManager
+from .transfer import (
+    DownloadManager,
+    UploadManager,
+)
 
 
 class Services(v3.Services):

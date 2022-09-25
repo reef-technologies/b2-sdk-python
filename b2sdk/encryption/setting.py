@@ -10,14 +10,29 @@
 
 import enum
 import logging
-from typing import Optional, Union
+from typing import (
+    Optional,
+    Union,
+)
 import urllib
 import urllib.parse
 
-from ..http_constants import SSE_C_KEY_ID_FILE_INFO_KEY_NAME, SSE_C_KEY_ID_HEADER
-from ..utils import b64_of_bytes, md5_of_bytes
-from .types import ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM, ENCRYPTION_MODES_WITH_MANDATORY_KEY
-from .types import EncryptionAlgorithm, EncryptionMode
+from ..http_constants import (
+    SSE_C_KEY_ID_FILE_INFO_KEY_NAME,
+    SSE_C_KEY_ID_HEADER,
+)
+from ..utils import (
+    b64_of_bytes,
+    md5_of_bytes,
+)
+from .types import (
+    ENCRYPTION_MODES_WITH_MANDATORY_ALGORITHM,
+    ENCRYPTION_MODES_WITH_MANDATORY_KEY,
+)
+from .types import (
+    EncryptionAlgorithm,
+    EncryptionMode,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -88,10 +103,10 @@ class EncryptionSetting:
     """
 
     def __init__(
-        self,
-        mode: EncryptionMode,
-        algorithm: EncryptionAlgorithm = None,
-        key: EncryptionKey = None,
+            self,
+            mode: EncryptionMode,
+            algorithm: EncryptionAlgorithm = None,
+            key: EncryptionKey = None,
     ):
         """
         :param b2sdk.v2.EncryptionMode mode: encryption mode
@@ -149,7 +164,9 @@ class EncryptionSetting:
                 'mode': 'none'
             }
         """
-        result = {'mode': self.mode.value}
+        result = {
+            'mode': self.mode.value
+        }
         if self.algorithm is not None:
             result['algorithm'] = self.algorithm.value
         if self.mode == EncryptionMode.SSE_C:
@@ -302,7 +319,9 @@ class EncryptionSettingFactory:
         """
         default_sse = bucket_dict.get(
             'defaultServerSideEncryption',
-            {'isClientAuthorizedToRead': False},
+            {
+                'isClientAuthorizedToRead': False
+            },
         )
 
         if not default_sse['isClientAuthorizedToRead']:
@@ -346,7 +365,7 @@ class EncryptionSettingFactory:
         return EncryptionSetting(EncryptionMode.NONE)
 
 
-SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE,)
+SSE_NONE = EncryptionSetting(mode=EncryptionMode.NONE, )
 """
 Commonly used "no encryption" setting
 """

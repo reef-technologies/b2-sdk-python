@@ -8,8 +8,14 @@
 #
 ######################################################################
 
-from abc import ABCMeta, abstractmethod
-from typing import Dict, Optional
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
+from typing import (
+    Dict,
+    Optional,
+)
 
 from ..encryption.setting import EncryptionSetting
 from ..bucket import Bucket
@@ -24,11 +30,11 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
 
     @abstractmethod
     def get_setting_for_upload(
-        self,
-        bucket: Bucket,
-        b2_file_name: str,
-        file_info: Optional[dict],
-        length: int,
+            self,
+            bucket: Bucket,
+            b2_file_name: str,
+            file_info: Optional[dict],
+            length: int,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for uploading an object or None if server should decide.
@@ -36,9 +42,9 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
 
     @abstractmethod
     def get_source_setting_for_copy(
-        self,
-        bucket: Bucket,
-        source_file_version: FileVersion,
+            self,
+            bucket: Bucket,
+            source_file_version: FileVersion,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for a source of copying an object or None if not required
@@ -46,11 +52,11 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
 
     @abstractmethod
     def get_destination_setting_for_copy(
-        self,
-        bucket: Bucket,
-        dest_b2_file_name: str,
-        source_file_version: FileVersion,
-        target_file_info: Optional[dict] = None,
+            self,
+            bucket: Bucket,
+            dest_b2_file_name: str,
+            source_file_version: FileVersion,
+            target_file_info: Optional[dict] = None,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for a destination for copying an object or None if server should decide
@@ -58,9 +64,9 @@ class AbstractSyncEncryptionSettingsProvider(metaclass=ABCMeta):
 
     @abstractmethod
     def get_setting_for_download(
-        self,
-        bucket: Bucket,
-        file_version: FileVersion,
+            self,
+            bucket: Bucket,
+            file_version: FileVersion,
     ) -> Optional[EncryptionSetting]:
         """
         Return an EncryptionSetting for downloading an object from, or None if not required
@@ -96,9 +102,9 @@ class BasicSyncEncryptionSettingsProvider(AbstractSyncEncryptionSettingsProvider
     """
 
     def __init__(
-        self,
-        read_bucket_settings: Dict[str, Optional[EncryptionSetting]],
-        write_bucket_settings: Dict[str, Optional[EncryptionSetting]],
+            self,
+            read_bucket_settings: Dict[str, Optional[EncryptionSetting]],
+            write_bucket_settings: Dict[str, Optional[EncryptionSetting]],
     ):
         self.read_bucket_settings = read_bucket_settings
         self.write_bucket_settings = write_bucket_settings

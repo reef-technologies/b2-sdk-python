@@ -8,22 +8,25 @@
 #
 ######################################################################
 
-from typing import List, Optional
+from typing import (
+    List,
+    Optional,
+)
 
 
 class BaseApplicationKey:
     """Common methods for ApplicationKey and FullApplicationKey."""
 
     def __init__(
-        self,
-        key_name: str,
-        application_key_id: str,
-        capabilities: List[str],
-        account_id: str,
-        expiration_timestamp_millis: Optional[int] = None,
-        bucket_id: Optional[str] = None,
-        name_prefix: Optional[str] = None,
-        options: Optional[List[str]] = None,
+            self,
+            key_name: str,
+            application_key_id: str,
+            capabilities: List[str],
+            account_id: str,
+            expiration_timestamp_millis: Optional[int] = None,
+            bucket_id: Optional[str] = None,
+            name_prefix: Optional[str] = None,
+            options: Optional[List[str]] = None,
     ):
         """
         :param key_name: name of the key, assigned by user
@@ -103,16 +106,16 @@ class FullApplicationKey(BaseApplicationKey):
     """Dataclass for storing info about an application key, including the actual key, as returned by create-key."""
 
     def __init__(
-        self,
-        key_name: str,
-        application_key_id: str,
-        application_key: str,
-        capabilities: List[str],
-        account_id: str,
-        expiration_timestamp_millis: Optional[int] = None,
-        bucket_id: Optional[str] = None,
-        name_prefix: Optional[str] = None,
-        options: Optional[List[str]] = None,
+            self,
+            key_name: str,
+            application_key_id: str,
+            application_key: str,
+            capabilities: List[str],
+            account_id: str,
+            expiration_timestamp_millis: Optional[int] = None,
+            bucket_id: Optional[str] = None,
+            name_prefix: Optional[str] = None,
+            options: Optional[List[str]] = None,
     ):
         """
         :param key_name: name of the key, assigned by user

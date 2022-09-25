@@ -55,7 +55,9 @@ class RetentionPeriod:
             }
         """
         assert period_dict['unit'] in cls.KNOWN_UNITS
-        return cls(**{period_dict['unit']: period_dict['duration']})
+        return cls(**{
+            period_dict['unit']: period_dict['duration']
+        })
 
     def as_dict(self):
         return {
@@ -123,7 +125,7 @@ class FileRetentionSetting:
 
     @classmethod
     def from_file_retention_value_dict(
-        cls, file_retention_value_dict: dict
+            cls, file_retention_value_dict: dict
     ) -> 'FileRetentionSetting':
 
         mode = file_retention_value_dict['mode']
@@ -303,9 +305,9 @@ class FileLockConfiguration:
     file retention"""
 
     def __init__(
-        self,
-        default_retention: BucketRetentionSetting,
-        is_file_lock_enabled: Optional[bool],
+            self,
+            default_retention: BucketRetentionSetting,
+            is_file_lock_enabled: Optional[bool],
     ):
         self.default_retention = default_retention
         self.is_file_lock_enabled = is_file_lock_enabled

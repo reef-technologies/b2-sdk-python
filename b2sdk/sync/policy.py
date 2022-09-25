@@ -10,16 +10,32 @@
 
 import logging
 
-from abc import ABCMeta, abstractmethod
-from enum import Enum, unique
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
+from enum import (
+    Enum,
+    unique,
+)
 from typing import Optional
 
 from ..exception import DestFileNewer
 from ..scan.exception import InvalidArgument
 from ..scan.folder import AbstractFolder
 from ..scan.path import AbstractPath
-from .action import B2CopyAction, B2DeleteAction, B2DownloadAction, B2HideAction, B2UploadAction, LocalDeleteAction
-from .encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER, AbstractSyncEncryptionSettingsProvider
+from .action import (
+    B2CopyAction,
+    B2DeleteAction,
+    B2DownloadAction,
+    B2HideAction,
+    B2UploadAction,
+    LocalDeleteAction,
+)
+from .encryption_provider import (
+    SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+    AbstractSyncEncryptionSettingsProvider,
+)
 
 ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
 
@@ -50,18 +66,18 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
     SOURCE_PREFIX = NotImplemented
 
     def __init__(
-        self,
-        source_path: AbstractPath,
-        source_folder: AbstractFolder,
-        dest_path: AbstractPath,
-        dest_folder: AbstractFolder,
-        now_millis: int,
-        keep_days: int,
-        newer_file_mode: NewerFileSyncMode,
-        compare_threshold: int,
-        compare_version_mode: CompareVersionMode = CompareVersionMode.MODTIME,
-        encryption_settings_provider:
-        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+            self,
+            source_path: AbstractPath,
+            source_folder: AbstractFolder,
+            dest_path: AbstractPath,
+            dest_folder: AbstractFolder,
+            now_millis: int,
+            keep_days: int,
+            newer_file_mode: NewerFileSyncMode,
+            compare_threshold: int,
+            compare_version_mode: CompareVersionMode = CompareVersionMode.MODTIME,
+            encryption_settings_provider:
+            AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         """
         :param b2sdk.v2.AbstractPath source_path: source file object
@@ -109,12 +125,12 @@ class AbstractFileSyncPolicy(metaclass=ABCMeta):
 
     @classmethod
     def files_are_different(
-        cls,
-        source_path: AbstractPath,
-        dest_path: AbstractPath,
-        compare_threshold: Optional[int] = None,
-        compare_version_mode: CompareVersionMode = CompareVersionMode.MODTIME,
-        newer_file_mode: NewerFileSyncMode = NewerFileSyncMode.RAISE_ERROR,
+            cls,
+            source_path: AbstractPath,
+            dest_path: AbstractPath,
+            compare_threshold: Optional[int] = None,
+            compare_version_mode: CompareVersionMode = CompareVersionMode.MODTIME,
+            newer_file_mode: NewerFileSyncMode = NewerFileSyncMode.RAISE_ERROR,
     ):
         """
         Compare two files and determine if the the destination file
@@ -262,10 +278,10 @@ class UpAndDeletePolicy(UpPolicy):
         for action in super(UpAndDeletePolicy, self)._get_hide_delete_actions():
             yield action
         for action in make_b2_delete_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
+                self._source_path,
+                self._dest_path,
+                self._dest_folder,
+                self._transferred,
         ):
             yield action
 
@@ -279,12 +295,12 @@ class UpAndKeepDaysPolicy(UpPolicy):
         for action in super(UpAndKeepDaysPolicy, self)._get_hide_delete_actions():
             yield action
         for action in make_b2_keep_days_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
-            self._keep_days,
-            self._now_millis,
+                self._source_path,
+                self._dest_path,
+                self._dest_folder,
+                self._transferred,
+                self._keep_days,
+                self._now_millis,
         ):
             yield action
 
@@ -298,7 +314,7 @@ class DownAndDeletePolicy(DownPolicy):
         for action in super(DownAndDeletePolicy, self)._get_hide_delete_actions():
             yield action
         if self._dest_path is not None and (
-            self._source_path is None or not self._source_path.is_visible()
+                self._source_path is None or not self._source_path.is_visible()
         ):
             yield LocalDeleteAction(
                 self._dest_path.relative_path,
@@ -321,7 +337,6 @@ class CopyPolicy(AbstractFileSyncPolicy):
     SOURCE_PREFIX = 'b2://'
 
     def _make_transfer_action(self):
-
         return B2CopyAction(
             self._source_folder.make_full_path(self._source_path.relative_path),
             self._source_path,
@@ -341,10 +356,10 @@ class CopyAndDeletePolicy(CopyPolicy):
         for action in super()._get_hide_delete_actions():
             yield action
         for action in make_b2_delete_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
+                self._source_path,
+                self._dest_path,
+                self._dest_folder,
+                self._transferred,
         ):
             yield action
 
@@ -358,12 +373,12 @@ class CopyAndKeepDaysPolicy(CopyPolicy):
         for action in super()._get_hide_delete_actions():
             yield action
         for action in make_b2_keep_days_actions(
-            self._source_path,
-            self._dest_path,
-            self._dest_folder,
-            self._transferred,
-            self._keep_days,
-            self._now_millis,
+                self._source_path,
+                self._dest_path,
+                self._dest_folder,
+                self._transferred,
+                self._keep_days,
+                self._now_millis,
         ):
             yield action
 
@@ -385,10 +400,10 @@ def make_b2_delete_note(version, index, transferred):
 
 
 def make_b2_delete_actions(
-    source_path: AbstractPath,
-    dest_path: AbstractPath,
-    dest_folder: AbstractFolder,
-    transferred: bool,
+        source_path: AbstractPath,
+        dest_path: AbstractPath,
+        dest_folder: AbstractFolder,
+        transferred: bool,
 ):
     """
     Create the actions to delete files stored on B2, which are not present locally.
@@ -414,12 +429,12 @@ def make_b2_delete_actions(
 
 
 def make_b2_keep_days_actions(
-    source_path: AbstractPath,
-    dest_path: AbstractPath,
-    dest_folder: AbstractFolder,
-    transferred: bool,
-    keep_days: int,
-    now_millis: int,
+        source_path: AbstractPath,
+        dest_path: AbstractPath,
+        dest_folder: AbstractFolder,
+        transferred: bool,
+        keep_days: int,
+        now_millis: int,
 ):
     """
     Create the actions to hide or delete existing versions of a file

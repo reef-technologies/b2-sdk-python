@@ -11,8 +11,16 @@
 import re
 
 from builtins import classmethod
-from dataclasses import dataclass, field
-from typing import ClassVar, Dict, List, Optional
+from dataclasses import (
+    dataclass,
+    field,
+)
+from typing import (
+    ClassVar,
+    Dict,
+    List,
+    Optional,
+)
 
 
 @dataclass
@@ -33,7 +41,7 @@ class ReplicationRule:
 
     REPLICATION_RULE_REGEX: ClassVar = re.compile(r'^[a-zA-Z0-9_\-]{1,64}$')
     MIN_PRIORITY: ClassVar[int] = 1
-    MAX_PRIORITY: ClassVar[int] = 2**31 - 1
+    MAX_PRIORITY: ClassVar[int] = 2 ** 31 - 1
 
     def __post_init__(self):
         if not self.destination_bucket_id:
@@ -64,12 +72,12 @@ class ReplicationRule:
     def from_dict(cls, value_dict: dict) -> 'ReplicationRule':
         kwargs = {}
         for field_, protocolField in (
-            ('destination_bucket_id', 'destinationBucketId'),
-            ('name', 'replicationRuleName'),
-            ('file_name_prefix', 'fileNamePrefix'),
-            ('include_existing_files', 'includeExistingFiles'),
-            ('is_enabled', 'isEnabled'),
-            ('priority', 'priority'),
+                ('destination_bucket_id', 'destinationBucketId'),
+                ('name', 'replicationRuleName'),
+                ('file_name_prefix', 'fileNamePrefix'),
+                ('include_existing_files', 'includeExistingFiles'),
+                ('is_enabled', 'isEnabled'),
+                ('priority', 'priority'),
         ):
             value = value_dict.get(
                 protocolField
@@ -186,7 +194,7 @@ class ReplicationConfiguration:
             ],
             source_key_id=source_dict.get('sourceApplicationKeyId'),
             source_to_destination_key_mapping=destination_dict.get('sourceToDestinationKeyMapping')
-            or {},
+                                              or {},
         )
 
 

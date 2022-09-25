@@ -11,10 +11,17 @@
 import logging
 import re
 
-from typing import Iterable, Optional, Union
+from typing import (
+    Iterable,
+    Optional,
+    Union,
+)
 
 from ..file_version import FileVersion
-from .exception import InvalidArgument, check_invalid_argument
+from .exception import (
+    InvalidArgument,
+    check_invalid_argument,
+)
 from .path import LocalPath
 
 logger = logging.getLogger(__name__)
@@ -121,15 +128,15 @@ class ScanPoliciesManager:
     """
 
     def __init__(
-        self,
-        exclude_dir_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
-        exclude_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
-        include_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
-        exclude_all_symlinks: bool = False,
-        exclude_modified_before: Optional[int] = None,
-        exclude_modified_after: Optional[int] = None,
-        exclude_uploaded_before: Optional[int] = None,
-        exclude_uploaded_after: Optional[int] = None,
+            self,
+            exclude_dir_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
+            exclude_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
+            include_file_regexes: Iterable[Union[str, re.Pattern]] = tuple(),
+            exclude_all_symlinks: bool = False,
+            exclude_modified_before: Optional[int] = None,
+            exclude_modified_after: Optional[int] = None,
+            exclude_uploaded_before: Optional[int] = None,
+            exclude_uploaded_after: Optional[int] = None,
     ):
         """
         :param exclude_dir_regexes: regexes to exclude directories
@@ -154,29 +161,29 @@ class ScanPoliciesManager:
             )
 
         with check_invalid_argument(
-            'exclude_dir_regexes', 'wrong regex was given for excluding directories', re.error
+                'exclude_dir_regexes', 'wrong regex was given for excluding directories', re.error
         ):
             self._exclude_dir_set = RegexSet(exclude_dir_regexes)
             self._exclude_file_because_of_dir_set = RegexSet(
                 map(convert_dir_regex_to_dir_prefix_regex, exclude_dir_regexes)
             )
         with check_invalid_argument(
-            'exclude_file_regexes', 'wrong regex was given for excluding files', re.error
+                'exclude_file_regexes', 'wrong regex was given for excluding files', re.error
         ):
             self._exclude_file_set = RegexSet(exclude_file_regexes)
         with check_invalid_argument(
-            'include_file_regexes', 'wrong regex was given for including files', re.error
+                'include_file_regexes', 'wrong regex was given for including files', re.error
         ):
             self._include_file_set = RegexSet(include_file_regexes)
         self.exclude_all_symlinks = exclude_all_symlinks
         with check_invalid_argument(
-            'exclude_modified_before,exclude_modified_after', '', ValueError
+                'exclude_modified_before,exclude_modified_after', '', ValueError
         ):
             self._include_mod_time_range = IntegerRange(
                 exclude_modified_before, exclude_modified_after
             )
         with check_invalid_argument(
-            'exclude_uploaded_before,exclude_uploaded_after', '', ValueError
+                'exclude_uploaded_before,exclude_uploaded_after', '', ValueError
         ):
             self._include_upload_time_range = IntegerRange(
                 exclude_uploaded_before, exclude_uploaded_after

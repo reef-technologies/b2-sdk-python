@@ -12,13 +12,19 @@ import logging
 
 from typing import Optional
 
-from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
+from b2sdk.encryption.setting import (
+    EncryptionMode,
+    EncryptionSetting,
+)
 from b2sdk.exception import (
     AlreadyFailed,
     B2Error,
     MaxRetriesExceeded,
 )
-from b2sdk.file_lock import FileRetentionSetting, LegalHold
+from b2sdk.file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+)
 from b2sdk.stream.progress import ReadingStreamWithProgress
 from b2sdk.stream.hashing import StreamWithHash
 from b2sdk.http_constants import HEX_DIGITS_AT_END
@@ -42,16 +48,16 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         return self.services.session.account_info
 
     def upload_file(
-        self,
-        bucket_id,
-        upload_source,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            upload_source,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         f = self._thread_pool.submit(
             self._upload_small_file,
@@ -68,14 +74,14 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         return f
 
     def upload_part(
-        self,
-        bucket_id,
-        file_id,
-        part_upload_source,
-        part_number,
-        large_file_upload_state,
-        finished_parts=None,
-        encryption: EncryptionSetting = None,
+            self,
+            bucket_id,
+            file_id,
+            part_upload_source,
+            part_number,
+            large_file_upload_state,
+            finished_parts=None,
+            encryption: EncryptionSetting = None,
     ):
         f = self._thread_pool.submit(
             self._upload_part,
@@ -90,14 +96,14 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         return f
 
     def _upload_part(
-        self,
-        bucket_id,
-        file_id,
-        part_upload_source,
-        part_number,
-        large_file_upload_state,
-        finished_parts,
-        encryption: EncryptionSetting,
+            self,
+            bucket_id,
+            file_id,
+            part_upload_source,
+            part_number,
+            large_file_upload_state,
+            finished_parts,
+            encryption: EncryptionSetting,
     ):
         """
         Upload a file part to started large file.
@@ -123,7 +129,9 @@ class UploadManager(TransferManager, ThreadPoolMixin):
             large_file_upload_state.update_part_bytes(part_upload_source.get_content_length())
 
             # Return SHA1 hash
-            return {'contentSha1': part.content_sha1}
+            return {
+                'contentSha1': part.content_sha1
+            }
 
         # Set up a progress listener
         part_progress_listener = PartProgressReporter(large_file_upload_state)
@@ -171,16 +179,16 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         raise MaxRetriesExceeded(self.MAX_UPLOAD_ATTEMPTS, exception_list)
 
     def _upload_small_file(
-        self,
-        bucket_id,
-        upload_source,
-        file_name,
-        content_type,
-        file_info,
-        progress_listener,
-        encryption: Optional[EncryptionSetting] = None,
-        file_retention: Optional[FileRetentionSetting] = None,
-        legal_hold: Optional[LegalHold] = None,
+            self,
+            bucket_id,
+            upload_source,
+            file_name,
+            content_type,
+            file_info,
+            progress_listener,
+            encryption: Optional[EncryptionSetting] = None,
+            file_retention: Optional[FileRetentionSetting] = None,
+            legal_hold: Optional[LegalHold] = None,
     ):
         content_length = upload_source.get_content_length()
         exception_info_list = []

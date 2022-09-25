@@ -9,7 +9,10 @@
 ######################################################################
 
 from .hashing import StreamWithHash
-from .progress import ReadingStreamWithProgress, WritingStreamWithProgress
+from .progress import (
+    ReadingStreamWithProgress,
+    WritingStreamWithProgress,
+)
 from .range import RangeOfInputStream
 
 __all__ = [

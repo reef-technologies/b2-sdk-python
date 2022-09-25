@@ -12,7 +12,10 @@
 # B2 Command Line Tool for printing, for legal compliance reasons
 
 import dataclasses
-from typing import Dict, List
+from typing import (
+    Dict,
+    List,
+)
 
 _included_sources: List['IncludedSourceMeta'] = []
 

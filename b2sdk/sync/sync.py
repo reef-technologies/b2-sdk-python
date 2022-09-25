@@ -11,7 +11,10 @@
 import concurrent.futures as futures
 import logging
 
-from enum import Enum, unique
+from enum import (
+    Enum,
+    unique,
+)
 
 from ..bounded_queue_executor import BoundedQueueExecutor
 from ..scan.exception import InvalidArgument
@@ -19,10 +22,19 @@ from ..scan.folder import AbstractFolder
 from ..scan.path import AbstractPath
 from ..scan.policies import DEFAULT_SCAN_MANAGER
 from ..scan.scan import zip_folders
-from .encryption_provider import SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER, AbstractSyncEncryptionSettingsProvider
+from .encryption_provider import (
+    SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+    AbstractSyncEncryptionSettingsProvider,
+)
 from .exception import IncompleteSync
-from .policy import CompareVersionMode, NewerFileSyncMode
-from .policy_manager import POLICY_MANAGER, SyncPolicyManager
+from .policy import (
+    CompareVersionMode,
+    NewerFileSyncMode,
+)
+from .policy_manager import (
+    POLICY_MANAGER,
+    SyncPolicyManager,
+)
 from .report import SyncReport
 
 logger = logging.getLogger(__name__)
@@ -76,17 +88,17 @@ class Synchronizer:
     """
 
     def __init__(
-        self,
-        max_workers,
-        policies_manager=DEFAULT_SCAN_MANAGER,
-        dry_run=False,
-        allow_empty_source=False,
-        newer_file_mode=NewerFileSyncMode.RAISE_ERROR,
-        keep_days_or_delete=KeepOrDeleteMode.NO_DELETE,
-        compare_version_mode=CompareVersionMode.MODTIME,
-        compare_threshold=None,
-        keep_days=None,
-        sync_policy_manager: SyncPolicyManager = POLICY_MANAGER,
+            self,
+            max_workers,
+            policies_manager=DEFAULT_SCAN_MANAGER,
+            dry_run=False,
+            allow_empty_source=False,
+            newer_file_mode=NewerFileSyncMode.RAISE_ERROR,
+            keep_days_or_delete=KeepOrDeleteMode.NO_DELETE,
+            compare_version_mode=CompareVersionMode.MODTIME,
+            compare_threshold=None,
+            keep_days=None,
+            sync_policy_manager: SyncPolicyManager = POLICY_MANAGER,
     ):
         """
         Initialize synchronizer class and validate arguments
@@ -143,13 +155,13 @@ class Synchronizer:
             )
 
     def sync_folders(
-        self,
-        source_folder,
-        dest_folder,
-        now_millis,
-        reporter,
-        encryption_settings_provider:
-        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+            self,
+            source_folder,
+            dest_folder,
+            now_millis,
+            reporter,
+            encryption_settings_provider:
+            AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         """
         Syncs two folders.  Always ensures that every file in the
@@ -201,12 +213,12 @@ class Synchronizer:
 
         # Schedule each of the actions.
         for action in self._make_folder_sync_actions(
-            source_folder,
-            dest_folder,
-            now_millis,
-            reporter,
-            self.policies_manager,
-            encryption_settings_provider,
+                source_folder,
+                dest_folder,
+                now_millis,
+                reporter,
+                self.policies_manager,
+                encryption_settings_provider,
         ):
             logging.debug('scheduling action %s on bucket %s', action, action_bucket)
             sync_executor.submit(action.run, action_bucket, reporter, self.dry_run)
@@ -217,14 +229,14 @@ class Synchronizer:
             raise IncompleteSync('sync is incomplete')
 
     def _make_folder_sync_actions(
-        self,
-        source_folder: AbstractFolder,
-        dest_folder: AbstractFolder,
-        now_millis: int,
-        reporter: SyncReport,
-        policies_manager: SyncPolicyManager = DEFAULT_SCAN_MANAGER,
-        encryption_settings_provider:
-        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+            self,
+            source_folder: AbstractFolder,
+            dest_folder: AbstractFolder,
+            now_millis: int,
+            reporter: SyncReport,
+            policies_manager: SyncPolicyManager = DEFAULT_SCAN_MANAGER,
+            encryption_settings_provider:
+            AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         """
         Yield a sequence of actions that will sync the destination
@@ -250,10 +262,10 @@ class Synchronizer:
         total_files = 0
         total_bytes = 0
         for source_path, dest_path in zip_folders(
-            source_folder,
-            dest_folder,
-            reporter,
-            policies_manager,
+                source_folder,
+                dest_folder,
+                reporter,
+                policies_manager,
         ):
             if source_path is None:
                 logger.debug('determined that %s is not present on source', dest_path)
@@ -268,13 +280,13 @@ class Synchronizer:
                 reporter.update_compare(1)
 
             for action in self._make_file_sync_actions(
-                sync_type,
-                source_path,
-                dest_path,
-                source_folder,
-                dest_folder,
-                now_millis,
-                encryption_settings_provider,
+                    sync_type,
+                    source_path,
+                    dest_path,
+                    source_folder,
+                    dest_folder,
+                    now_millis,
+                    encryption_settings_provider,
             ):
                 total_files += 1
                 total_bytes += action.get_bytes()
@@ -288,15 +300,15 @@ class Synchronizer:
             reporter.end_compare(total_files, total_bytes)
 
     def _make_file_sync_actions(
-        self,
-        sync_type: str,
-        source_path: AbstractPath,
-        dest_path: AbstractPath,
-        source_folder: AbstractFolder,
-        dest_folder: AbstractFolder,
-        now_millis: int,
-        encryption_settings_provider:
-        AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
+            self,
+            sync_type: str,
+            source_path: AbstractPath,
+            dest_path: AbstractPath,
+            source_folder: AbstractFolder,
+            dest_folder: AbstractFolder,
+            now_millis: int,
+            encryption_settings_provider:
+            AbstractSyncEncryptionSettingsProvider = SERVER_DEFAULT_SYNC_ENCRYPTION_SETTINGS_PROVIDER,
     ):
         """
         Yields the sequence of actions needed to sync the two files

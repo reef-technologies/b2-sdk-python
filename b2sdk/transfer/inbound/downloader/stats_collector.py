@@ -9,7 +9,10 @@
 ######################################################################
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import (
+    dataclass,
+    field,
+)
 from typing import List  # 3.7 doesn't understand `list` vs `List`
 from typing import Optional
 

@@ -10,7 +10,10 @@
 
 import logging
 import os
-from abc import ABCMeta, abstractmethod
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 
 from ..bucket import Bucket
 from ..http_constants import SRC_LAST_MODIFIED_MILLIS
@@ -87,13 +90,13 @@ class B2UploadAction(AbstractAction):
     """
 
     def __init__(
-        self,
-        local_full_path,
-        relative_name,
-        b2_file_name,
-        mod_time_millis,
-        size,
-        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
+            self,
+            local_full_path,
+            relative_name,
+            b2_file_name,
+            mod_time_millis,
+            size,
+            encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
     ):
         """
         :param str local_full_path: a local file path
@@ -129,7 +132,9 @@ class B2UploadAction(AbstractAction):
             progress_listener = SyncFileReporter(reporter)
         else:
             progress_listener = None
-        file_info = {SRC_LAST_MODIFIED_MILLIS: str(self.mod_time_millis)}
+        file_info = {
+            SRC_LAST_MODIFIED_MILLIS: str(self.mod_time_millis)
+        }
         encryption = self.encryption_settings_provider.get_setting_for_upload(
             bucket=bucket,
             b2_file_name=self.b2_file_name,
@@ -207,11 +212,11 @@ class B2HideAction(AbstractAction):
 
 class B2DownloadAction(AbstractAction):
     def __init__(
-        self,
-        source_path: B2Path,
-        b2_file_name: str,
-        local_full_path: str,
-        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
+            self,
+            source_path: B2Path,
+            b2_file_name: str,
+            local_full_path: str,
+            encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
     ):
         """
         :param b2sdk.v2.B2Path source_path: the file to be downloaded
@@ -290,10 +295,10 @@ class B2DownloadAction(AbstractAction):
 
     def __str__(self):
         return (
-            'b2_download(%s, %s, %s, %d)' % (
-                self.b2_file_name, self.source_path.selected_version.id_, self.local_full_path,
-                self.source_path.mod_time
-            )
+                'b2_download(%s, %s, %s, %d)' % (
+            self.b2_file_name, self.source_path.selected_version.id_, self.local_full_path,
+            self.source_path.mod_time
+        )
         )
 
 
@@ -303,13 +308,13 @@ class B2CopyAction(AbstractAction):
     """
 
     def __init__(
-        self,
-        b2_file_name: str,
-        source_path: B2Path,
-        dest_b2_file_name,
-        source_bucket: Bucket,
-        destination_bucket: Bucket,
-        encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
+            self,
+            b2_file_name: str,
+            source_path: B2Path,
+            dest_b2_file_name,
+            source_bucket: Bucket,
+            destination_bucket: Bucket,
+            encryption_settings_provider: AbstractSyncEncryptionSettingsProvider,
     ):
         """
         :param str b2_file_name: a b2_file_name
@@ -381,10 +386,10 @@ class B2CopyAction(AbstractAction):
 
     def __str__(self):
         return (
-            'b2_copy(%s, %s, %s, %d)' % (
-                self.b2_file_name, self.source_path.selected_version.id_, self.dest_b2_file_name,
-                self.source_path.mod_time
-            )
+                'b2_copy(%s, %s, %s, %d)' % (
+            self.b2_file_name, self.source_path.selected_version.id_, self.dest_b2_file_name,
+            self.source_path.mod_time
+        )
         )
 
 

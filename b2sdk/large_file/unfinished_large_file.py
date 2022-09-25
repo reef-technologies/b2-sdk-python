@@ -9,7 +9,10 @@
 ######################################################################
 
 from b2sdk.encryption.setting import EncryptionSettingFactory
-from b2sdk.file_lock import FileRetentionSetting, LegalHold
+from b2sdk.file_lock import (
+    FileRetentionSetting,
+    LegalHold,
+)
 
 
 class UnfinishedLargeFile:

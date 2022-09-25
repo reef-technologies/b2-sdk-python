@@ -12,7 +12,10 @@ from abc import abstractmethod
 import functools
 
 from b2sdk import v2
-from .scan_policies import DEFAULT_SCAN_MANAGER, wrap_if_necessary
+from .scan_policies import (
+    DEFAULT_SCAN_MANAGER,
+    wrap_if_necessary,
+)
 from .. import exception
 
 
@@ -48,9 +51,9 @@ class B2Folder(v2.B2Folder, AbstractFolder):
 
     def get_file_versions(self):
         for file_version, _ in self.bucket.ls(
-            self.folder_name,
-            show_versions=True,
-            recursive=True,
+                self.folder_name,
+                show_versions=True,
+                recursive=True,
         ):
             yield file_version
 

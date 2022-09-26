@@ -417,22 +417,22 @@ class LiburingAsyncWriter(LiburingWriter):
         with self.lock:
             sqe = io_uring_get_sqe(self.ring)
             self.last_id += 1
-            io_uring_sqe_set_data(sqe, self.last_id)
             io_uring_prep_write(sqe, self.file_descriptor, iov[0].iov_base, iov[0].iov_len, offset)
             self._submit()
-        self.buffers[sqe.user_data] = buffer
+        self.buffers[self.last_id] = buffer
 
     def run(self):
+        update_progress = self.update_progress
         while not (self.shutdown and not self.buffers):
-            self.total += self._wait()
+            delta = self._wait()
+            self.total += delta
+            update_progress(delta)
 
     def _wait(self) -> int:
         io_uring_wait_cqe(self.ring, self.cqes)
         cqe = self.cqes[0]
         result = trap_error(cqe.res)
-        # logger.info('User data (%s) %s', type(cqe.user_data), cqe.user_data[:100] if hasattr(cqe.user_data, '__iter__') else cqe.user_data)
-        id_ = cqe.user_data
-        del self.buffers[id_]
+        # del self.buffers[cqe.user_data]
 
         io_uring_cqe_seen(self.ring, cqe)
         return result

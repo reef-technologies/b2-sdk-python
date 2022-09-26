@@ -261,7 +261,9 @@ class LiburingWriter(threading.Thread, Writer):
         self.cqes = io_uring_cqes()
 
         # here we ignore file stream and write directly to specific file path
+        self.update_progress = lambda delta: None
         if isinstance(file, WritingStreamWithProgress):
+            self.update_progress = file._progress_update
             file = file.stream
         assert isinstance(file, MtimeUpdatedFile)
         self.file_path = Path(file.path_)
@@ -278,12 +280,16 @@ class LiburingWriter(threading.Thread, Writer):
 
     def run(self):
         queue_get, task_done = self.queue.get, self.queue.task_done
+        update_progress = self.update_progress
+
         while True:
             # logger.info('Queue size: %s', self.queue.qsize())
             shutdown, offset, data = queue_get()
             if shutdown:
                 break
-            self.total += self._write(data, offset)
+            delta = self._write(data, offset)
+            self.total += delta
+            update_progress(delta)
             task_done()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -341,6 +347,7 @@ class LiburingBatchWriter(LiburingWriter):
         task_done = self.queue.task_done
         queue_full = self.queue.full
         queue_qsize = self.queue.qsize
+        update_progress = self.update_progress
 
         last_submission_time = time_ns()
         while True:
@@ -362,7 +369,9 @@ class LiburingBatchWriter(LiburingWriter):
                     task_done()
 
                 for _ in range(num_tasks - int(shutdown)):
-                    self.total += self._wait()
+                    delta = self._wait()
+                    self.total += delta
+                    update_progress(delta)
 
                 if shutdown:
                     break

@@ -17,7 +17,7 @@ import threading
 from concurrent import futures
 from io import IOBase
 from pathlib import Path
-from time import time_ns
+from time import sleep, time_ns
 from typing import Optional
 
 from liburing import AT_FDCWD, io_uring, io_uring_cqe_seen, io_uring_cqes, io_uring_get_sqe, io_uring_prep_close, io_uring_prep_openat, io_uring_prep_write, io_uring_queue_exit, io_uring_queue_init, io_uring_sqe_set_data, io_uring_submit, io_uring_wait_cqe, iovec, trap_error
@@ -393,11 +393,12 @@ class LiburingBatchDownloader(LiburingDownloader):
 
 
 class LiburingAsyncWriter(LiburingWriter):
+    BUFFERS_POLL_TIME = 0.00001
+    last_id = 0
+
     def __init__(self, file: IOBase, max_queue_depth: int):
         super().__init__(file, max_queue_depth)
-        self.buffers = {}
         self.shutdown = False
-        self.last_id = 0
 
         class Queue:
             @classmethod
@@ -408,6 +409,7 @@ class LiburingAsyncWriter(LiburingWriter):
                 self.shutdown = shutdown
 
         self.queue = Queue
+        self.buffers = {}
 
     def _write(self, data, offset=0):
         # DON'T TOUCH THESE TWO LINES:
@@ -417,22 +419,28 @@ class LiburingAsyncWriter(LiburingWriter):
         with self.lock:
             sqe = io_uring_get_sqe(self.ring)
             self.last_id += 1
+            self.buffers[self.last_id] = buffer
             io_uring_prep_write(sqe, self.file_descriptor, iov[0].iov_base, iov[0].iov_len, offset)
+            io_uring_sqe_set_data(sqe, self.last_id)
             self._submit()
-        self.buffers[self.last_id] = buffer
 
     def run(self):
-        update_progress = self.update_progress
-        while not (self.shutdown and not self.buffers):
+        while True:
+            if not self.buffers:
+                if self.shutdown:
+                    break
+                sleep(self.BUFFERS_POLL_TIME)
+                continue
             delta = self._wait()
             self.total += delta
-            update_progress(delta)
+            self.update_progress(delta)
 
     def _wait(self) -> int:
         io_uring_wait_cqe(self.ring, self.cqes)
         cqe = self.cqes[0]
         result = trap_error(cqe.res)
-        # del self.buffers[cqe.user_data]
+        if cqe.user_data:
+            del self.buffers[cqe.user_data]
 
         io_uring_cqe_seen(self.ring, cqe)
         return result

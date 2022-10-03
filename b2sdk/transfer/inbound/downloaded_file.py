@@ -9,6 +9,7 @@
 ######################################################################
 
 import io
+import os
 import logging
 from typing import Optional, Tuple, TYPE_CHECKING
 
@@ -70,7 +71,10 @@ class MtimeUpdatedFile(io.IOBase):
         return self.file.tell()
 
     def __enter__(self):
-        self.file = open(self.path_, self.mode, buffering=self.buffering)
+        def opener(path, flags):
+            return os.open(path, flags=os.O_WRONLY | os.O_CREAT | os.O_TRUNC)  # | os.O_DIRECT | os.O_BINARY)
+
+        self.file = open(self.path_, self.mode, buffering=self.buffering, opener=opener)
         self.write = self.file.write
         self.read = self.file.read
         return self

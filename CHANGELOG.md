@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Fix nox's deprecated `session.install()` calls
 * Re-enable changelog validation in CI
 
+### Changed
+* StatsCollector is now a context manager
+
 ## [1.17.3] - 2022-07-15
 
 ### Fixed

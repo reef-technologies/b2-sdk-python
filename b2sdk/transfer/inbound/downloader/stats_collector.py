@@ -71,7 +71,9 @@ class StatsCollector:
                 (self.read.sum_of_all_entries - self.read.latest_entry) / self.read.TO_MS
             )
         if self.other.has_any_entry:
-            logger.info('download stats | %s | %s total: %.3f ms', self, self.other_name, self.other.sum_ms)
+            logger.info(
+                'download stats | %s | %s total: %.3f ms', self, self.other_name, self.other.sum_ms
+            )
         if self.write.has_any_entry:
             logger.info('download stats | %s | write() total: %.3f ms', self, self.write.sum_ms)
         if self.total.has_any_entry:
@@ -79,7 +81,9 @@ class StatsCollector:
                                    + self.other.sum_of_all_entries \
                                    + self.read.sum_of_all_entries
             overhead = self.total.sum_of_all_entries - basic_operation_time
-            logger.info('download stats | %s | overhead: %.3f ms', self, overhead / self.total.TO_MS)
+            logger.info(
+                'download stats | %s | overhead: %.3f ms', self, overhead / self.total.TO_MS
+            )
 
     def __str__(self):
         return f'{self.name}[{self.detail}]'

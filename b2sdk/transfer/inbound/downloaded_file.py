@@ -71,16 +71,40 @@ class MtimeUpdatedFile(io.IOBase):
         return self.file.tell()
 
     def __enter__(self):
-        def opener(path, flags):
-            return os.open(path, flags=os.O_WRONLY | os.O_CREAT | os.O_TRUNC)  # | os.O_DIRECT | os.O_BINARY)
+        # def opener(path, flags):
+        #     return os.open(path, flags=os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_DIRECT)  # | os.O_BINARY)
 
-        self.file = open(self.path_, self.mode, buffering=self.buffering, opener=opener)
-        self.write = self.file.write
-        self.read = self.file.read
+        # self.file = open(self.path_, self.mode, buffering=self.buffering, opener=opener)
+
+        from math import ceil
+        from threading import Lock
+        import mmap
+
+        lock = Lock()
+        self.fd = os.open(self.path_, flags=os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_DIRECT | os.O_BINARY)
+        chunk_size = 1024
+        _mmap = mmap.mmap(-1, chunk_size)
+
+        def _write(data):
+            data_len = len(data)
+            for i in range(ceil(data_len / chunk_size)):
+                chunk = data[i * chunk_size: (i + 1) * chunk_size]
+                with lock:
+                    _mmap.seek(0)
+                    _mmap.write(chunk)
+                    os.write(self.fd, _mmap)
+            return data_len
+
+        def _read():
+            raise NotImplementedError()
+
+        self.write = _write
+        self.read = _read
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.file.close()
+        # self.file.close()
+        os.close(self.fd)
         set_file_mtime(self.path_, self.mod_time_to_set)
 
     def __str__(self):

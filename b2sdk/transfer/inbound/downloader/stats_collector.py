@@ -16,17 +16,19 @@ from dataclasses import (
 from time import perf_counter_ns
 from typing import (
     Any,
-    List,
     Optional,
-    Type,  # 3.7 doesn't understand `list` vs `List`
+    Type,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class SingleStatsCollector:
+    TO_MS = 1_000_000
+
     def __init__(self):
-        self.storage: List[int] = []
+        self.latest_entry: Optional[int] = None
+        self.sum_of_all_entries: int = 0
         self.started_perf_timer: Optional[int] = None
 
     def __enter__(self) -> None:
@@ -34,15 +36,21 @@ class SingleStatsCollector:
 
     def __exit__(self, exc_type: Type, exc_val: Exception, exc_tb: Any) -> None:
         time_diff = perf_counter_ns() - self.started_perf_timer
-        self.storage.append(time_diff)
+        self.latest_entry = time_diff
+        self.sum_of_all_entries += time_diff
         self.started_perf_timer = None
 
-    def __getitem__(self, item_or_slice):
-        return self.storage[item_or_slice]
+    @property
+    def sum_ms(self) -> float:
+        return self.sum_of_all_entries / self.TO_MS
+
+    @property
+    def latest_ms(self) -> float:
+        return self.latest_entry / self.TO_MS
 
     @property
     def has_any_entry(self) -> bool:
-        return len(self.storage) > 0
+        return self.latest_entry is not None
 
 
 @dataclass
@@ -57,24 +65,21 @@ class StatsCollector:
 
     def report(self):
         if self.read.has_any_entry:
-            logger.info('download stats | %s | TTFB: %.3f ms', self, self.read[0] / 1000000)
+            logger.info('download stats | %s | TTFB: %.3f ms', self, self.read.latest_ms)
             logger.info(
                 'download stats | %s | read() without TTFB: %.3f ms', self,
-                sum(self.read[1:]) / 1000000
+                (self.read.sum_of_all_entries - self.read.latest_entry) / self.read.TO_MS
             )
         if self.other.has_any_entry:
-            logger.info(
-                'download stats | %s | %s total: %.3f ms', self, self.other_name,
-                sum(self.other) / 1000000
-            )
+            logger.info('download stats | %s | %s total: %.3f ms', self, self.other_name, self.other.sum_ms)
         if self.write.has_any_entry:
-            logger.info(
-                'download stats | %s | write() total: %.3f ms', self,
-                sum(self.write) / 1000000
-            )
+            logger.info('download stats | %s | write() total: %.3f ms', self, self.write.sum_ms)
         if self.total.has_any_entry:
-            overhead = sum(self.total) - sum(self.write) - sum(self.other) - sum(self.read)
-            logger.info('download stats | %s | overhead: %.3f ms', self, overhead / 1000000)
+            basic_operation_time = self.write.sum_of_all_entries \
+                                   + self.other.sum_of_all_entries \
+                                   + self.read.sum_of_all_entries
+            overhead = self.total.sum_of_all_entries - basic_operation_time
+            logger.info('download stats | %s | overhead: %.3f ms', self, overhead / self.total.TO_MS)
 
     def __str__(self):
         return f'{self.name}[{self.detail}]'

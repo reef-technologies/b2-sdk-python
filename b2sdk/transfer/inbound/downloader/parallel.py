@@ -292,12 +292,11 @@ def download_first_part(
     stop = False
 
     stats_collector = StatsCollector(response.url, f'{first_offset}:{last_offset}', 'hash')
+    stats_collector_read = stats_collector.read
+    stats_collector_other = stats_collector.other
+    stats_collector_write = stats_collector.write
 
     with stats_collector.total:
-
-        stats_collector_read = stats_collector.read
-        stats_collector_other = stats_collector.other
-        stats_collector_write = stats_collector.write
         response_iterator = response.iter_content(chunk_size=chunk_size)
 
         while True:
@@ -396,6 +395,7 @@ def download_non_first_part(
         stats_collector = StatsCollector(url, f'{cloud_range.start}:{cloud_range.end}', 'none')
         stats_collector_read = stats_collector.read
         stats_collector_write = stats_collector.write
+
         with stats_collector.total:
             with session.download_file_from_url(
                 url,

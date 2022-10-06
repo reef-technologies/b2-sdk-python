@@ -316,6 +316,7 @@ def download_first_part(
         stats_collector_other_append(after_hash - before_hash)
 
         bytes_read += len(to_write)
+        before_read = perf_counter_ns()
         if stop:
             break
 
@@ -391,7 +392,7 @@ def download_non_first_part(
         stats_collector = StatsCollector(url, f'{cloud_range.start}:{cloud_range.end}', 'none')
         stats_collector_read_append = stats_collector.read.append
         stats_collector_write_append = stats_collector.write.append
-        start = before_read = perf_counter_ns()
+        start = perf_counter_ns()
         with session.download_file_from_url(
             url,
             cloud_range.as_tuple(),

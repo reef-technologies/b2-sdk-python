@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Infrastructure
 * Fix nox's deprecated `session.install()` calls
 * Re-enable changelog validation in CI
+* Fix for a single incorrectly measured performance stat
 
 ## [1.17.3] - 2022-07-15
 

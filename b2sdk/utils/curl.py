@@ -99,6 +99,9 @@ def headers_to_list(headers: Dict[str, str]) -> List[str]:
 class CurlSession:
     TIMEOUT = 5
     EXPECT_100_TIMEOUT = 10
+    BUFFER_SIZE_BYTES = 10 * 1024 * 1024
+    VERBOSE = False
+    NO_SIGNAL = 0
 
     def __init__(self, *args, **kwargs):
         self.adapters = CurlAdapters()
@@ -121,13 +124,13 @@ class CurlSession:
         output_headers = CaseInsensitiveDict()
 
         curl = pycurl.Curl()
-        # curl.setopt(curl.VERBOSE, True)
+        curl.setopt(curl.VERBOSE, self.VERBOSE)
         curl.setopt(curl.URL, url)
         if headers:
             curl.setopt(curl.HTTPHEADER, headers_to_list(headers))
         curl.setopt(curl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT * 1000)
-        curl.setopt(curl.BUFFERSIZE, 10 * 1024 * 1024)  # TODO
-        # curl.setopt(curl.NOSIGNAL, 1)
+        curl.setopt(curl.BUFFERSIZE, self.BUFFER_SIZE_BYTES)  # TODO
+        curl.setopt(curl.NOSIGNAL, self.NO_SIGNAL)
         curl.setopt(curl.CAINFO, certifi.where())
         curl.setopt(curl.WRITEDATA, output)
         if method == 'head':

@@ -8,11 +8,14 @@
 #
 ######################################################################
 
-from typing import Optional, Callable, Type, Union
-import requests
+from typing import Optional, Callable, Type
 
 from .raw_api import AbstractRawApi, B2RawHTTPApi
-from .utils.curl import CurlSession
+from .utils.session_protocol import SessionProtocol, get_session_protocols
+
+SESSION_PROTOCOLS, SESSION_PROTOCOL_ERRORS = get_session_protocols()
+assert SESSION_PROTOCOLS, f'There are no session protocols available. Errors: {SESSION_PROTOCOL_ERRORS}'
+DEFAULT_SESSION = SESSION_PROTOCOLS[0]
 
 
 class B2HttpApiConfig:
@@ -21,7 +24,7 @@ class B2HttpApiConfig:
 
     def __init__(
         self,
-        http_session_factory: Callable[[], Union[requests.Session, CurlSession]] = CurlSession,
+        http_session_factory: Callable[[], SessionProtocol] = DEFAULT_SESSION,
         install_clock_skew_hook: bool = True,
         user_agent_append: Optional[str] = None,
         _raw_api_class: Optional[Type[AbstractRawApi]] = None,

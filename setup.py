@@ -18,13 +18,12 @@ import sys
 
 # To use a consistent encoding
 from codecs import open
-from importlib import import_module
 
 # Always prefer setuptools over distutils
 from setuptools import __version__ as setuptoolsversion
 from setuptools import find_packages, setup
 
-#require at least setuptools 20.2 for PEP 508 conditional dependency support
+# require at least setuptools 20.2 for PEP 508 conditional dependency support
 MIN_SETUPTOOLS_VERSION = (20, 2)
 if tuple(int(x) for x in setuptoolsversion.split('.')[:2]) < MIN_SETUPTOOLS_VERSION:
     sys.exit(
@@ -108,7 +107,10 @@ setup(
     # dependencies). You can install these using the following syntax,
     # for example:
     # $ pip install -e .[dev,test]
-    extras_require={'doc': read_requirements('doc')},
+    extras_require={
+        'doc': read_requirements('doc'),
+        'curl': read_requirements('curl'),
+    },
     setup_requires=['setuptools_scm<6.0'],
     use_scm_version=True,
 

@@ -1,3 +1,12 @@
+######################################################################
+#
+# File: b2sdk/utils/session_protocol.py
+#
+# Copyright 2020 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
 import functools
 import importlib
 from typing import Type
@@ -46,4 +55,3 @@ def get_session_protocols() -> tuple[list[Type[SessionProtocol]], dict[str, str]
             errors[f'{module_name}.{class_name}'] = str(error)
 
     return protocols, errors
-

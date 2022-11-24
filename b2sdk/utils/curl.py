@@ -1,3 +1,12 @@
+######################################################################
+#
+# File: b2sdk/utils/curl.py
+#
+# Copyright 2020 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
 """
 CURL flow:
 
@@ -15,7 +24,7 @@ The idea is:
 
 import collections
 import threading
-from contextlib import suppress
+import time
 from dataclasses import dataclass, field
 from functools import partial, partialmethod
 from io import BytesIO
@@ -44,6 +53,13 @@ class CurlRequest:
 
 
 class StreamedBytes:
+    """
+    Structure that works "kinda" like an unlimited ring buffer.
+
+    We can put the data on one side and read it from the other,
+    and the data read is lost (memory is released).
+    """
+
     def __init__(self):
         # We store our data in chunks in a deque. Whenever data is requested,
         # we remove them from deque up to the size, and put back the reminder.
@@ -51,12 +67,22 @@ class StreamedBytes:
         self.lock = threading.Lock()
         self.first_write_event = threading.Event()
 
+    def is_empty(self) -> bool:
+        with self.lock:
+            return len(self.deque) == 0
+
     def write(self, buffer) -> int:
         with self.lock:
             if len(buffer) == 0:
                 return 0
 
+            # Whole buffer is stored as deque is implemented as double-linked list.
+            # This way we have fewer, (hopefully) larger elements.
             self.deque.append(buffer)
+
+            # If we haven't informed everyone yet, it's the time. We've received
+            # first buffer of data. This is used to indicate that all the headers
+            # are already downloaded.
             if not self.first_write_event.is_set():
                 self.first_write_event.set()
 
@@ -64,106 +90,155 @@ class StreamedBytes:
 
     def read(self, size: Optional[int] = None) -> bytes:
         with self.lock:
-            result = b''
+            result = bytearray()
 
             if len(self.deque) == 0:
                 return result
 
             while 1:
                 entry = self.deque.popleft()
+                new_len_result = len(result) + len(entry)
+
+                if new_len_result > size:
+                    oversize = new_len_result - size
+                    # Return over-sized buffer to the queue.
+                    oversize_buffer = entry[-oversize:]
+                    self.deque.appendleft(oversize_buffer)
+                    # Cut down next entry.
+                    entry = entry[:-oversize]
+
                 result += entry
 
-                if size != -1 and len(result) > size:
-                    back_data = result[size:]
-                    result = result[:size]
-                    self.deque.appendleft(back_data)
-
-                if size != -1 and len(result) == size:
-                    break
-
-                # If we have no more data – also return.
-                if len(self.deque) == 0:
+                if (size != -1 and len(result) == size) or len(self.deque) == 0:
                     break
 
             return result
 
 
+@dataclass
+class CurlStreamer:
+    curl: pycurl.Curl
+    manager: 'CurlManager'
+    output: StreamedBytes
+    _headers: CaseInsensitiveDict
+
+    _status_code: Optional[int] = None
+    done: threading.Event = field(default_factory=threading.Event)
+    timeout_seconds: float = 5.0
+
+    def _wait_for_headers(self) -> None:
+        # If we're already done there's nothing to wait for.
+        if self.done.is_set():
+            return
+
+        start_time = time.time()
+        while not self.output.first_write_event.is_set():
+            # `run_iteration` either waits to acquire lock or
+            # waits on select, so this can be counted as a form of sleep.
+            self.manager.run_iteration()
+
+            if (time.time() - start_time) > self.timeout_seconds:
+                raise TimeoutError()
+
+    def _get_and_cache_status_code(self) -> int:
+        if self._status_code is None:
+            self._status_code = self.curl.getinfo(pycurl.RESPONSE_CODE)
+        return self._status_code
+
+    @property
+    def status_code(self) -> int:
+        self._wait_for_headers()
+        return self._get_and_cache_status_code()
+
+    @property
+    def headers(self) -> CaseInsensitiveDict:
+        self._wait_for_headers()
+        return self._headers
+
+    def read(self, count: int) -> bytes:
+        self.manager.run_iteration()
+        return self.output.read(count)
+
+    def run_blocking(self) -> None:
+        self.curl.perform()
+        self.close()
+
+    def close(self) -> None:
+        # We won't be able to reclaim the status code once we release the object.
+        self._get_and_cache_status_code()
+        self.curl.close()
+        self.done.set()
+
+    @property
+    def is_reading_done(self) -> bool:
+        return self.done.is_set() and self.output.is_empty()
+
+
 class CurlManager:
+    SELECT_SLEEP_SECONDS = 1.0
+    ACQUIRE_SLEEP_SECONDS = 0.1
+
     def __init__(self):
         self.multi = pycurl.CurlMulti()
-        # Set that contains curls that finished.
-        # Information is saved to it when curl finishes and removed from it whenever it's read.
-        self.did_curl_finish = set()
         self.lock = threading.Lock()
-        self.iterate_lock = threading.Lock()
+        self.mapping: dict[pycurl.Curl, CurlStreamer] = {}
 
-    def add_curl(self, curl: pycurl.Curl, awaiter_function) -> None:
+        self.run_lock = threading.Lock()
+
+    def add_curl(self, streamer: CurlStreamer) -> None:
         # Block, so that no-one can iterate over curls while we're waiting for the headers.
-        with self.iterate_lock:
-            with self.lock:
-                self.multi.add_handle(curl)
-
-            while True:
-                # We need to keep the curl so that header can be read from it.
-                self._iterate_curls(remove_finished=False)
-
-                # Iterate have to be called at least once before we leave.
-                if awaiter_function():
-                    return
-
-    def did_curl_finish_get_and_remove(self, curl: pycurl.Curl) -> bool:
         with self.lock:
-            with suppress(KeyError):
-                self.did_curl_finish.remove(curl)
-                return True
-            return False
+            self.mapping[streamer.curl] = streamer
+            self.multi.add_handle(streamer.curl)
+            # Running first "perform" ensures that this curl is taken into account.
+            # Subsequent calls to `select` will return non-zero as long as it's working.
+            self.multi.perform()
 
-    def iterate_curls(self) -> None:
-        # Allow only for one parallel iterate curls, no matter how many threads are asking.
-        # Under this lock self.lock can be acquired. Order is important.
-        if not self.iterate_lock.acquire(blocking=False):
+    def run_iteration(self) -> None:
+        # Allow only one thread at a time to run iteration. Truth is, if you're waiting
+        # for `run_iteration` it's possible that your curl already has something to show.
+        # And if it's hung on select, it means that the network is having issues, so
+        # no need to go there anyway.
+        if not self.run_lock.acquire(timeout=self.ACQUIRE_SLEEP_SECONDS):
             return
         try:
-            self._iterate_curls(remove_finished=True)
+            self._run_iteration()
         finally:
-            self.iterate_lock.release()
+            self.run_lock.release()
 
-    def _iterate_curls(self, remove_finished: bool) -> None:
-        # We could perform select here to check whether anything is waiting for us,
-        # but we're only interested in non-blocking operations anyway, so we can
-        # skip to just doing "perform".
+    def _run_iteration(self) -> None:
+        result = self.multi.select(self.SELECT_SLEEP_SECONDS)
+        if result == 0:
+            return
 
         status, _count = self.multi.perform()
         # TODO: add status checking.
 
-        # Don't check for messages if we're not to purge some of these curls.
-        if not remove_finished:
-            return
-
-        # Check whether any of the curls finished, in one way or another.
-        remaining_messages_count, successful_curls, failed_curls = self.multi.info_read()
         with self.lock:
+            # Check whether any of the curls finished, in one way or another.
+            remaining_messages_count, successful_curls, failed_curls = self.multi.info_read()
             # Remove each finished curl from our multi object and close it.
             finished_curls = successful_curls + [elem[0] for elem in failed_curls]
             for curl in finished_curls:
                 self.multi.remove_handle(curl)
-                curl.close()
-                self.did_curl_finish.add(curl)
+                streamer = self.mapping[curl]
+                streamer.close()
 
 
 @dataclass
 class CurlResponse:
-    # The parent that updates all the curl objects, or False
-    manager: Union[CurlManager, bool]
-    # Current curl object, we need to take care of releasing it
-    curl: pycurl.Curl
-
-    status_code: int
-    headers: CaseInsensitiveDict
-    stream: StreamedBytes
+    streamer: CurlStreamer
     request: CurlRequest
 
     content_cache: Optional[bytes] = None
+
+    @property
+    def status_code(self) -> int:
+        return self.streamer.status_code
+
+    @property
+    def headers(self) -> CaseInsensitiveDict:
+        return self.streamer.headers
 
     @property
     def ok(self) -> bool:
@@ -176,17 +251,10 @@ class CurlResponse:
         return self.content_cache
 
     def iter_content(self, chunk_size: int) -> Iterator[bytes]:
-        did_finish = not self.manager
         while True:
-            if self.manager:
-                self.manager.iterate_curls()
-                # Manager returns true exactly once. We keep
-                # the returned value until we finish providing content.
-                did_finish = did_finish or self.manager.did_curl_finish_get_and_remove(self.curl)
-
-            data = self.stream.read(chunk_size)
+            data = self.streamer.read(chunk_size)
             if not data:
-                if did_finish:
+                if self.streamer.is_reading_done:
                     break
                 else:
                     continue
@@ -274,55 +342,55 @@ class CurlSession:
         output_headers = CaseInsensitiveDict()
 
         curl = pycurl.Curl()
-        curl.setopt(curl.VERBOSE, self.VERBOSE)
-        curl.setopt(curl.URL, url)
+        curl.setopt(pycurl.VERBOSE, self.VERBOSE)
+        curl.setopt(pycurl.URL, url)
         if headers:
-            curl.setopt(curl.HTTPHEADER, headers_to_list(headers))
-        curl.setopt(curl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT * 1000)
-        curl.setopt(curl.BUFFERSIZE, self.BUFFER_SIZE_BYTES)
-        curl.setopt(curl.NOSIGNAL, self.NO_SIGNAL)
-        curl.setopt(curl.CAINFO, certifi.where())
-        curl.setopt(curl.WRITEDATA, output)
+            curl.setopt(pycurl.HTTPHEADER, headers_to_list(headers))
+        curl.setopt(pycurl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT * 1000)
+        curl.setopt(pycurl.BUFFERSIZE, self.BUFFER_SIZE_BYTES)
+        curl.setopt(pycurl.NOSIGNAL, self.NO_SIGNAL)
+        curl.setopt(pycurl.CAINFO, certifi.where())
+        curl.setopt(pycurl.WRITEDATA, output)
         if method == 'head':
-            curl.setopt(curl.NOBODY, True)
+            curl.setopt(pycurl.NOBODY, True)
         elif method == 'post':
-            curl.setopt(curl.POST, 1)
+            curl.setopt(pycurl.POST, 1)
             data = data or BytesIO()
-            curl.setopt(curl.READDATA, data)
+            curl.setopt(pycurl.READDATA, data)
             content_length = data.length if isinstance(data, ReadingStreamWithProgress) else len(
                 data.getvalue()
             )
-            curl.setopt(curl.POSTFIELDSIZE, content_length)
-        curl.setopt(curl.TIMEOUT_MS, timeout * 1000)
-        curl.setopt(curl.HEADERFUNCTION, partial(read_headers, output=output_headers))
+            curl.setopt(pycurl.POSTFIELDSIZE, content_length)
+        curl.setopt(pycurl.TIMEOUT_MS, timeout * 1000)
+        curl.setopt(pycurl.HEADERFUNCTION, partial(read_headers, output=output_headers))
         if any(
             isinstance(adapter, NotDecompressingHTTPAdapter)
             for adapter in self.adapters.adapters.values()
         ):
-            curl.setopt(curl.HTTP_CONTENT_DECODING, False)
+            curl.setopt(pycurl.HTTP_CONTENT_DECODING, False)
         else:
-            curl.setopt(curl.HTTP_CONTENT_DECODING, True)
-            curl.setopt(curl.ACCEPT_ENCODING, '')
+            curl.setopt(pycurl.HTTP_CONTENT_DECODING, True)
+            curl.setopt(pycurl.ACCEPT_ENCODING, '')
+
+        streamer = CurlStreamer(
+            curl,
+            self.manager,
+            output,
+            output_headers,
+            timeout_seconds=timeout,
+        )
 
         if stream:
-            # Waiting for the first write content event to ensure that
-            # status code and the headers are ready.
-            self.manager.add_curl(curl, output.first_write_event.is_set)
+            self.manager.add_curl(streamer)
         else:
-            curl.perform()
-
-        status_code = curl.getinfo(curl.RESPONSE_CODE)
-
-        if not stream:
-            curl.close()
+            streamer.run_blocking()
 
         return CurlResponse(
-            manager=stream and self.manager,
-            curl=curl,
-            status_code=status_code,
-            headers=output_headers,
-            stream=output,
-            request=CurlRequest(url=url, headers=headers),
+            streamer=streamer,
+            request=CurlRequest(
+                url=url,
+                headers=CaseInsensitiveDict(headers) if headers else CaseInsensitiveDict(),
+            ),
         )
 
     head = partialmethod(request, method='head')

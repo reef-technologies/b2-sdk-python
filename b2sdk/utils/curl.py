@@ -7,21 +7,6 @@
 # License https://www.backblaze.com/using_b2_code.html
 #
 ######################################################################
-"""
-CURL flow:
-
-A single Curl object handles a single request.
-These requests can be added to CurlMulti and polled together.
-
-The idea is:
-- Have a single CurlMulti object for all requests.
-- Each new Curl is added to it (even across threads).
-- Each is streaming data to StreamedBuffer.
-- Whenever any of these try to iterate content,
-  we just check whether there's more data for any of them.
-- If they finished (messages from CurlMulti say so), we're leaving a flag.
-"""
-
 import collections
 import email.parser
 import threading
@@ -96,7 +81,7 @@ class StreamedBytes:
             if len(self.deque) == 0:
                 return result
 
-            while 1:
+            while True:
                 entry = self.deque.popleft()
                 new_len_result = len(result) + len(entry)
 
@@ -149,6 +134,13 @@ class HeaderReader:
 
 @dataclass
 class CurlStreamer:
+    """
+    Simple Curl object wrapper.
+
+    Manages downloading on demand of headers and content. Can also be used in blocking mode.
+    In streaming mode CurlManager is invoked to ensure that updates are provided.
+    """
+
     curl: pycurl.Curl
     manager: 'CurlManager'
     output: StreamedBytes
@@ -171,7 +163,9 @@ class CurlStreamer:
 
     def _get_and_cache_status_code(self) -> int:
         if self._status_code is None:
-            self._status_code = self.curl.getinfo(pycurl.RESPONSE_CODE)
+            # This lock is required to ensure that we're not during "perform" operation.
+            with self.manager.perform_lock:
+                self._status_code = self.curl.getinfo(pycurl.RESPONSE_CODE)
         return self._status_code
 
     @property
@@ -193,6 +187,10 @@ class CurlStreamer:
         self.curl.perform()
         self.close()
 
+    @property
+    def is_reading_done(self) -> bool:
+        return self.done.is_set() and self.output.is_empty()
+
     def close(self) -> None:
         # We won't be able to reclaim the status code once we release the object.
         self._get_and_cache_status_code()
@@ -200,25 +198,46 @@ class CurlStreamer:
         self.curl.close()
         self.done.set()
 
-    @property
-    def is_reading_done(self) -> bool:
-        return self.done.is_set() and self.output.is_empty()
-
 
 class CurlManager:
+    """
+    Main manager of all the CurlMulti operations.
+
+    Contains CurlMulti, gathers all simple Curl objects,
+    manages their processing and informs them that they are finished.
+
+    It contains two locks:
+    - run_lock – lock that ensures that only a single run_iteration is handled at the given time.
+    - perform_lock – lock that protects perform operation and all operations that are exclusive to it.
+                 This includes add/remove_handler from CurlMulti and getinfo from Curl.
+
+    Whenever an operation with curl is to be made, e.g. headers fetching or content iteration,
+    one should first invoke `run_iteration` to ensure that curl process progresses with all the updates
+    from the network.
+
+    It is designed with thread safety but without requirement of using any threads.
+
+    By default, multiplexing is enabled. https://curl.se/libcurl/c/CURLMOPT_PIPELINING.html
+    """
+
     SELECT_SLEEP_SECONDS = 1.0
     ACQUIRE_SLEEP_SECONDS = 0.1
 
     def __init__(self):
         self.multi = pycurl.CurlMulti()
-        self.lock = threading.Lock()
+        self.multi.setopt(pycurl.M_PIPELINING, pycurl.PIPE_MULTIPLEX | pycurl.PIPE_HTTP1)
+
         self.mapping: dict[pycurl.Curl, CurlStreamer] = {}
+
+        # Re-entrant, as it's possible that Curl will try to do
+        # `getinfo` during CurlStreamer.close from the same thread.
+        self.perform_lock = threading.RLock()
 
         self.run_lock = threading.Lock()
 
     def add_curl(self, streamer: CurlStreamer) -> None:
         # Block, so that no-one can iterate over curls while we're waiting for the headers.
-        with self.lock:
+        with self.perform_lock:
             self.mapping[streamer.curl] = streamer
             self.multi.add_handle(streamer.curl)
             # Running first "perform" ensures that this curl is taken into account.
@@ -242,14 +261,19 @@ class CurlManager:
         if result == 0:
             return
 
-        status, _count = self.multi.perform()
-        # TODO: add status checking.
+        with self.perform_lock:
+            # Perform also have to be inside this lock to ensure that neither `add_handler`
+            # nor `Curl.getinfo` is called during this operation.
+            status, _count = self.multi.perform()
+            # Usual culprits here could be "out of memory" and "internal error",
+            # we can't really do anything about either of them.
+            assert status == pycurl.E_MULTI_OK, status
 
-        with self.lock:
             # Check whether any of the curls finished, in one way or another.
             remaining_messages_count, successful_curls, failed_curls = self.multi.info_read()
             # Remove each finished curl from our multi object and close it.
             finished_curls = successful_curls + [elem[0] for elem in failed_curls]
+            # TODO: additional handling for failed curls.
             for curl in finished_curls:
                 self.multi.remove_handle(curl)
                 streamer = self.mapping[curl]
@@ -258,6 +282,17 @@ class CurlManager:
 
 @dataclass
 class CurlResponse:
+    """
+    Analog of requests.Response
+
+    Provides basic interface for interaction with HTTP.
+
+    Note that in streaming mode it can be completely "empty",
+    that is neither status code nor headers are downloaded initially.
+    This means that first call to `status_code`, `headers` or
+    `iter_content` (through e.g. `content`) will start the actual operations.
+    """
+
     streamer: CurlStreamer
     request: CurlRequest
 

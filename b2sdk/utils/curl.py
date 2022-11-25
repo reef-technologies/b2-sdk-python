@@ -299,6 +299,10 @@ class CurlResponse:
     content_cache: Optional[bytes] = None
 
     @property
+    def url(self) -> str:
+        return self.request.url
+
+    @property
     def status_code(self) -> int:
         return self.streamer.status_code
 

@@ -6,12 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+* Authorizing a key for a single bucket ensures that this bucket is cached
+
+### Infrastructure
+* Additional tests for listing files/versions
+
+## [1.18.0] - 2022-09-20
+
+### Added
+* Logging performance summary of parallel download threads
+* Add `max_download_streams_per_file` parameter to B2Api class and underlying structures
+* Add `is_file_lock_enabled` parameter to `Bucket.update()` and related methods
+
 ### Fixed
 * Replace `ReplicationScanResult.source_has_sse_c_enabled` with `source_encryption_mode`
+* Fix `B2Api.get_key()` and `RawSimulator.delete_key()`
+* Fix calling `CopySizeTooBig` exception
 
 ### Infrastructure
 * Fix nox's deprecated `session.install()` calls
 * Re-enable changelog validation in CI
+* StatsCollector contains context managers for gathering performance statistics
 
 ## [1.17.3] - 2022-07-15
 
@@ -384,7 +400,8 @@ has changed.
 ### Added
 Initial official release of SDK as a separate package (until now it was a part of B2 CLI)
 
-[Unreleased]: https://github.com/Backblaze/b2-sdk-python/compare/v1.17.3...HEAD
+[Unreleased]: https://github.com/Backblaze/b2-sdk-python/compare/v1.18.0...HEAD
+[1.18.0]: https://github.com/Backblaze/b2-sdk-python/compare/v1.17.3...v1.18.0
 [1.17.3]: https://github.com/Backblaze/b2-sdk-python/compare/v1.17.2...v1.17.3
 [1.17.2]: https://github.com/Backblaze/b2-sdk-python/compare/v1.17.1...v1.17.2
 [1.17.1]: https://github.com/Backblaze/b2-sdk-python/compare/v1.17.0...v1.17.1

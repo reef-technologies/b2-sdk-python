@@ -183,6 +183,10 @@ class ParallelDownloader(AbstractDownloader):
             streams.append(stream)
 
         futures.wait(streams)
+        # DEBUG START
+        for future in streams:
+            future.result(timeout=0.1)
+        # DEBUG END
 
 
 class WriterThread(threading.Thread):

@@ -98,6 +98,9 @@ jobs:
             http-backend: "B2_USE_LIBCURL"
           - os: "macos-latest"
             http-backend: "B2_USE_LIBCURL"
+          - os: "ubuntu-latest"
+            python-version: "pypy-3.8"
+            http-backend: "B2_USE_LIBCURL"
     steps:
       - uses: actions/checkout@v2
         with:

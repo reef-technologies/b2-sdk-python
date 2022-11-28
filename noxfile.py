@@ -121,7 +121,7 @@ def lint(session):
 @nox.session(python=PYTHON_VERSIONS)
 def unit(session):
     """Run unit tests."""
-    install_myself(session)
+    install_myself(session, EXTRAS)
     session.run('pip', 'install', *REQUIREMENTS_TEST)
     args = ['--doctest-modules', '-p', 'pyfakefs', '-n', 'auto']
     if not SKIP_COVERAGE:
@@ -141,7 +141,7 @@ def unit(session):
 @nox.session(python=PYTHON_VERSIONS)
 def integration(session):
     """Run integration tests."""
-    install_myself(session)
+    install_myself(session, EXTRAS)
     session.run('pip', 'install', *REQUIREMENTS_TEST)
     session.run('pytest', '-s', *session.posargs, 'test/integration')
 

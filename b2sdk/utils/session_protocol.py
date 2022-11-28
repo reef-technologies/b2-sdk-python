@@ -16,7 +16,7 @@ from typing import (
 )
 
 
-class ProtocolInfo(NamedTuple):
+class SessionProtocolInfo(NamedTuple):
     module_name: str
     class_name: str
     env_variable: str
@@ -28,8 +28,8 @@ class ProtocolInfo(NamedTuple):
 # That, if set, ensures that only this particular protocol
 # is taken into account.
 FROM_IMPORT_ENV_LIST = [
-    ProtocolInfo('b2sdk.utils.curl', 'CurlSession', 'B2_USE_LIBCURL'),
-    ProtocolInfo('requests', 'Session', 'B2_USE_REQUESTS'),
+    SessionProtocolInfo('b2sdk.utils.curl', 'CurlSession', 'B2_USE_LIBCURL'),
+    SessionProtocolInfo('requests', 'Session', 'B2_USE_REQUESTS'),
 ]
 
 

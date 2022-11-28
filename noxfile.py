@@ -41,6 +41,7 @@ REQUIREMENTS_TEST = [
     'pytest-xdist==2.5.0',
 ]
 REQUIREMENTS_BUILD = ['setuptools>=20.2']
+# By default, we're requiring to check the curl mode.
 EXTRAS = ['curl']
 
 nox.options.reuse_existing_virtualenvs = True
@@ -52,6 +53,11 @@ nox.options.sessions = [
 # In CI, use Python interpreter provided by GitHub Actions
 if CI:
     nox.options.force_venv_backend = 'none'
+    # Also, disable curl installation if not in CURL mode.
+    if os.environ.get('B2_USE_LIBCURL'):
+        EXTRAS = ['curl']
+    else:
+        EXTRAS = []
 
 
 def install_myself(session, extras=None):
@@ -115,7 +121,7 @@ def lint(session):
 @nox.session(python=PYTHON_VERSIONS)
 def unit(session):
     """Run unit tests."""
-    install_myself(session, EXTRAS)
+    install_myself(session)
     session.run('pip', 'install', *REQUIREMENTS_TEST)
     args = ['--doctest-modules', '-p', 'pyfakefs', '-n', 'auto']
     if not SKIP_COVERAGE:
@@ -135,7 +141,7 @@ def unit(session):
 @nox.session(python=PYTHON_VERSIONS)
 def integration(session):
     """Run integration tests."""
-    install_myself(session, EXTRAS)
+    install_myself(session)
     session.run('pip', 'install', *REQUIREMENTS_TEST)
     session.run('pytest', '-s', *session.posargs, 'test/integration')
 

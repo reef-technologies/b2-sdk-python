@@ -51,7 +51,15 @@ class StreamWrapper(io.IOBase):
         """
         Flush the stream.
         """
-        self.stream.flush()
+        # By default, the io.IOBase finalizer performs a flush and then closes a stream.
+        # Since this class is not expected to manage lifetime of a provided stream object,
+        # when the `__del__` is called underlying stream can already be closed. That lead
+        # to a warning being printed in some cases.
+        # Since this class is expected to behave like a stream, it's better to provide
+        # this check than to re-implement required features (context manager as of
+        # the moment of writing this).
+        if not self.stream.closed:
+            self.stream.flush()
 
     def readable(self):
         return self.stream.readable()

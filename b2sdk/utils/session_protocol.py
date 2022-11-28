@@ -58,7 +58,7 @@ class Sessions(NamedTuple):
     disabled: Dict[str, str]
 
 
-@functools.lru_cache
+@functools.lru_cache(maxsize=None)
 def get_session_protocols(enable_env_checking: bool = True) -> Sessions:
     """
     Tries to import all available session protocols. Returns a list ordered from "the best"

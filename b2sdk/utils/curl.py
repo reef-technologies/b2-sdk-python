@@ -209,7 +209,7 @@ class CurlManager:
     It contains two locks:
     - run_lock – lock that ensures that only a single run_iteration is handled at the given time.
     - perform_lock – lock that protects perform operation and all operations that are exclusive to it.
-                 This includes add/remove_handler from CurlMulti and getinfo from Curl.
+                 This includes add/remove_handler/select from CurlMulti and getinfo from Curl.
 
     Whenever an operation with curl is to be made, e.g. headers fetching or content iteration,
     one should first invoke `run_iteration` to ensure that curl process progresses with all the updates
@@ -220,7 +220,6 @@ class CurlManager:
     By default, multiplexing is enabled. https://curl.se/libcurl/c/CURLMOPT_PIPELINING.html
     """
 
-    SELECT_SLEEP_SECONDS = 1.0
     ACQUIRE_SLEEP_SECONDS = 0.1
 
     def __init__(self):
@@ -247,8 +246,7 @@ class CurlManager:
     def run_iteration(self) -> None:
         # Allow only one thread at a time to run iteration. Truth is, if you're waiting
         # for `run_iteration` it's possible that your curl already has something to show.
-        # And if it's hung on select, it means that the network is having issues, so
-        # no need to go there anyway.
+        # This is a separate lock than the perform lock, as the latter has to be re-entrant.
         if not self.run_lock.acquire(timeout=self.ACQUIRE_SLEEP_SECONDS):
             return
         try:
@@ -257,10 +255,9 @@ class CurlManager:
             self.run_lock.release()
 
     def _run_iteration(self) -> None:
-        result = self.multi.select(self.SELECT_SLEEP_SECONDS)
-        if result == 0:
-            return
-
+        # We could use select here for cases when there is nothing to do (no curls registered)
+        # but this provides us with no actual gain. `run_iteration` is called by any thread
+        # that wants data, so naturally there are operations awaiting data.
         with self.perform_lock:
             # Perform also have to be inside this lock to ensure that neither `add_handler`
             # nor `Curl.getinfo` is called during this operation.

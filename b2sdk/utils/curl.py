@@ -14,7 +14,7 @@ import time
 from dataclasses import dataclass, field
 from functools import partialmethod
 from io import BytesIO
-from typing import Dict, Iterator, List, Literal, Optional, Union
+from typing import Dict, Iterator, List, Optional, Union
 
 import certifi
 import pycurl
@@ -366,7 +366,7 @@ class CurlSession:
     def request(
         self,
         url: str,
-        method: Literal['get', 'post'],
+        method: str,
         headers: Optional[Dict[str, Union[str, bytes]]] = None,
         data: Optional[BytesIO] = None,
         timeout: int = TIMEOUT,

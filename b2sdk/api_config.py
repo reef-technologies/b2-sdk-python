@@ -13,9 +13,9 @@ from typing import Optional, Callable, Type
 from .raw_api import AbstractRawApi, B2RawHTTPApi
 from .utils.session_protocol import SessionProtocol, get_session_protocols
 
-SESSION_PROTOCOLS, SESSION_PROTOCOL_ERRORS = get_session_protocols()
-assert SESSION_PROTOCOLS, f'There are no session protocols available. Errors: {SESSION_PROTOCOL_ERRORS}'
-DEFAULT_SESSION = SESSION_PROTOCOLS[0]
+SESSIONS = get_session_protocols()
+assert SESSIONS.enabled, f'There are no session protocols available. Errors: {SESSIONS.disabled}'
+DEFAULT_SESSION = SESSIONS.enabled[0]
 
 
 class B2HttpApiConfig:

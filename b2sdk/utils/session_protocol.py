@@ -51,17 +51,22 @@ class SessionProtocol:
         pass
 
 
+class Sessions(NamedTuple):
+    enabled: list[Type[SessionProtocol]]
+    disabled: dict[str, str]
+
+
 @functools.cache
-def get_session_protocols(enable_env_checking: bool = True) -> tuple[list[Type[SessionProtocol]], dict[str, str]]:
+def get_session_protocols(enable_env_checking: bool = True) -> Sessions:
     """
     Tries to import all available session protocols. Returns a list ordered from "the best"
     to "the worst" and a dictionary with names of protocols that failed with a reason.
     """
-    protocols = []
+    enabled_sessions = []
     errors = {}
 
     # List of protocols that we should consider.
-    enabled_protocols = set()
+    enabled_env_variables = set()
 
     if enable_env_checking:
         for protocol_info in FROM_IMPORT_ENV_LIST:
@@ -70,23 +75,24 @@ def get_session_protocols(enable_env_checking: bool = True) -> tuple[list[Type[S
             is_env_set = env_value is not None and len(env_value) > 0
             if not is_env_set:
                 continue
-            enabled_protocols.add(protocol_info.env_variable)
+            enabled_env_variables.add(protocol_info.env_variable)
 
     for protocol_info in FROM_IMPORT_ENV_LIST:
         module_class = f'{protocol_info.module_name}.{protocol_info.class_name}'
 
-        if len(enabled_protocols) > 0 and protocol_info not in enabled_protocols:
-            errors[module_class] = f'Module is not on enabled protocols list set via environmental variables.'
+        if len(enabled_env_variables) > 0 and protocol_info not in enabled_env_variables:
+            errors[module_class] = \
+                'Module is not on enabled sessions list set via environmental variables.'
             continue
 
         try:
             module = importlib.import_module(protocol_info.module_name)
             protocol = getattr(module, protocol_info.class_name)
-            protocols.append(protocol)
+            enabled_sessions.append(protocol)
         except (ImportError, AttributeError) as error:
             errors[module_class] = str(error)
             # This protocol had environmental variable set to enable it, and we failed to load the library.
-            assert protocol_info.env_variable not in enabled_protocols, \
+            assert protocol_info.env_variable not in enabled_env_variables, \
                 f'Unable to enable {protocol_info.env_variable}: {str(error)}'
 
-    return protocols, errors
+    return Sessions(enabled_sessions, errors)

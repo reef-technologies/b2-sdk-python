@@ -84,7 +84,7 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "pypy-3.7", "pypy-3.8"]
-        http-protocol: ["B2_USE_LIBCURL", "B2_USE_REQUESTS"]
+        http-backend: ["B2_USE_LIBCURL", "B2_USE_REQUESTS"]
         exclude:
           - os: "macos-latest"
             python-version: "pypy-3.7"
@@ -106,18 +106,18 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade nox pip setuptools
       - name: Install libcurl on Ubuntu
-        if: ${{ matrix.os == "ubuntu-latest" && matrix.http-version == "B2_USE_LIBCURL" }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.http-backend == 'B2_USE_LIBCURL' }}
         run: apt install libcurl4-openssl-dev
       - name: Run unit tests
         run: nox -vs unit
         env:
           SKIP_COVERAGE: ${{ startsWith(matrix.python-version, env.SKIP_COVERAGE_PYTHON_VERSION_PREFIX) }}
-          ${{ matrix.http-protocol}}: "1"
+          ${{ matrix.http-backend}}: "1"
       - name: Run integration tests
         if: ${{ env.B2_TEST_APPLICATION_KEY != '' && env.B2_TEST_APPLICATION_KEY_ID != '' }}
         run: nox -vs integration -- --dont-cleanup-old-buckets
         env:
-          ${{ matrix.http-protocol}}: "1"
+          ${{ matrix.http-backend}}: "1"
   doc:
     needs: build
     runs-on: ubuntu-latest

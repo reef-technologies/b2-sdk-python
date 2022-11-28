@@ -94,6 +94,10 @@ jobs:
             python-version: "pypy-3.8"
           - os: "windows-latest"
             python-version: "pypy-3.8"
+          - os: "windows-latest"
+            http-backend: "B2_USE_LIBCURL"
+          - os: "macos-latest"
+            http-backend: "B2_USE_LIBCURL"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -107,7 +111,7 @@ jobs:
         run: python -m pip install --upgrade nox pip setuptools
       - name: Install libcurl on Ubuntu
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.http-backend == 'B2_USE_LIBCURL' }}
-        run: apt install libcurl4-openssl-dev
+        run: sudo apt-get install -y libcurl4-openssl-dev
       - name: Run unit tests
         run: nox -vs unit
         env:

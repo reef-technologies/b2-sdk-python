@@ -25,10 +25,11 @@ class SessionProtocolInfo(NamedTuple):
 
 
 # This list is to be ordered from the best to the worst.
-# It contains pairs "module" "class" that is to be imported.
-# Third element is name of the environmental variable
-# That, if set, ensures that only this particular protocol
-# is taken into account.
+# If environmental variable is set, only these libraries we try to load.
+# That is, if multiple variables are set, the one from the top of the list
+# will be actually used.
+# Also, if it's impossible to import a library that was set as required,
+# it's an error.
 FROM_IMPORT_ENV_LIST = [
     SessionProtocolInfo('b2sdk.utils.curl', 'CurlSession', 'B2_USE_LIBCURL'),
     SessionProtocolInfo('requests', 'Session', 'B2_USE_REQUESTS'),

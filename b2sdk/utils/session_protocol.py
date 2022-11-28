@@ -11,6 +11,8 @@ import functools
 import importlib
 import os
 from typing import (
+    Dict,
+    List,
     NamedTuple,
     Type,
 )
@@ -52,8 +54,8 @@ class SessionProtocol:
 
 
 class Sessions(NamedTuple):
-    enabled: list[Type[SessionProtocol]]
-    disabled: dict[str, str]
+    enabled: List[Type[SessionProtocol]]
+    disabled: Dict[str, str]
 
 
 @functools.cache
@@ -80,7 +82,8 @@ def get_session_protocols(enable_env_checking: bool = True) -> Sessions:
     for protocol_info in FROM_IMPORT_ENV_LIST:
         module_class = f'{protocol_info.module_name}.{protocol_info.class_name}'
 
-        if len(enabled_env_variables) > 0 and protocol_info not in enabled_env_variables:
+        if len(enabled_env_variables) > 0 and \
+            protocol_info.env_variable not in enabled_env_variables:
             errors[module_class] = \
                 'Module is not on enabled sessions list set via environmental variables.'
             continue

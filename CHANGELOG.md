@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Infrastructure
 * Additional tests for listing files/versions
+* Exception raised by authorized key for a single bucket with non-existing bucket now informs about bucket id
 
 ## [1.18.0] - 2022-09-20
 

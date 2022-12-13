@@ -7,6 +7,38 @@
 # License https://www.backblaze.com/using_b2_code.html
 #
 ######################################################################
+
+"""
+cURL – how does it work
+
+cURL provides a simple, low level interface pycurl.Curl that represents a single request.
+This request can be awaited on (blocking mode) or bunched in a group to be done in parallel.
+
+cURL also provides bunch-interface, pycurl.CurlMulti. It uses `select`-like approach to determine
+whether there's data waiting for any of the Curl object. Everything can be done in a single thread.
+
+From our perspective, we're wrapping these classes into our own abstractions. We have CurlManager
+that is thread-safe and handles everything Curl-object related, including informing them when
+they are finished. We have CurlStreamer, which wraps simple Curl with a more recognisable interface.
+
+`requests` always provide us with headers and status code as soon as available. This is not
+the case here – when a Curl object is streamed we're receiving all the bytes in a raw form.
+Not only content, but also headers and status line are going through our hands. We need to ensure
+that we e.g. fetch the status code before the Curl object is closed (after which the underlying
+C structure is lost, and we're just holding an empty shell).
+
+For this reason, StreamedBytes are also provided. It's a buffer that grows as data is provided
+and shrinks as it's removed, but also informs whenever first write was performed. This allows
+us to determine whether all the headers are actually downloaded and available.
+
+In short:
+- CurlStreamer handles a single query and provides means of handling headers/status code/data fetching
+- StreamedBytes provides us with a buffer behaving as if it has both reading and writing offsets
+- CurlManager is ensuring that multiple streamed queries get their updates
+- Everything is done without another thread – CurlStreamer will ask CurlManager to poll
+  for new data whenever it'll be asked for data, headers or a status code
+"""
+
 import collections
 import email.parser
 import threading
@@ -57,7 +89,9 @@ class StreamedBytes:
         with self.lock:
             return len(self.deque) == 0
 
-    def write(self, buffer) -> int:
+    def write(self, buffer: bytes) -> int:
+        # pycurl.Curl.setopt with pycurl.WRITEDATA will use a `write` method of provided object.
+        # Thus, this method must be named `write`.
         with self.lock:
             if len(buffer) == 0:
                 return 0
@@ -137,8 +171,15 @@ class CurlStreamer:
     """
     Simple Curl object wrapper.
 
-    Manages downloading on demand of headers and content. Can also be used in blocking mode.
-    In streaming mode CurlManager is invoked to ensure that updates are provided.
+    It provides a friendly interface without worrying about "how much data was provided".
+
+    Note that it can be used without `CurlManager`, `CurlStreamer.run_blocking`
+    will perform the request in a "blocking" manner, providing all the data
+    (including headers and status code) at once.
+
+    In case of streamed mode, calling either `headers` or `status_code` will block execution
+    until enough data was downloaded. `CurlManager` will be called in a loop until either
+    we get to the content section of the HTTP response or the whole query was downloaded.
     """
 
     curl: pycurl.Curl
@@ -179,7 +220,7 @@ class CurlStreamer:
         self._headers.parse_headers()
         return self._headers.headers
 
-    def read(self, count: int) -> bytes:
+    def fetch_data(self, count: int) -> bytes:
         self.manager.run_iteration()
         return self.output.read(count)
 
@@ -201,7 +242,7 @@ class CurlStreamer:
 
 class CurlManager:
     """
-    Main manager of all the CurlMulti operations.
+    Wrapper for CurlMulti operations.
 
     Contains CurlMulti, gathers all simple Curl objects,
     manages their processing and informs them that they are finished.
@@ -215,7 +256,7 @@ class CurlManager:
     one should first invoke `run_iteration` to ensure that curl process progresses with all the updates
     from the network.
 
-    It is designed with thread safety but without requirement of using any threads.
+    It is thread safe.
 
     By default, multiplexing is enabled. https://curl.se/libcurl/c/CURLMOPT_PIPELINING.html
     """
@@ -319,7 +360,7 @@ class CurlResponse:
 
     def iter_content(self, chunk_size: int) -> Iterator[bytes]:
         while True:
-            data = self.streamer.read(chunk_size)
+            data = self.streamer.fetch_data(chunk_size)
             if not data:
                 if self.streamer.is_reading_done:
                     break
@@ -383,6 +424,7 @@ class CurlSession:
         curl.setopt(pycurl.BUFFERSIZE, self.BUFFER_SIZE_BYTES)
         curl.setopt(pycurl.NOSIGNAL, self.NO_SIGNAL)
         curl.setopt(pycurl.CAINFO, certifi.where())
+        # It will use `write` method of provided object.
         curl.setopt(pycurl.WRITEDATA, output)
         if method == 'head':
             curl.setopt(pycurl.NOBODY, True)

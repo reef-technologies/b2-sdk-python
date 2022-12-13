@@ -17,6 +17,8 @@ from typing import (
     Type,
 )
 
+from b2sdk.utils import str_to_bool
+
 
 class SessionProtocolInfo(NamedTuple):
     module_name: str
@@ -73,9 +75,7 @@ def get_session_protocols(enable_env_checking: bool = True) -> Sessions:
 
     if enable_env_checking:
         for protocol_info in FROM_IMPORT_ENV_LIST:
-            env_value = os.getenv(protocol_info.env_variable)
-            # We assume that any value assigned to these variables is enough. Only empty string and None are rejected.
-            is_env_set = env_value is not None and len(env_value) > 0
+            is_env_set = str_to_bool(os.getenv(protocol_info.env_variable, default=''))
             if not is_env_set:
                 continue
             enabled_env_variables.add(protocol_info.env_variable)

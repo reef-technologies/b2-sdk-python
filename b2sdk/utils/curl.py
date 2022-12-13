@@ -62,7 +62,7 @@ class StreamedBytes:
             if len(buffer) == 0:
                 return 0
 
-            # Whole buffer is stored as deque is implemented as double-linked list.
+            # Whole buffer is stored in a deque (double-linked list).
             # This way we have fewer, (hopefully) larger elements.
             self.deque.append(buffer)
 

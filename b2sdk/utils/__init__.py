@@ -436,3 +436,9 @@ def current_time_millis():
 assert disable_trace
 assert limit_trace_arguments
 assert trace_call
+
+
+def str_to_bool(in_str: str) -> bool:
+    in_str_lower = in_str.lower()
+    yes_values = {'y', 'yes', '1', 't', 'true'}
+    return in_str_lower in yes_values

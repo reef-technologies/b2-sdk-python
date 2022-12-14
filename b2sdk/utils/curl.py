@@ -7,7 +7,6 @@
 # License https://www.backblaze.com/using_b2_code.html
 #
 ######################################################################
-
 """
 cURL – how does it work
 
@@ -43,6 +42,7 @@ import collections
 import email.parser
 import threading
 import time
+from contextlib import ExitStack
 from dataclasses import dataclass, field
 from functools import partialmethod
 from io import BytesIO
@@ -78,27 +78,40 @@ class StreamedBytes:
     and the data read is lost (memory is released).
     """
 
-    def __init__(self):
+    def __init__(self, owner: 'StreamedBytesFactory'):
         # We store our data in chunks in a deque. Whenever data is requested,
         # we remove them from deque up to the size, and put back the reminder.
         self.deque = collections.deque()
         self.lock = threading.Lock()
         self.first_write_event = threading.Event()
+        self.length = 0
+        self.owner = owner
+        self.is_marked_for_release = threading.Event()
 
     def is_empty(self) -> bool:
         with self.lock:
             return len(self.deque) == 0
 
+    def mark_for_release(self) -> None:
+        self.is_marked_for_release.set()
+
+    def __len__(self):
+        return self.length
+
     def write(self, buffer: bytes) -> int:
         # pycurl.Curl.setopt with pycurl.WRITEDATA will use a `write` method of provided object.
         # Thus, this method must be named `write`.
         with self.lock:
+            assert not self.is_marked_for_release.is_set(), \
+                'Trying to write to a buffer marked for release'
+
             if len(buffer) == 0:
                 return 0
 
             # Whole buffer is stored in a deque (double-linked list).
             # This way we have fewer, (hopefully) larger elements.
             self.deque.append(buffer)
+            self.length += len(buffer)
 
             # If we haven't informed everyone yet, it's the time. We've received
             # first buffer of data. This is used to indicate that all the headers
@@ -109,7 +122,11 @@ class StreamedBytes:
             return len(buffer)
 
     def read(self, size: Optional[int] = None) -> bytes:
-        with self.lock:
+        stack = ExitStack()
+        stack.enter_context(self.lock)
+        stack.push(self._check_and_release_buffer)
+
+        with stack:
             result = bytearray()
 
             if len(self.deque) == 0:
@@ -132,7 +149,35 @@ class StreamedBytes:
                 if (size != -1 and len(result) == size) or len(self.deque) == 0:
                     break
 
+            self.length -= len(result)
             return result
+
+    def _check_and_release_buffer(self, *_args) -> bool:
+        if self.is_marked_for_release.is_set() and self.length == 0:
+            self.owner.release_buffer(self)
+            self.is_marked_for_release.clear()
+        return True
+
+
+class StreamedBytesFactory:
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.buffers = []
+
+    def get_buffer(self) -> StreamedBytes:
+        with self.lock:
+            buffer = StreamedBytes(owner=self)
+            self.buffers.append(buffer)
+            return buffer
+
+    def release_buffer(self, buffer: StreamedBytes) -> None:
+        with self.lock:
+            assert len(buffer) == 0, 'Non-empty buffer released'
+            self.buffers.remove(buffer)
+
+    def get_total_buffer_memory(self) -> int:
+        with self.lock:
+            return sum([len(entry) for entry in self.buffers])
 
 
 class HeaderReader:
@@ -189,14 +234,13 @@ class CurlStreamer:
 
     _status_code: Optional[int] = None
     done: threading.Event = field(default_factory=threading.Event)
-    timeout_seconds: float = 5.0
+    timeout_seconds: float = 30.0
 
     def _wait_for_headers(self) -> None:
         start_time = time.time()
         # Stop if we're either done or had any content written.
         while not self.done.is_set() and not self.output.first_write_event.is_set():
-            # `run_iteration` either waits to acquire lock or
-            # waits on select, so this can be counted as a form of sleep.
+            # `run_iteration` either waits to acquire lock so this can be counted as a form of sleep.
             self.manager.run_iteration()
 
             if (time.time() - start_time) > self.timeout_seconds:
@@ -237,6 +281,8 @@ class CurlStreamer:
         self._get_and_cache_status_code()
         self._headers.parse_headers()
         self.curl.close()
+        # When reading will finish from this buffer, we can release it safely.
+        self.output.mark_for_release()
         self.done.set()
 
 
@@ -263,11 +309,14 @@ class CurlManager:
 
     ACQUIRE_SLEEP_SECONDS = 0.1
 
-    def __init__(self):
+    def __init__(self, max_used_memory_bytes: int):
         self.multi = pycurl.CurlMulti()
-        self.multi.setopt(pycurl.M_PIPELINING, pycurl.PIPE_MULTIPLEX | pycurl.PIPE_HTTP1)
+        self.multi.setopt(pycurl.M_PIPELINING, pycurl.PIPE_MULTIPLEX | pycurl.PIPE_HTTP1)  # noqa
 
         self.mapping: dict[pycurl.Curl, CurlStreamer] = {}
+
+        self.buffers_factory = StreamedBytesFactory()
+        self.max_used_memory_bytes = max_used_memory_bytes
 
         # Re-entrant, as it's possible that Curl will try to do
         # `getinfo` during CurlStreamer.close from the same thread.
@@ -300,6 +349,11 @@ class CurlManager:
         # but this provides us with no actual gain. `run_iteration` is called by any thread
         # that wants data, so naturally there are operations awaiting data.
         with self.perform_lock:
+            # If we already went above our memory limit, we must wait for some queries to finish first.
+            # Note that this memory is only counted for payload – headers and status codes are not added up here.
+            if self.buffers_factory.get_total_buffer_memory() >= self.max_used_memory_bytes:
+                return
+
             # Perform also have to be inside this lock to ensure that neither `add_handler`
             # nor `Curl.getinfo` is called during this operation.
             status, _count = self.multi.perform()
@@ -391,12 +445,13 @@ class CurlSession:
     TIMEOUT = 5
     EXPECT_100_TIMEOUT = 10
     BUFFER_SIZE_BYTES = 10 * 1024 * 1024
+    MAX_DOWNLOAD_MEMORY_SIZE_BYTES = 200 * 1024 * 1024
     VERBOSE = False
     NO_SIGNAL = 0
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa (unused arguments)
         self.adapters = CurlAdapters()
-        self.manager = CurlManager()
+        self.manager = CurlManager(self.MAX_DOWNLOAD_MEMORY_SIZE_BYTES)
 
     def mount(self, scheme, adapter):
         self.adapters.adapters[scheme] = adapter
@@ -412,7 +467,7 @@ class CurlSession:
     ) -> CurlResponse:
         from b2sdk.b2http import NotDecompressingHTTPAdapter
 
-        output = StreamedBytes()
+        output = self.manager.buffers_factory.get_buffer()
         output_headers = HeaderReader()
 
         curl = pycurl.Curl()

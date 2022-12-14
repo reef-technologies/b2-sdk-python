@@ -52,6 +52,7 @@ import pycurl
 from requests.utils import CaseInsensitiveDict
 
 from b2sdk.stream.progress import ReadingStreamWithProgress
+from b2sdk.utils.not_decompresing_http_adapter import NotDecompressingHTTPAdapter
 from b2sdk.utils.streamed_bytes import StreamedBytes, StreamedBytesFactory
 
 
@@ -356,8 +357,6 @@ class CurlSession:
         timeout: int = TIMEOUT,
         stream: bool = False,
     ) -> CurlResponse:
-        from b2sdk.b2http import NotDecompressingHTTPAdapter
-
         output = self.manager.buffers_factory.get_buffer()
         output_headers = HeaderReader()
 

@@ -9,11 +9,14 @@
 ######################################################################
 
 import threading
-import time
 import unittest.mock
 from concurrent.futures import (
     ThreadPoolExecutor,
     wait,
+)
+from typing import (
+    Any,
+    Tuple,
 )
 
 from test.unit.test_base import TestBase
@@ -72,26 +75,43 @@ class TestCurlManager(TestBase):
                 streamer.close.assert_called_once()
 
     def test_at_most_one_iteration_in_parallel(self):
-        # With a very slow runner this could be flaky.
-        event = threading.Event()
+        parallel_factor = 5
+        events = [threading.Event() for _ in range(parallel_factor)]
 
-        def runner(manager):
-            event.wait()
+        def runner(manager, event):
             manager.run_iteration()
+            event.set()
 
-        # Ensure that perform takes some time, so others will actually have a chance to hang on the lock.
-        def waiter():
-            time.sleep(self.manager.ACQUIRE_SLEEP_SECONDS)
+        def waiter() -> Tuple[int, Any]:
+            # If we're the first to get here, we should be blocking everyone else, so
+            # we're just checking whether enough events are set before releasing.
+            # This loop is a hard timeout on the operation.
+            for _ in range(100):
+                count_done = sum([1 for event in events if event.is_set()])
+                if count_done >= (parallel_factor - 1):
+                    break
+
+                unset_events = [event for event in events if not event.is_set()]
+                # It's possible that in the meantime all events were finished.
+                if len(unset_events) > 0:
+                    first_unset_event = unset_events[0]
+                    first_unset_event.wait(self.manager.ACQUIRE_SLEEP_SECONDS)
+            else:
+                raise ValueError
+
+            return pycurl.E_MULTI_OK, None
 
         self.manager.multi.perform.side_effect = waiter
 
-        parallel_factor = 5
         with ThreadPoolExecutor(max_workers=parallel_factor) as pool:
             futures = []
-            for _ in range(parallel_factor):
-                futures.append(pool.submit(runner, self.manager))
+            for idx in range(parallel_factor):
+                futures.append(pool.submit(runner, self.manager, events[idx]))
 
-            event.set()
             wait(futures)
+
+            # Just in case, check for exceptions raised.
+            for future in futures:
+                future.result()
 
             self.manager.multi.perform.assert_called_once()

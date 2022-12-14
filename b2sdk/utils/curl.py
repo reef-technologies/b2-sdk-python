@@ -70,7 +70,7 @@ class CurlRequest:
     headers: CaseInsensitiveDict
 
 
-class HeaderReader:
+class HeadersReader:
     # RFC 2086 Section 4.2 states:
     # HTTP header fields (...) follow the same generic format as that given in Section 3.1 of RFC 822
     #
@@ -120,13 +120,24 @@ class CurlStreamer:
     curl: pycurl.Curl
     manager: 'CurlManager'
     output: StreamedBytes
-    _headers: HeaderReader
+    _headers: HeadersReader
 
     _status_code: Optional[int] = None
     done: threading.Event = field(default_factory=threading.Event)
-    timeout_seconds: float = 30.0
+    timeout_seconds: float = 120.0
 
     def _wait_for_headers(self) -> None:
+        """
+        Function that ensures that all the headers are downloaded,
+        or TimeoutError is raised.
+
+        We know that all the headers are ready from two different sources:
+        - instance can be marked as `done` by `CurlManager`
+        - output buffer can inform that it received any amount of data
+
+        This function performs no parsing, it only ensures that conditions
+        are met and call `CurlManager.run_iteration` until it's done.
+        """
         start_time = time.time()
         # Stop if we're either done or had any content written.
         while not self.done.is_set() and not self.output.first_write_event.is_set():
@@ -140,6 +151,7 @@ class CurlStreamer:
         if self._status_code is None:
             # This lock is required to ensure that we're not during "perform" operation.
             with self.manager.perform_lock:
+                # After curl object is closed we won't be able to fetch it any more.
                 self._status_code = self.curl.getinfo(pycurl.RESPONSE_CODE)
         return self._status_code
 
@@ -155,15 +167,35 @@ class CurlStreamer:
         return self._headers.headers
 
     def fetch_data(self, count: int) -> bytes:
+        """
+        Perform a read from Curl object in streaming mode.
+
+        It also ensures that `CurlManager.run_iteration` is called,
+        so that data is fed to all waiting `CurlStreamer` objects.
+
+        This operation can be delayed by said `CurlManager.run_iteration`, but
+        otherwise it's non-blocking in regard to reading from the output buffer.
+        """
         self.manager.run_iteration()
         return self.output.read(count)
 
     def run_blocking(self) -> None:
+        """
+        Perform a fully blocking HTTP request.
+
+        Use only for small operations, as all data
+        has to be downloaded before it's provided.
+        """
         self.curl.perform()
         self.close()
 
     @property
     def is_reading_done(self) -> bool:
+        """
+        Information whether it's worth to wait for any more data.
+
+        Use with conjunction with `fetch_data` to download whole content.
+        """
         return self.done.is_set() and self.output.is_empty()
 
     def close(self) -> None:
@@ -195,7 +227,10 @@ class CurlManager:
     Note that `run_iteration` can become a no-op if too much data was downloaded and not enough of it
     was ingested.
 
-    It is thread safe.
+    Whenever `output` is set for CurlStreamer, it should be obtained via `CurlManager.buffer_factory.get_buffer`.
+    This way this class can limit the amount of content downloaded and not consumed.
+
+    Whole class is thread safe.
 
     By default, multiplexing is enabled. https://curl.se/libcurl/c/CURLMOPT_PIPELINING.html
     """
@@ -218,17 +253,36 @@ class CurlManager:
         self.run_lock = threading.Lock()
 
     def add_curl(self, streamer: CurlStreamer) -> None:
+        """
+        Add a CurlStreamer for parallel processing.
+
+        After running this operation calling `CurlStreamer.run_blocking`
+        will lead to an undefined behaviour.
+
+        This function is thread-safe.
+
+        :param streamer: CurlStreamer object to be added
+        """
         with self.perform_lock:
             self.mapping[streamer.curl] = streamer
             self.multi.add_handle(streamer.curl)
-            # Running first "perform" ensures that this curl is taken into account.
-            # Subsequent calls to `select` will return non-zero as long as it's working.
-            self.multi.perform()
 
     def run_iteration(self) -> None:
-        # Allow only one thread at a time to run iteration. Truth is, if you're waiting
-        # for `run_iteration` it's possible that your curl already has something to show.
-        # This is a separate lock than the perform lock, as the latter has to be re-entrant.
+        """
+        Fetch data for all added CurlStreamer objects.
+
+        This should be run whenever data (status code, headers, content) is required from
+        any of the streamed Curl objects. During run not only Curl callbacks will be called,
+        but also Curl objects may be closed and cleaned up.
+
+        This function is thread-safe. Only a single thread is allowed to run this operation in parallel.
+        Other threads trying to run this function will be blocked for a certain amount of time.
+
+        If buffers created by buffers_factory are used with CurlStreamers, this operation
+        can become a no-op in case that too much data is downloaded and not consumed.
+        """
+        # Truth is, if you're waiting for `run_iteration` it's possible that your curl already has something
+        # to show. This is a separate lock than the perform lock, as the latter has to be re-entrant.
         if not self.run_lock.acquire(timeout=self.ACQUIRE_SLEEP_SECONDS):
             return
         try:
@@ -334,8 +388,8 @@ def headers_to_list(headers: Dict[str, str]) -> List[str]:
 
 
 class CurlSession:
-    TIMEOUT = 5
-    EXPECT_100_TIMEOUT = 10
+    TIMEOUT_SECONDS = 120
+    EXPECT_100_TIMEOUT_SECONDS = 10
     BUFFER_SIZE_BYTES = 10 * 1024 * 1024
     MAX_DOWNLOAD_MEMORY_SIZE_BYTES = 200 * 1024 * 1024
     VERBOSE = False
@@ -354,18 +408,18 @@ class CurlSession:
         method: str,
         headers: Optional[Dict[str, Union[str, bytes]]] = None,
         data: Optional[BytesIO] = None,
-        timeout: int = TIMEOUT,
+        timeout: int = TIMEOUT_SECONDS,
         stream: bool = False,
     ) -> CurlResponse:
         output = self.manager.buffers_factory.get_buffer()
-        output_headers = HeaderReader()
+        output_headers = HeadersReader()
 
         curl = pycurl.Curl()
         curl.setopt(pycurl.VERBOSE, self.VERBOSE)
         curl.setopt(pycurl.URL, url)
         if headers:
             curl.setopt(pycurl.HTTPHEADER, headers_to_list(headers))
-        curl.setopt(pycurl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT * 1000)
+        curl.setopt(pycurl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT_SECONDS * 1000)
         curl.setopt(pycurl.BUFFERSIZE, self.BUFFER_SIZE_BYTES)
         curl.setopt(pycurl.NOSIGNAL, self.NO_SIGNAL)
         curl.setopt(pycurl.CAINFO, certifi.where())

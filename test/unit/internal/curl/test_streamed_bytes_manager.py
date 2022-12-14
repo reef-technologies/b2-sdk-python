@@ -8,7 +8,7 @@
 #
 ######################################################################
 
-from b2sdk.utils.curl import StreamedBytesFactory
+from b2sdk.utils.streamed_bytes import StreamedBytesFactory
 from test.unit.test_base import TestBase
 
 

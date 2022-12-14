@@ -16,10 +16,18 @@ from concurrent.futures import (
     wait,
 )
 
-from b2sdk.utils.curl import CurlManager
 from test.unit.test_base import TestBase
 
+try:
+    import pycurl
+    from b2sdk.utils.curl import CurlManager
 
+    DISABLE_TESTS = False
+except (ImportError, ModuleNotFoundError):
+    DISABLE_TESTS = True
+
+
+@unittest.skipIf(DISABLE_TESTS, 'pycurl not available on the system')
 class TestCurlManager(TestBase):
     MEMORY_LIMIT_BYTES = 20
 
@@ -29,8 +37,7 @@ class TestCurlManager(TestBase):
         with unittest.mock.patch('pycurl.CurlMulti'):
             self.manager = CurlManager(self.MEMORY_LIMIT_BYTES)
 
-        # 0 is an equivalent of `pycurl.E_MULTI_OK`
-        self.manager.multi.perform.return_value = (0, None)
+        self.manager.multi.perform.return_value = (pycurl.E_MULTI_OK, None)
         self.manager.multi.info_read.return_value = (0, [], [])
 
     def test_too_much_data_skips_iteration(self):

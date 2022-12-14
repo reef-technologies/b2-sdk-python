@@ -38,11 +38,9 @@ In short:
   for new data whenever it'll be asked for data, headers or a status code
 """
 
-import collections
 import email.parser
 import threading
 import time
-from contextlib import ExitStack
 from dataclasses import dataclass, field
 from functools import partialmethod
 from io import BytesIO
@@ -54,6 +52,7 @@ import pycurl
 from requests.utils import CaseInsensitiveDict
 
 from b2sdk.stream.progress import ReadingStreamWithProgress
+from b2sdk.utils.streamed_bytes import StreamedBytes, StreamedBytesFactory
 
 
 @dataclass
@@ -68,116 +67,6 @@ class CurlAdapters:
 class CurlRequest:
     url: str
     headers: CaseInsensitiveDict
-
-
-class StreamedBytes:
-    """
-    Structure that works "kinda" like an unlimited ring buffer.
-
-    We can put the data on one side and read it from the other,
-    and the data read is lost (memory is released).
-    """
-
-    def __init__(self, owner: 'StreamedBytesFactory'):
-        # We store our data in chunks in a deque. Whenever data is requested,
-        # we remove them from deque up to the size, and put back the reminder.
-        self.deque = collections.deque()
-        self.lock = threading.Lock()
-        self.first_write_event = threading.Event()
-        self.length = 0
-        self.owner = owner
-        self.is_marked_for_release = threading.Event()
-
-    def is_empty(self) -> bool:
-        with self.lock:
-            return len(self.deque) == 0
-
-    def mark_for_release(self) -> None:
-        self.is_marked_for_release.set()
-
-    def __len__(self):
-        return self.length
-
-    def write(self, buffer: bytes) -> int:
-        # pycurl.Curl.setopt with pycurl.WRITEDATA will use a `write` method of provided object.
-        # Thus, this method must be named `write`.
-        with self.lock:
-            assert not self.is_marked_for_release.is_set(), \
-                'Trying to write to a buffer marked for release'
-
-            if len(buffer) == 0:
-                return 0
-
-            # Whole buffer is stored in a deque (double-linked list).
-            # This way we have fewer, (hopefully) larger elements.
-            self.deque.append(buffer)
-            self.length += len(buffer)
-
-            # If we haven't informed everyone yet, it's the time. We've received
-            # first buffer of data. This is used to indicate that all the headers
-            # are already downloaded.
-            if not self.first_write_event.is_set():
-                self.first_write_event.set()
-
-            return len(buffer)
-
-    def read(self, size: Optional[int] = None) -> bytes:
-        stack = ExitStack()
-        stack.enter_context(self.lock)
-        stack.push(self._check_and_release_buffer)
-
-        with stack:
-            result = bytearray()
-
-            if len(self.deque) == 0:
-                return result
-
-            while True:
-                entry = self.deque.popleft()
-                new_len_result = len(result) + len(entry)
-
-                if new_len_result > size:
-                    oversize = new_len_result - size
-                    # Return over-sized buffer to the queue.
-                    oversize_buffer = entry[-oversize:]
-                    self.deque.appendleft(oversize_buffer)
-                    # Cut down next entry.
-                    entry = entry[:-oversize]
-
-                result += entry
-
-                if (size != -1 and len(result) == size) or len(self.deque) == 0:
-                    break
-
-            self.length -= len(result)
-            return result
-
-    def _check_and_release_buffer(self, *_args) -> bool:
-        if self.is_marked_for_release.is_set() and self.length == 0:
-            self.owner.release_buffer(self)
-            self.is_marked_for_release.clear()
-        return True
-
-
-class StreamedBytesFactory:
-    def __init__(self):
-        self.lock = threading.Lock()
-        self.buffers = []
-
-    def get_buffer(self) -> StreamedBytes:
-        with self.lock:
-            buffer = StreamedBytes(owner=self)
-            self.buffers.append(buffer)
-            return buffer
-
-    def release_buffer(self, buffer: StreamedBytes) -> None:
-        with self.lock:
-            assert len(buffer) == 0, 'Non-empty buffer released'
-            self.buffers.remove(buffer)
-
-    def get_total_buffer_memory(self) -> int:
-        with self.lock:
-            return sum([len(entry) for entry in self.buffers])
 
 
 class HeaderReader:
@@ -302,6 +191,9 @@ class CurlManager:
     one should first invoke `run_iteration` to ensure that curl process progresses with all the updates
     from the network.
 
+    Note that `run_iteration` can become a no-op if too much data was downloaded and not enough of it
+    was ingested.
+
     It is thread safe.
 
     By default, multiplexing is enabled. https://curl.se/libcurl/c/CURLMOPT_PIPELINING.html
@@ -325,7 +217,6 @@ class CurlManager:
         self.run_lock = threading.Lock()
 
     def add_curl(self, streamer: CurlStreamer) -> None:
-        # Block, so that no-one can iterate over curls while we're waiting for the headers.
         with self.perform_lock:
             self.mapping[streamer.curl] = streamer
             self.multi.add_handle(streamer.curl)

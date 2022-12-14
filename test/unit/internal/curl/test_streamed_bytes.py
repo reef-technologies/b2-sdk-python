@@ -10,7 +10,7 @@
 
 import unittest.mock
 
-from b2sdk.utils.curl import StreamedBytes
+from b2sdk.utils.streamed_bytes import StreamedBytes
 from test.unit.test_base import TestBase
 
 

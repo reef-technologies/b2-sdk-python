@@ -44,7 +44,7 @@ import time
 from dataclasses import dataclass, field
 from functools import partialmethod
 from io import BytesIO
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Union, Tuple
 
 import certifi
 import pycurl
@@ -52,6 +52,7 @@ import pycurl
 from requests.utils import CaseInsensitiveDict
 
 from b2sdk.stream.progress import ReadingStreamWithProgress
+from b2sdk.utils.cookie_jar import CookieJar
 from b2sdk.utils.not_decompresing_http_adapter import NotDecompressingHTTPAdapter
 from b2sdk.utils.streamed_bytes import StreamedBytes, StreamedBytesFactory
 
@@ -102,6 +103,7 @@ class HeadersReader:
     def __init__(self):
         self.lines = []
         self.headers: Optional[CaseInsensitiveDict] = None
+        self.raw_headers: List[Tuple[str, str]] = field(default_factory=list)
 
     def add_header_line(self, line: bytes) -> None:
         # First line of the header contains http version and status code.
@@ -118,7 +120,8 @@ class HeadersReader:
             b''.join(self.lines).decode(self.ENCODING),
             headersonly=True,
         )
-        self.headers = CaseInsensitiveDict(parsed_header.items())
+        self.raw_headers = [pair for pair in parsed_header.items()]
+        self.headers = CaseInsensitiveDict(self.raw_headers)
 
 
 @dataclass
@@ -138,9 +141,12 @@ class CurlStreamer:
     """
 
     curl: pycurl.Curl
+    # There's now way to fetch it from Curl and we need it to handle cookies.
+    url: str
     manager: 'CurlManager'
     output: StreamedBytes
     _headers: HeadersReader
+    jar: CookieJar
 
     _status_code: Optional[int] = None
     done: threading.Event = field(default_factory=threading.Event)
@@ -222,6 +228,7 @@ class CurlStreamer:
         # We won't be able to reclaim the status code once we release the object.
         self._get_and_cache_status_code()
         self._headers.parse_headers()
+        self.jar.add_headers(self.url, self._headers.raw_headers)
         self.curl.close()
         # When reading will finish from this buffer, we can release it safely.
         self.output.mark_for_release()
@@ -424,6 +431,7 @@ class CurlSession:
     def __init__(self, *args, **kwargs):  # noqa (unused arguments)
         self.adapters = CurlAdapters()
         self.manager = CurlManager(self.MAX_DOWNLOAD_MEMORY_SIZE_BYTES)
+        self.jar = CookieJar()
 
     def mount(self, scheme: str, adapter: Any) -> None:
         self.adapters.add_adapter(scheme, adapter)
@@ -445,6 +453,8 @@ class CurlSession:
         curl.setopt(pycurl.URL, url)
         if headers:
             curl.setopt(pycurl.HTTPHEADER, headers_to_list(headers))
+        for cookie in self.jar.iter_cookies(url):
+            curl.setopt(pycurl.COOKIE, cookie)
         curl.setopt(pycurl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT_SECONDS * 1000)
         curl.setopt(pycurl.BUFFERSIZE, self.BUFFER_SIZE_BYTES)
         curl.setopt(pycurl.NOSIGNAL, self.NO_SIGNAL)
@@ -473,9 +483,11 @@ class CurlSession:
 
         streamer = CurlStreamer(
             curl,
+            url,
             self.manager,
             output,
             output_headers,
+            self.jar,
             timeout_seconds=timeout,
         )
 

@@ -51,6 +51,7 @@ class SessionProtocol:
     It matches the requests library protocol.
     It's used for ``typing`` purposes only.
     """
+
     def request(self, *args, **kwargs):
         pass
 

@@ -33,9 +33,9 @@ us to determine whether all the headers are actually downloaded and available.
 In short:
 - CurlStreamer handles a single query and provides means of handling headers/status code/data fetching
 - StreamedBytes provides us with a buffer behaving as if it has both reading and writing offsets
-- CurlManager is ensuring that multiple streamed queries get their updates
+- CurlManager is ensuring that multiple streamed queries get their updates, and limits the amount of data downloaded
 - Everything is done without another thread – CurlStreamer will ask CurlManager to poll
-  for new data whenever it'll be asked for data, headers or a status code
+  for new data whenever it's asked for data, headers or a status code
 """
 
 import email.parser
@@ -58,10 +58,30 @@ from b2sdk.utils.streamed_bytes import StreamedBytes, StreamedBytesFactory
 
 @dataclass
 class CurlAdapters:
+    """
+    requests-like adapters handler
+    """
     adapters: dict = field(default_factory=dict)
 
     def clear(self):
         self.adapters = {}
+
+    def add_adapter(self, scheme: str, adapter: Any) -> None:
+        self.adapters[scheme] = adapter
+
+    def get_by_url(self, url: str) -> Any:
+        """
+        Provides adapter assigned to the closest match registered (or None).
+        """
+        longest_matched_prefix = ''
+        result = None
+
+        for prefix, value in self.adapters.items():
+            if url.startswith(prefix) and len(prefix) > len(longest_matched_prefix):
+                longest_matched_prefix = prefix
+                result = value
+
+        return result
 
 
 @dataclass
@@ -388,6 +408,12 @@ def headers_to_list(headers: Dict[str, str]) -> List[str]:
 
 
 class CurlSession:
+    """
+    SessionProtocol-like object.
+
+    Provides low level interface for performing HTTP requests.
+    """
+
     TIMEOUT_SECONDS = 120
     EXPECT_100_TIMEOUT_SECONDS = 10
     BUFFER_SIZE_BYTES = 10 * 1024 * 1024
@@ -399,8 +425,8 @@ class CurlSession:
         self.adapters = CurlAdapters()
         self.manager = CurlManager(self.MAX_DOWNLOAD_MEMORY_SIZE_BYTES)
 
-    def mount(self, scheme, adapter):
-        self.adapters.adapters[scheme] = adapter
+    def mount(self, scheme: str, adapter: Any) -> None:
+        self.adapters.add_adapter(scheme, adapter)
 
     def request(
         self,
@@ -437,10 +463,9 @@ class CurlSession:
             curl.setopt(pycurl.POSTFIELDSIZE, content_length)
         curl.setopt(pycurl.TIMEOUT_MS, timeout * 1000)
         curl.setopt(pycurl.HEADERFUNCTION, output_headers.add_header_line)
-        if any(
-            isinstance(adapter, NotDecompressingHTTPAdapter)
-            for adapter in self.adapters.adapters.values()
-        ):
+
+        mounted_adapter = self.adapters.get_by_url(url)
+        if isinstance(mounted_adapter, NotDecompressingHTTPAdapter):
             curl.setopt(pycurl.HTTP_CONTENT_DECODING, False)
         else:
             curl.setopt(pycurl.HTTP_CONTENT_DECODING, True)

@@ -19,7 +19,7 @@ import pytest
 
 from b2sdk.b2http import B2Http
 from b2sdk.encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
-from b2sdk.exception import DisablingFileLockNotSupported
+from b2sdk.exception import DisablingFileLockNotSupported, InvalidAuthToken
 from b2sdk.replication.setting import ReplicationConfiguration, ReplicationRule
 from b2sdk.replication.types import ReplicationStatus
 from b2sdk.file_lock import BucketRetentionSetting, NO_RETENTION_FILE_SETTING, RetentionMode, RetentionPeriod
@@ -539,37 +539,45 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
         )
 
     # b2_100_continue
-    print('b2_100_continue')
-    file_name = 'test-100-continue.txt'
-    file_contents = b'hello world'
-    file_sha1 = hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents))
+    # Checking whether we're on a session that supports 100-continue. Currently only curl supports it.
+    if raw_api.b2_http.session.__class__.__name__ == 'CurlSession':
+        print('b2_100_continue')
+        file_name = 'test-100-continue.txt'
+        file_contents = b'hello world'
+        file_sha1 = hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents))
 
-    def set_100_header(fn):
-        def wrapper(url, headers, *args, **kwargs):
-            headers.update({
-                'Expect': '100-continue',
-            })
-            return fn(url, headers, *args, **kwargs)
+        def set_100_header(fn):
+            def wrapper(url, headers, *args, **kwargs):
+                headers.update({
+                    'Expect': '100-continue',
+                })
+                return fn(url, headers, *args, **kwargs)
 
-        return wrapper
+            return wrapper
 
-    with monkeypatch.context() as monkey:
-        monkey.setattr(
-            raw_api.b2_http,
-            'post_content_return_json',
-            set_100_header(raw_api.b2_http.post_content_return_json),
-        )
-        file_dict = raw_api.upload_file(
-            upload_url,
-            upload_auth_token,
-            file_name,
-            len(file_contents),
-            'text/plain',
-            file_sha1,
-            {'color': 'blue'},
-            io.BytesIO(file_contents),
-            server_side_encryption=sse_b2_aes,
-        )
+        with monkeypatch.context() as monkey:
+            monkey.setattr(
+                raw_api.b2_http,
+                'post_content_return_json',
+                set_100_header(raw_api.b2_http.post_content_return_json),
+            )
+            data = io.BytesIO(file_contents)
+
+            with pytest.raises(InvalidAuthToken):
+                raw_api.upload_file(
+                    upload_url,
+                    upload_auth_token + 'x',
+                    file_name,
+                    len(file_contents),
+                    'text/plain',
+                    file_sha1,
+                    {'color': 'blue'},
+                    data,
+                    server_side_encryption=sse_b2_aes,
+                )
+
+            # Checking if any data was read.
+            assert data.tell() == 0
 
     # Clean up this test.
     _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)

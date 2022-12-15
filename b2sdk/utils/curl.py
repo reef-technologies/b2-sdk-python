@@ -419,6 +419,9 @@ class CurlSession:
     SessionProtocol-like object.
 
     Provides low level interface for performing HTTP requests.
+
+    This class manages cookies. All cookies from all requests going through this class
+    are stored and all the requests created by this class are filled with cookies.
     """
 
     TIMEOUT_SECONDS = 120

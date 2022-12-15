@@ -109,7 +109,8 @@ class CookieJar:
             if self.original_host is None:
                 self.original_host = request.host
 
-            self.jar.extract_cookies(response, request)  # noqa (provided classes meet minimal interface requirements)
+            # Provided classes meet minimal interface requirements
+            self.jar.extract_cookies(response, request)  # noqa
 
     def iter_cookies(self, url: str) -> Iterator[str]:
         """
@@ -117,7 +118,8 @@ class CookieJar:
         """
         with self.lock:
             request = self._Request(url, self.original_host)
-            self.jar.add_cookie_header(request)  # noqa (provided class meets minimal interface requirements)
+            # Provided class meets minimal interface requirements
+            self.jar.add_cookie_header(request)  # noqa
             for cookie in request.cookies:
                 yield cookie
 

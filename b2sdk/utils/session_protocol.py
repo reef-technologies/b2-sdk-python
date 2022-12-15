@@ -51,6 +51,7 @@ class Adapters:
     It matches the basic requests library adapter protocol.
     It's used for ``typing`` purposes only.
     """
+
     def clear(self) -> None:
         pass
 
@@ -62,9 +63,10 @@ class SessionProtocol:
     It matches the basic requests library protocol.
     It's used for ``typing`` purposes only.
     """
+
     @property
     def adapters(self) -> Adapters:
-        raise NotImplemented
+        raise NotImplementedError
 
     def request(self, *args, **kwargs):
         pass

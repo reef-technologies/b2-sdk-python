@@ -74,12 +74,12 @@ class CurlAdapters:
         """
         Provides adapter assigned to the closest match registered (or None).
         """
-        longest_matched_prefix = ''
+        longest_matched_prefix_len = -1
         result = None
 
         for prefix, value in self.adapters.items():
-            if url.startswith(prefix) and len(prefix) > len(longest_matched_prefix):
-                longest_matched_prefix = prefix
+            if url.startswith(prefix) and len(prefix) > longest_matched_prefix_len:
+                longest_matched_prefix_len = len(prefix)
                 result = value
 
         return result
@@ -141,7 +141,7 @@ class CurlStreamer:
     """
 
     curl: pycurl.Curl
-    # There's now way to fetch it from Curl and we need it to handle cookies.
+    # There's no way to fetch it from Curl, and we need it to handle cookies.
     url: str
     manager: 'CurlManager'
     output: StreamedBytes

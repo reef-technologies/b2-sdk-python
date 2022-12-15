@@ -45,12 +45,26 @@ FROM_IMPORT_ENV_LIST = [
 
 
 # TODO: use typing.Protocol when we drop 3.7
+class Adapters:
+    """
+    Basic mount adapter interface description.
+    It matches the basic requests library adapter protocol.
+    It's used for ``typing`` purposes only.
+    """
+    def clear(self) -> None:
+        pass
+
+
+# TODO: use typing.Protocol when we drop 3.7
 class SessionProtocol:
     """
     Basic http session interface description.
-    It matches the requests library protocol.
+    It matches the basic requests library protocol.
     It's used for ``typing`` purposes only.
     """
+    @property
+    def adapters(self) -> Adapters:
+        raise NotImplemented
 
     def request(self, *args, **kwargs):
         pass

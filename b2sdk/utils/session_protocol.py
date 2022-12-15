@@ -21,6 +21,12 @@ from b2sdk.utils import str_to_bool
 
 
 class SessionProtocolInfo(NamedTuple):
+    """
+    Structure used to declare possible/available session protocols.
+
+    It will be used to import ``class_name`` from ``module_name``
+    and will ensure that it's available if ``env_variable`` is set.
+    """
     module_name: str
     class_name: str
     env_variable: str
@@ -40,6 +46,11 @@ FROM_IMPORT_ENV_LIST = [
 
 # TODO: use typing.Protocol when we drop 3.7
 class SessionProtocol:
+    """
+    Basic http session interface description.
+    It matches the requests library protocol.
+    It's used for ``typing`` purposes only.
+    """
     def request(self, *args, **kwargs):
         pass
 
@@ -57,7 +68,16 @@ class SessionProtocol:
 
 
 class Sessions(NamedTuple):
+    """
+    Structure holding all available (importable) protocol session objects
+    and information about reasons of failure for the rest of them.
+    """
+    # List of classes that anyhow conform to SessionProtocol. Note that
+    # none of them need to implement it to conform to it.
     enabled: List[Type[SessionProtocol]]
+
+    # Dictionary containing full module-class string as a key and
+    # a human-readable description of reason behind it not being in enabled group.
     disabled: Dict[str, str]
 
 

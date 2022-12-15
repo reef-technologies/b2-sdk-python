@@ -44,7 +44,7 @@ import time
 from dataclasses import dataclass, field
 from functools import partialmethod
 from io import BytesIO
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 import certifi
 import pycurl

@@ -51,9 +51,10 @@ class B2Http(v2.B2Http):
         :param bool install_clock_skew_hook: if True, install a clock skew hook
         :param str user_agent_append: if provided, the string will be appended to the User-Agent
         """
+        factory = lambda _config: (requests_module or requests).Session()
         super().__init__(
             v2.B2HttpApiConfig(
-                http_session_factory_base=lambda _config: (requests_module or requests).Session(),  # noqa
+                http_session_factory_base=factory,  # noqa
                 install_clock_skew_hook=install_clock_skew_hook,
                 user_agent_append=user_agent_append
             )

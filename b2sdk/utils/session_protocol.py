@@ -2,33 +2,30 @@
 #
 # File: b2sdk/utils/session_protocol.py
 #
-# Copyright 2020 Backblaze Inc. All Rights Reserved.
+# Copyright 2022 Backblaze Inc. All Rights Reserved.
 #
 # License https://www.backblaze.com/using_b2_code.html
 #
 ######################################################################
+
 import functools
 import importlib
 import os
-from typing import (
-    Dict,
-    List,
-    NamedTuple,
-    Type,
-)
+from typing import Callable, Dict, List, NamedTuple, Type
 
 from b2sdk.utils import str_to_bool
+from b2sdk.utils.session_config import SessionConfig
 
 
 class SessionProtocolInfo(NamedTuple):
     """
     Structure used to declare possible/available session protocols.
 
-    It will be used to import ``class_name`` from ``module_name``
+    It will be used to import ``factory_name`` from ``module_name``
     and will ensure that it's available if ``env_variable`` is set.
     """
     module_name: str
-    class_name: str
+    factory_name: str
     env_variable: str
 
 
@@ -36,11 +33,18 @@ class SessionProtocolInfo(NamedTuple):
 # If environmental variable is set, only these libraries we try to load.
 # That is, if multiple variables are set, the one from the top of the list
 # will be actually used.
-# Also, if it's impossible to import a library that was set as required,
-# it's an error.
+# Also, if it's impossible to import a library that was set as required, it's an error.
 FROM_IMPORT_ENV_LIST = [
-    SessionProtocolInfo('b2sdk.utils.curl', 'CurlSession', 'B2_USE_LIBCURL'),
-    SessionProtocolInfo('requests', 'Session', 'B2_USE_REQUESTS'),
+    SessionProtocolInfo(
+        'b2sdk.utils.curl',
+        'curl_session_factory',
+        'B2_USE_LIBCURL',
+    ),
+    SessionProtocolInfo(
+        'b2sdk.utils.requests_factory',
+        'requests_session_factory',
+        'B2_USE_REQUESTS',
+    ),
 ]
 
 
@@ -84,6 +88,10 @@ class SessionProtocol:
         pass
 
 
+# Each factory can be configured with SessionConfig.
+SessionProtocolFactory = Callable[[SessionConfig], SessionProtocol]
+
+
 class Sessions(NamedTuple):
     """
     Structure holding all available (importable) protocol session objects
@@ -91,49 +99,51 @@ class Sessions(NamedTuple):
     """
     # List of classes that anyhow conform to SessionProtocol. Note that
     # none of them need to implement it to conform to it.
-    enabled: List[Type[SessionProtocol]]
+    enabled: List[Type[SessionProtocolFactory]]
 
-    # Dictionary containing full module-class string as a key and
+    # Dictionary containing full module-factory string as a key and
     # a human-readable description of reason behind it not being in enabled group.
     disabled: Dict[str, str]
 
 
 @functools.lru_cache(maxsize=None)
-def get_session_protocols(enable_env_checking: bool = True) -> Sessions:
+def get_session_protocol_factories(enable_env_checking: bool = True) -> Sessions:
     """
     Tries to import all available session protocols. Returns a list ordered from "the best"
     to "the worst" and a dictionary with names of protocols that failed with a reason.
+
+    By using environmental variables, one can enable and disable specific protocols.
+    It's considered an error if a protocol is enabled, but we're unable to import it.
     """
     enabled_sessions = []
     errors = {}
 
-    # List of protocols that we should consider.
-    enabled_env_variables = set()
+    env_variables: Dict[str, bool] = {}
 
     if enable_env_checking:
         for protocol_info in FROM_IMPORT_ENV_LIST:
-            is_env_set = str_to_bool(os.getenv(protocol_info.env_variable, default=''))
-            if not is_env_set:
+            raw_env_value = os.getenv(protocol_info.env_variable)
+            if raw_env_value is None:
                 continue
-            enabled_env_variables.add(protocol_info.env_variable)
+            env_variables[protocol_info.env_variable] = str_to_bool(raw_env_value)
 
     for protocol_info in FROM_IMPORT_ENV_LIST:
-        module_class = f'{protocol_info.module_name}.{protocol_info.class_name}'
+        module_function = f'{protocol_info.module_name}.{protocol_info.factory_name}'
 
-        if len(enabled_env_variables) > 0 and \
-            protocol_info.env_variable not in enabled_env_variables:
-            errors[module_class] = \
-                'Module is not on enabled sessions list set via environmental variables.'
+        # We assume that all protocols are enabled by default. Here we disable these
+        # that were disabled via environmental variables.
+        if not env_variables.get(protocol_info.env_variable, True):
+            errors[module_function] = 'Module is disabled via environmental variables.'
             continue
 
         try:
             module = importlib.import_module(protocol_info.module_name)
-            protocol = getattr(module, protocol_info.class_name)
+            protocol = getattr(module, protocol_info.factory_name)
             enabled_sessions.append(protocol)
         except (ImportError, AttributeError) as error:
-            errors[module_class] = str(error)
+            errors[module_function] = str(error)
             # This protocol had environmental variable set to enable it, and we failed to load the library.
-            assert protocol_info.env_variable not in enabled_env_variables, \
+            assert env_variables.get(protocol_info.env_variable) != True, \
                 f'Unable to enable {protocol_info.env_variable}: {str(error)}'
 
     return Sessions(enabled_sessions, errors)

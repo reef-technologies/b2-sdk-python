@@ -12,6 +12,7 @@ cURL – how does it work
 
 cURL provides a simple, low level interface pycurl.Curl that represents a single request.
 This request can be awaited on (blocking mode) or bunched in a group to be done in parallel.
+If a cURL handle is reused, underlying connection should also be reused.
 
 cURL also provides bunch-interface, pycurl.CurlMulti. It uses `select`-like approach to determine
 whether there's data waiting for any of the Curl object. Everything can be done in a single thread.
@@ -54,6 +55,8 @@ from requests.utils import CaseInsensitiveDict
 from b2sdk.stream.progress import ReadingStreamWithProgress
 from b2sdk.utils.cookie_jar import CookieJar
 from b2sdk.utils.not_decompresing_http_adapter import NotDecompressingHTTPAdapter
+from b2sdk.utils.session_config import SessionConfig
+from b2sdk.utils.session_protocol import SessionProtocol
 from b2sdk.utils.streamed_bytes import StreamedBytes, StreamedBytesFactory
 
 
@@ -417,14 +420,19 @@ def headers_to_list(headers: Dict[str, str]) -> List[str]:
 
 
 class CurlHandleCache:
-    MAX_HANDLES_COUNT = 10
     """
     Keeps handles and allows reuse.
 
     Using cache allows us to reuse live connections, increasing overall performance.
+
+    Note that one can start any number of connections in parallel,
+    but only ``max_handles_count`` are kept and reused.
     """
 
-    def __init__(self, max_handles_count: int = MAX_HANDLES_COUNT):
+    def __init__(self, max_handles_count: int):
+        """
+        :param max_handles_count: Number of N-latest Curl objects kept. Pass ``0`` to disable caching.
+        """
         self.lock = threading.Lock()
         self.cache = collections.deque(maxlen=max_handles_count)
 
@@ -455,20 +463,19 @@ class CurlSession:
 
     This class manages cookies. All cookies from all requests going through this class
     are stored and all the requests created by this class are filled with cookies.
+
+    This class keeps a cache of all the Curl objects created, and reuses them as much
+    as possible to keep connections alive.
     """
 
     TIMEOUT_SECONDS = 120
-    EXPECT_100_TIMEOUT_SECONDS = 10
-    BUFFER_SIZE_BYTES = 10 * 1024 * 1024
-    MAX_DOWNLOAD_MEMORY_SIZE_BYTES = 200 * 1024 * 1024
-    VERBOSE = False
-    NO_SIGNAL = 0
 
-    def __init__(self, *args, **kwargs):  # noqa (unused arguments)
+    def __init__(self, session_config: SessionConfig):
+        self.config = session_config
         self.adapters = CurlAdapters()
-        self.manager = CurlManager(self.MAX_DOWNLOAD_MEMORY_SIZE_BYTES)
+        self.manager = CurlManager(self.config.max_download_memory_size_bytes)
         self.jar = CookieJar()
-        self.cache = CurlHandleCache()
+        self.cache = CurlHandleCache(self.config.reused_connections_count)
 
     def mount(self, scheme: str, adapter: Any) -> None:
         self.adapters.add_adapter(scheme, adapter)
@@ -486,15 +493,18 @@ class CurlSession:
         output_headers = HeadersReader()
 
         curl = self.cache.get_handle()
-        curl.setopt(pycurl.VERBOSE, self.VERBOSE)
+        curl.setopt(pycurl.VERBOSE, self.config.verbose)
         curl.setopt(pycurl.URL, url)
         if headers:
             curl.setopt(pycurl.HTTPHEADER, headers_to_list(headers))
         for cookie in self.jar.iter_cookies(url):
             curl.setopt(pycurl.COOKIE, cookie)
-        curl.setopt(pycurl.EXPECT_100_TIMEOUT_MS, self.EXPECT_100_TIMEOUT_SECONDS * 1000)
-        curl.setopt(pycurl.BUFFERSIZE, self.BUFFER_SIZE_BYTES)
-        curl.setopt(pycurl.NOSIGNAL, self.NO_SIGNAL)
+        curl.setopt(
+            pycurl.EXPECT_100_TIMEOUT_MS,
+            int(self.config.expect_100_timeout_seconds * 1000),
+        )
+        curl.setopt(pycurl.BUFFERSIZE, self.config.single_download_buffer_size_bytes)
+        curl.setopt(pycurl.NOSIGNAL, not self.config.use_signal_handlers)
         curl.setopt(pycurl.CAINFO, certifi.where())
         # It will use `write` method of provided object.
         curl.setopt(pycurl.WRITEDATA, output)
@@ -545,3 +555,8 @@ class CurlSession:
     head = partialmethod(request, method='head')
     get = partialmethod(request, method='get')
     post = partialmethod(request, method='post')
+
+
+def curl_session_factory(session_config: SessionConfig) -> SessionProtocol:
+    # TODO: Remove noqa once SessionProtocol becomes typing.Protocol.
+    return CurlSession(session_config)  # noqa

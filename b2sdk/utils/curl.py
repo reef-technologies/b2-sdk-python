@@ -37,7 +37,7 @@ In short:
 - Everything is done without another thread – CurlStreamer will ask CurlManager to poll
   for new data whenever it's asked for data, headers or a status code
 """
-
+import collections
 import email.parser
 import threading
 import time
@@ -140,13 +140,14 @@ class CurlStreamer:
     we get to the content section of the HTTP response or the whole query was downloaded.
     """
 
-    curl: pycurl.Curl
+    curl: Optional[pycurl.Curl]
     # There's no way to fetch it from Curl, and we need it to handle cookies.
     url: str
     manager: 'CurlManager'
     output: StreamedBytes
     _headers: HeadersReader
     jar: CookieJar
+    cache: 'CurlHandleCache'
 
     _status_code: Optional[int] = None
     done: threading.Event = field(default_factory=threading.Event)
@@ -229,7 +230,8 @@ class CurlStreamer:
         self._get_and_cache_status_code()
         self._headers.parse_headers()
         self.jar.add_headers(self.url, self._headers.raw_headers)
-        self.curl.close()
+        self.cache.release_handle(self.curl)
+        self.curl = None
         # When reading will finish from this buffer, we can release it safely.
         self.output.mark_for_release()
         self.done.set()
@@ -414,6 +416,37 @@ def headers_to_list(headers: Dict[str, str]) -> List[str]:
     return result
 
 
+class CurlHandleCache:
+    MAX_HANDLES_COUNT = 10
+    """
+    Keeps handles and allows reuse.
+
+    Using cache allows us to reuse live connections, increasing overall performance.
+    """
+
+    def __init__(self, max_handles_count: int = MAX_HANDLES_COUNT):
+        self.lock = threading.Lock()
+        self.cache = collections.deque(maxlen=max_handles_count)
+
+    def get_handle(self) -> pycurl.Curl:
+        """
+        Provides a new handle for operation, preferably from cache.
+        """
+        with self.lock:
+            if len(self.cache) == 0:
+                return pycurl.Curl()
+            return self.cache.popleft()
+
+    def release_handle(self, handle: pycurl.Curl) -> None:
+        """
+        Accepting a used Curl object back into the cache.
+        """
+        with self.lock:
+            handle.reset()
+            # Note that the cache is limited in size, so we're keeping N fresh objects.
+            self.cache.append(handle)
+
+
 class CurlSession:
     """
     SessionProtocol-like object.
@@ -435,6 +468,7 @@ class CurlSession:
         self.adapters = CurlAdapters()
         self.manager = CurlManager(self.MAX_DOWNLOAD_MEMORY_SIZE_BYTES)
         self.jar = CookieJar()
+        self.cache = CurlHandleCache()
 
     def mount(self, scheme: str, adapter: Any) -> None:
         self.adapters.add_adapter(scheme, adapter)
@@ -451,7 +485,7 @@ class CurlSession:
         output = self.manager.buffers_factory.get_buffer()
         output_headers = HeadersReader()
 
-        curl = pycurl.Curl()
+        curl = self.cache.get_handle()
         curl.setopt(pycurl.VERBOSE, self.VERBOSE)
         curl.setopt(pycurl.URL, url)
         if headers:
@@ -491,6 +525,7 @@ class CurlSession:
             output,
             output_headers,
             self.jar,
+            self.cache,
             timeout_seconds=timeout,
         )
 

@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Authorizing a key for a single bucket ensures that this bucket is cached
 * `Bucket.ls` operation supports wildcard matching strings
+* Documentation for AbstractUploadSource and its children
 * Ability to use libcurl (via pycurl) as http backend (experimental)
+
+### Fixed
+* Removed information about replication being in closed beta
 
 ### Infrastructure
 * Additional tests for listing files/versions

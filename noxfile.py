@@ -48,9 +48,18 @@ nox.options.sessions = [
     'test',
 ]
 
+run_kwargs = {}
+
 # In CI, use Python interpreter provided by GitHub Actions
 if CI:
     nox.options.force_venv_backend = 'none'
+
+    # Inside the CI we need to silence most of the outputs to be able to use GITHUB_OUTPUT properly.
+    # Nox passes `stderr` and `stdout` directly to subprocess.Popen.
+    run_kwargs = dict(
+        stderr=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+    )
 
 
 def install_myself(session, extras=None):
@@ -170,21 +179,18 @@ def cover(session):
 def build(session):
     """Build the distribution."""
     # TODO: consider using wheel as well
-    session.run('pip', 'install', *REQUIREMENTS_BUILD)
-    session.run('python', 'setup.py', 'check', '--metadata', '--strict')
-    session.run('rm', '-rf', 'build', 'dist', 'b2sdk.egg-info', external=True)
-    session.run('python', 'setup.py', 'sdist', *session.posargs)
+    session.run('pip', 'install', *REQUIREMENTS_BUILD, **run_kwargs)
+    session.run('python', 'setup.py', 'check', '--metadata', '--strict', **run_kwargs)
+    session.run('rm', '-rf', 'build', 'dist', 'b2sdk.egg-info', external=True, **run_kwargs)
+    session.run('python', 'setup.py', 'sdist', *session.posargs, **run_kwargs)
 
     # Set outputs for GitHub Actions
     if CI:
         asset_path = glob('dist/*')[0]
-        print('::set-output name=asset_path::', asset_path, sep='')
-
-        asset_name = os.path.basename(asset_path)
-        print('::set-output name=asset_name::', asset_name, sep='')
+        print(f'asset_path={asset_path}')
 
         version = os.environ['GITHUB_REF'].replace('refs/tags/v', '')
-        print('::set-output name=version::', version, sep='')
+        print(f'version={version}')
 
 
 @nox.session(python=PYTHON_DEFAULT_VERSION)

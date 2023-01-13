@@ -54,7 +54,7 @@ class StreamWrapper(io.IOBase):
         # By default, the io.IOBase finalizer performs a flush and then closes a stream.
         # Since this class is not expected to manage lifetime of a provided stream object,
         # when the `__del__` is called underlying stream can already be closed. That lead
-        # to a warning being printed in some cases.
+        # to a warning being printed on Python 3.11 in certain cases.
         # Since this class is expected to behave like a stream, it's better to provide
         # this check than to re-implement required features (context manager as of
         # the moment of writing this).

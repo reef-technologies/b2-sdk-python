@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+* `InvalidUserInput` is raised when `Bucket.ls` is called with `with_wildcard` and without `recursive` (changed from `ValueError`) – no stack is being printed now
+
 ## [1.19.0] - 2023-01-24
 
 ### Added

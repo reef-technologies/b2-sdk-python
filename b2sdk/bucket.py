@@ -22,6 +22,7 @@ from .exception import (
     CopySourceTooBig,
     FileNotPresent,
     FileOrBucketNotFound,
+    InvalidUserInput,
     UnexpectedCloudBehaviour,
     UnrecognizedBucketType,
 )
@@ -359,7 +360,7 @@ class Bucket(metaclass=B2TraceMeta):
         """
         # Ensure that recursive is enabled when with_wildcard is enabled.
         if with_wildcard and not recursive:
-            raise ValueError('with_wildcard requires recursive to be turned on as well')
+            raise InvalidUserInput('with_wildcard requires recursive to be turned on as well')
 
         # Every file returned must have a name that starts with the
         # folder name and a "/".

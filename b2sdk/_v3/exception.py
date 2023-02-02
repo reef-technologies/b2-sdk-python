@@ -52,6 +52,7 @@ from b2sdk.exception import InvalidJsonResponse
 from b2sdk.exception import InvalidMetadataDirective
 from b2sdk.exception import InvalidRange
 from b2sdk.exception import InvalidUploadSource
+from b2sdk.exception import InvalidUserInput
 from b2sdk.exception import MaxFileSizeExceeded
 from b2sdk.exception import MaxRetriesExceeded
 from b2sdk.exception import MissingPart
@@ -137,6 +138,7 @@ __all__ = (
     'InvalidMetadataDirective',
     'InvalidRange',
     'InvalidUploadSource',
+    'InvalidUserInput',
     'MaxFileSizeExceeded',
     'MaxRetriesExceeded',
     'MissingAccountData',

@@ -37,6 +37,7 @@ from apiver_deps_exception import (
     InvalidMetadataDirective,
     InvalidRange,
     InvalidUploadSource,
+    InvalidUserInput,
     MaxRetriesExceeded,
     RestrictedBucketMissing,
     SSECKeyError,
@@ -722,7 +723,7 @@ class TestLs(TestCaseWithBucket):
         self.assertEqual(expected, actual)
 
     def test_wildcard_requires_recursive(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidUserInput):
             # Since ls is a generator, we need to actually fetch something from it.
             next(self.bucket_ls('*.txt', recursive=False, with_wildcard=True))
 

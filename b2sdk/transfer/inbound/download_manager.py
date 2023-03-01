@@ -91,11 +91,12 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         :param b2sdk.v2.EncryptionSetting encryption: encryption setting (``None`` if unknown)
         """
         progress_listener = progress_listener or DoNothingProgressListener()
-        with self.services.session.download_file_from_url(
+        response = self.services.session.download_file_from_url(
             url,
             range_=range_,
             encryption=encryption,
-        ) as response:
+        ).__enter__()
+        if True:
             download_version = self.services.api.download_version_factory.from_response_headers(
                 response.headers
             )

@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+* Small files downloads hitting the remote endpoint twice
+
 ## [1.19.0] - 2023-01-24
 
 ### Added

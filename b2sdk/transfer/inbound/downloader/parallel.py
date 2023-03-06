@@ -15,6 +15,7 @@ from concurrent import futures
 from io import IOBase
 from time import perf_counter_ns
 from typing import Optional
+from concurrent.futures import ProcessPoolExecutor
 
 from requests.models import Response
 
@@ -49,7 +50,7 @@ class ParallelDownloader(AbstractDownloader):
     #      cloud file start                                         cloud file end
     #
     FINISH_HASHING_BUFFER_SIZE = 1024**2
-
+    DEFAULT_THREAD_POOL_CLASS = staticmethod(ProcessPoolExecutor)
     def __init__(self, min_part_size: int, max_streams: Optional[int] = None, **kwargs):
         """
         :param max_streams: maximum number of simultaneous streams
@@ -185,7 +186,9 @@ class ParallelDownloader(AbstractDownloader):
         futures.wait(streams)
 
 
-class WriterThread(threading.Thread):
+#class WriterThread(threading.Thread):
+import multiprocessing
+class WriterThread(multiprocessing.Process):
     """
     A thread responsible for keeping a queue of data chunks to write to a file-like object and for actually writing them down.
     Since a single thread is responsible for synchronization of the writes, we avoid a lot of issues between userspace and kernelspace
@@ -211,7 +214,8 @@ class WriterThread(threading.Thread):
 
     def __init__(self, file, max_queue_depth):
         self.file = file
-        self.queue = queue.Queue(max_queue_depth)
+        #self.queue = queue.Queue(max_queue_depth)
+        self.queue = multiprocessing.Queue(max_queue_depth)
         self.total = 0
         self.stats_collector = StatsCollector(str(self.file), 'writer', 'seek')
         super(WriterThread, self).__init__()

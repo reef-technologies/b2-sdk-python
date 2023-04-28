@@ -108,7 +108,10 @@ setup(
     # dependencies). You can install these using the following syntax,
     # for example:
     # $ pip install -e .[dev,test]
-    extras_require={'doc': read_requirements('doc'), 'dev': read_requirements('dev')},
+    extras_require={
+        'doc': read_requirements('doc'),
+        'dev': read_requirements('dev')
+    },
     setup_requires=['setuptools_scm<6.0'],
     use_scm_version=True,
 

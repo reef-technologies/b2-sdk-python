@@ -1,3 +1,6 @@
+from b2sdk.v2 import Bucket
+
+
 class BucketTrackingMixin:
     """
     Mixin class for B2Api, which enables bucket tracking.
@@ -10,11 +13,11 @@ class BucketTrackingMixin:
         self.buckets = []
         super().__init__(*args, **kwargs)
 
-    def create_bucket(self, name, *args, **kwargs):
+    def create_bucket(self, name: str, *args, **kwargs) -> Bucket:
         bucket = super().create_bucket(name, *args, **kwargs)
         self.buckets.append(bucket)
         return bucket
 
-    def delete_bucket(self, bucket):
+    def delete_bucket(self, bucket: Bucket):
         super().delete_bucket(bucket)
         self.buckets = [b for b in self.buckets if b.id_ != bucket.id_]

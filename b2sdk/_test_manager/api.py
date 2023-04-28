@@ -27,7 +27,9 @@ BUCKET_NAME_PREFIX = 'b2tst'
 # Here, we're using these names as long as time as seeds to start the random number generator.
 # Name fraction is used for runners inside the same matrix, time fraction is used for runners in different runs.
 # To avoid collision when the same runners are fired in different commits at the same time we also use GITHUB_SHA
-random.seed(environ.get('RUNNER_NAME', 'local') + environ.get('GITHUB_SHA', 'local') + str(time.time_ns()))
+random.seed(
+    environ.get('RUNNER_NAME', 'local') + environ.get('GITHUB_SHA', 'local') + str(time.time_ns())
+)
 
 
 def generate_bucket_name() -> str:
@@ -44,7 +46,8 @@ class Api(BucketTrackingMixin, B2Api):
     """
     B2Api wrapper which should only be used for testing purposes!
     """
-    def __init__(self, account_id, application_key, realm, *args, **kwargs):
+
+    def __init__(self, account_id: str, application_key: str, realm: str, *args, **kwargs):
         info = InMemoryAccountInfo()
         cache = InMemoryCache()
         super().__init__(info, cache=cache, *args, **kwargs)
@@ -69,7 +72,7 @@ class Api(BucketTrackingMixin, B2Api):
         TooManyRequests,
         max_tries=8,
     )
-    def clean_bucket(self, bucket: Union[Bucket, str]):
+    def clean_bucket(self, bucket: Union[Bucket, str]) -> None:
         if isinstance(bucket, str):
             bucket = self.get_bucket_by_name(bucket)
 
@@ -122,13 +125,13 @@ class Api(BucketTrackingMixin, B2Api):
                 print('It seems that bucket %s has already been removed' % (bucket.name,))
         print()
 
-    def clean_buckets(self):
+    def clean_buckets(self) -> None:
         for bucket in self.buckets:
             with contextlib.suppress(BucketIdNotFound, v3BucketIdNotFound, NonExistentBucket):
                 self.clean_bucket(bucket)
         self.buckets = []
 
-    def clean_all_buckets(self):
+    def clean_all_buckets(self) -> None:
         buckets = self.list_buckets()
         print(f'Total bucket count: {len(buckets)}')
 

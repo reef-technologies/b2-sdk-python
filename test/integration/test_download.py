@@ -116,7 +116,9 @@ class TestDownload(IntegrationTestBase):
                     source_data = sf.read()
                     assert downloaded_data == source_data
 
-            decompressing_api = Api(*b2_auth_data, realm, api_config=B2HttpApiConfig(decode_content=True))
+            decompressing_api = Api(
+                *b2_auth_data, realm, api_config=B2HttpApiConfig(decode_content=True)
+            )
             decompressing_api.download_file_by_id(file_id=file_version.id_).save_to(
                 str(downloaded_uncompressed_file)
             )

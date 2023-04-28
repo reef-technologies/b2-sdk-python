@@ -134,7 +134,7 @@ def unit(session):
 @nox.session(python=PYTHON_VERSIONS)
 def integration(session):
     """Run integration tests."""
-    install_myself(session)
+    install_myself(session, ['dev'])
     session.run('pip', 'install', *REQUIREMENTS_TEST)
     session.run('pytest', '-s', *session.posargs, 'test/integration')
 
@@ -142,7 +142,7 @@ def integration(session):
 @nox.session(python=PYTHON_DEFAULT_VERSION)
 def cleanup_old_buckets(session):
     """Remove buckets from previous test runs."""
-    install_myself(session)
+    install_myself(session, ['dev'])
     session.run('pip', 'install', *REQUIREMENTS_TEST)
     session.run('python', '-m', 'test.integration.cleanup_buckets')
 

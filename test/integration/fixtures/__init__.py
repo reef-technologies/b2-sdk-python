@@ -11,7 +11,7 @@
 import os
 
 import pytest
-from .. import get_b2_auth_data
+from .. import get_b2_auth_data, get_realm
 
 
 @pytest.fixture
@@ -20,3 +20,8 @@ def b2_auth_data():
         return get_b2_auth_data()
     except ValueError as ex:
         pytest.fail(ex.args[0])
+
+
+@pytest.fixture
+def realm():
+    return get_realm()

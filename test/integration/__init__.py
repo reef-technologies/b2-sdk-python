@@ -19,3 +19,7 @@ def get_b2_auth_data():
     if application_key is None:
         raise ValueError('B2_TEST_APPLICATION_KEY is not set.')
     return application_key_id, application_key
+
+
+def get_realm():
+    return os.environ.get('B2_TEST_ENVIRONMENT', 'production')

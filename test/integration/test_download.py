@@ -15,11 +15,11 @@ from pprint import pprint
 from typing import Optional, Tuple
 from unittest import mock
 
+from b2sdk._test_manager.api import Api
 from b2sdk.v2 import *
 from b2sdk.utils import Sha1HexDigest
 
 from .fixtures import *  # pyflakes: disable
-from .helpers import authorize
 from .base import IntegrationTestBase
 
 
@@ -93,7 +93,7 @@ class TestDownload(IntegrationTestBase):
             pprint(f.download_version._get_args_for_clone())
             assert not f.download_version.content_sha1_verified
 
-    def test_gzip(self):
+    def test_gzip(self, b2_auth_data, realm):
         bucket = self.create_bucket()
         with TempDir() as temp_dir:
             temp_dir = pathlib.Path(temp_dir)
@@ -116,9 +116,7 @@ class TestDownload(IntegrationTestBase):
                     source_data = sf.read()
                     assert downloaded_data == source_data
 
-            decompressing_api, _ = authorize(
-                self.b2_auth_data, B2HttpApiConfig(decode_content=True)
-            )
+            decompressing_api = Api(*b2_auth_data, realm, api_config=B2HttpApiConfig(decode_content=True))
             decompressing_api.download_file_by_id(file_id=file_version.id_).save_to(
                 str(downloaded_uncompressed_file)
             )

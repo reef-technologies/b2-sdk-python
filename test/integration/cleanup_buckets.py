@@ -8,10 +8,10 @@
 #
 ######################################################################
 
-from . import get_b2_auth_data
-from .bucket_cleaner import BucketCleaner
+from . import get_b2_auth_data, get_realm
+from b2sdk._test_manager.api import Api
 from .test_raw_api import cleanup_old_buckets
 
 if __name__ == '__main__':
     cleanup_old_buckets()
-    BucketCleaner(False, *get_b2_auth_data()).cleanup_buckets()
+    Api(*get_b2_auth_data(), get_realm()).clean_all_buckets()

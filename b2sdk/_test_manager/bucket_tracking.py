@@ -1,3 +1,12 @@
+######################################################################
+#
+# File: b2sdk/_test_manager/bucket_tracking.py
+#
+# Copyright 2023 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
 from b2sdk.v2 import Bucket
 
 

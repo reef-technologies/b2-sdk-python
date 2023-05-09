@@ -110,7 +110,7 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         'doc': read_requirements('doc'),
-        'dev': read_requirements('dev')
+        'dev': read_requirements('dev'),
     },
     setup_requires=['setuptools_scm<6.0'],
     use_scm_version=True,

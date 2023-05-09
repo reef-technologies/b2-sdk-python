@@ -15,7 +15,7 @@ from pprint import pprint
 from typing import Optional, Tuple
 from unittest import mock
 
-from b2sdk._test_manager.api import Api
+from b2sdk.test.api_test_manager import ApiTestManager
 from b2sdk.v2 import *
 from b2sdk.utils import Sha1HexDigest
 
@@ -116,7 +116,7 @@ class TestDownload(IntegrationTestBase):
                     source_data = sf.read()
                     assert downloaded_data == source_data
 
-            decompressing_api = Api(
+            decompressing_api = ApiTestManager(
                 *b2_auth_data, realm, api_config=B2HttpApiConfig(decode_content=True)
             )
             decompressing_api.download_file_by_id(file_id=file_version.id_).save_to(

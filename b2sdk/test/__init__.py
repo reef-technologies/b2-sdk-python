@@ -1,6 +1,6 @@
 ######################################################################
 #
-# File: b2sdk/_test_manager/__init__.py
+# File: b2sdk/test/__init__.py
 #
 # Copyright 2023 Backblaze Inc. All Rights Reserved.
 #

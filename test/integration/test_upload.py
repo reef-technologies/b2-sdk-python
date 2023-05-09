@@ -11,7 +11,7 @@
 import io
 from typing import Optional
 
-from .fixtures import *  # noqa
+from .fixtures import b2_auth_data, realm
 from .base import IntegrationTestBase
 
 

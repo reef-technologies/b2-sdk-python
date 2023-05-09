@@ -1,6 +1,6 @@
 ######################################################################
 #
-# File: b2sdk/_test_manager/bucket_tracking.py
+# File: b2sdk/test/bucket_tracking.py
 #
 # Copyright 2023 Backblaze Inc. All Rights Reserved.
 #

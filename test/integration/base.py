@@ -13,7 +13,7 @@ import os
 
 import pytest
 
-from b2sdk._test_manager.api import Api
+from b2sdk.test.api_test_manager import ApiTestManager
 
 
 class IntegrationTestBase:
@@ -24,7 +24,7 @@ class IntegrationTestBase:
 
     @pytest.fixture(autouse=True)
     def setup_method(self, b2_auth_data, realm):
-        self.b2_api = Api(*b2_auth_data, realm)
+        self.b2_api = ApiTestManager(*b2_auth_data, realm)
         self.info = self.b2_api.account_info
         yield
         self.b2_api.clean_buckets()

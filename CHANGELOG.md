@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Infrastructure
 * Wrapper for B2Api class which can be used for test purposes
 
 ## [1.21.0] - 2023-04-17

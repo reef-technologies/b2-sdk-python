@@ -1,0 +1,45 @@
+Source: python-b2sdk
+Section: python
+Priority: optional
+Maintainer: Debian Python Modules Team <team+python@tracker.debian.org>
+Uploaders:
+ Ondřej Kobližek <kobla@debian.org>,
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ python3-all,
+ python3-arrow,
+ python3-pyfakefs,
+ python3-logfury,
+ python3-pyflakes,
+ python3-pytest,
+ python3-pytest-lazy-fixture,
+ python3-pytest-mock,
+ python3-requests,
+ python3-setuptools,
+ python3-setuptools-scm,
+ python3-six,
+ python3-tqdm,
+ yapf3,
+Standards-Version: 4.6.1
+Homepage: https://github.com/Backblaze/b2-sdk-python
+Vcs-Git: https://salsa.debian.org/python-team/packages/python-b2sdk.git
+Vcs-Browser: https://salsa.debian.org/python-team/packages/python-b2sdk
+Testsuite: autopkgtest-pkg-python
+Rules-Requires-Root: no
+
+Package: python3-b2sdk
+X-Python3-Version: >= 3.7
+Architecture: all
+Depends:
+ python3-arrow,
+ ${misc:Depends},
+ ${python3:Depends},
+Description: Python library to access B2 cloud storage
+ Client library and a few handy utilities for easy access to all of
+ the capabilities of B2 Cloud Storage.
+ .
+ B2 command-line tool (backblaze-b2 package) is an example of how it
+ can be used to provide command-line access to the B2 service, but
+ there are many possible applications (including FUSE filesystems,
+ storage backend drivers for backup applications etc).

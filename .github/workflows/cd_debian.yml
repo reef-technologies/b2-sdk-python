@@ -1,0 +1,39 @@
+name: Debian Continuous Delivery
+
+on:
+  workflow_call:
+    inputs:
+      b2-upload-bucket:
+        required: true
+        type: string
+
+env:
+  PYTHON_DEFAULT_VERSION: "3.11"
+
+jobs:
+  build-deb:
+    env:
+      # dont run tests in Debian build, we ran them already
+      DEB_BUILD_OPTIONS: nocheck
+      B2_APPLICATION_KEY_ID: '${{ secrets.B2_DEBIAN_APPLICATION_KEY_ID }}'
+      B2_APPLICATION_KEY: '${{ secrets.B2_DEBIAN_APPLICATION_KEY }}'
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT_VERSION }}
+
+      - uses: jtdor/build-deb-action@v1
+        with:
+          buildpackage-opts: --build=binary
+
+      - name: Upload to B2
+        working-directory: debian/artifacts
+        run: |
+          ls -1 *.deb | xargs -I {} sudo apt install ./{}
+          pip install -U wheel b2
+          ls -1 *.deb | xargs -I {} b2 upload_file ${{ inputs.b2-upload-bucket }} {} {}

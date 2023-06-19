@@ -109,7 +109,7 @@ setup(
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={'doc': read_requirements('doc')},
-    setup_requires=['setuptools_scm<6.0'],
+    setup_requires=['setuptools_scm'],
     use_scm_version=True,
 
     # If there are data files included in your packages that need to be
@@ -131,3 +131,4 @@ setup(
         'pyinstaller40': ['hook-dirs=b2sdk._pyinstaller:get_hook_dirs'],
     },
 )
+

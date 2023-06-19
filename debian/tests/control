@@ -1,0 +1,12 @@
+Depends:
+ python3-all,
+ python3-arrow,
+ python3-b2sdk,
+ python3-pyfakefs,
+ python3-pyflakes,
+ python3-pytest,
+ python3-pytest-lazy-fixture,
+ python3-pytest-mock,
+ python3-setuptools,
+ yapf3,
+Test-Command: set -e; for py in $(py3versions -s); do echo "[*] testing on $py:"; $py -m pytest test/unit/ -k "not test_requests_notice_file" 2>&1; done

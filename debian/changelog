@@ -1,0 +1,133 @@
+python-b2sdk (1.21.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * d/control: Add constraint X-Python3-Version to 3.7+
+
+ -- yed podtrzitko <yedpodtrzitko@gmail.com>  Thu, 15 Jun 2023 13:29:34 +0800
+
+python-b2sdk (1.17.3-2) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Set upstream metadata fields: Repository.
+  * Remove obsolete field Name from debian/upstream/metadata (already present in
+    machine-readable debian/copyright).
+
+ -- Jelmer Vernooĳ <jelmer@debian.org>  Mon, 17 Oct 2022 00:28:54 +0100
+
+python-b2sdk (1.17.3-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Build depend on python3-pyfakefs and python3-pytest-lazy-fixture, now
+    required to run the tests.
+  * Update PYBUILD_TEST_ARGS to skip integration tests.
+  * Update autopkgtest to install -pyfakefs and -pytest-lazy-fixture and skip
+    integration tests.
+  * Update debian/patches/0001-Don-t-use-setuptools-scm.patch and
+    debian/patches/0002-Hardcoded-b2sdk-version.patch.
+  * Update Standards-Version, no changes needed.
+
+ -- Emanuele Rocca <ema@debian.org>  Wed, 14 Sep 2022 21:43:39 +0200
+
+python-b2sdk (1.3.0-4) unstable; urgency=medium
+
+  * debian/tests/control
+    - fix pytest -k syntax for pytest7 also for autopkgtests
+
+ -- Sandro Tosi <morph@debian.org>  Sat, 09 Jul 2022 10:45:50 -0400
+
+python-b2sdk (1.3.0-3) unstable; urgency=medium
+
+  * debian/rules
+    - fix pytest -k syntax for pytest7; Closes: #1013724
+
+ -- Sandro Tosi <morph@debian.org>  Sun, 26 Jun 2022 13:09:52 -0400
+
+python-b2sdk (1.3.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * debian/control
+    - use proper team email address
+
+ -- Sandro Tosi <morph@debian.org>  Wed, 25 Aug 2021 00:24:22 -0400
+
+python-b2sdk (1.3.0-1) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Ondřej Nový ]
+  * d/control: Update Vcs-* fields with new Debian Python Team Salsa
+    layout.
+
+  [ Emmanuel Arias ]
+  * New upstream version 1.3.0 (Closes: #975721)
+  * d/rules: Skip test_raw_api test.
+    - This test use network access.
+  * d/control: Use python3-pytest and python3-pytest-mock (Closes: #981766).
+    - Remove python3-mock.
+  * d/tests/control: Use py3versions -s instead of py3versions -i.
+  * wrap-and-sort.
+  * d/salsa-ci.yml: enable salsa-ci.
+  * d/patch: Add patch to remove setuptools-scm dependency.
+    - Add patch to hardcoded version to 1.3.0.
+
+ -- Emmanuel Arias <eamanu@yaerobi.com>  Wed, 10 Feb 2021 19:13:13 -0300
+
+python-b2sdk (1.1.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Ondřej Kobližek <kobla@debian.org>  Wed, 26 Aug 2020 10:18:22 +0200
+
+python-b2sdk (1.0.2-3) unstable; urgency=medium
+
+  * d/control:
+    - Bump debhelper compat levet to 13
+    - Bump standards version to 4.5.0 (no changes)
+    - Update mailing-list address in Maintainer
+    - Remove upper version limit for python3-arrow as dependency
+
+ -- Ondřej Kobližek <kobla@debian.org>  Mon, 25 May 2020 07:13:34 +0200
+
+python-b2sdk (1.0.2-2) unstable; urgency=medium
+
+  * Add python3-arrow as dependency (Closes: #955565).
+
+ -- Ondřej Nový <onovy@debian.org>  Fri, 22 May 2020 10:29:25 +0200
+
+python-b2sdk (1.0.2-1) unstable; urgency=medium
+
+  * Change my email address.
+  * New upstream release.
+  * d/tests/control: Add dependency python3-arrow.
+
+ -- Ondřej Kobližek <kobla@debian.org>  Wed, 23 Oct 2019 08:15:57 +0200
+
+python-b2sdk (1.0.0-2) unstable; urgency=medium
+
+  * d/control: remove upper version constraint for python3-arrow (no needed
+    for Python version greater than 3.4)
+    https://github.com/Backblaze/b2-sdk-python/pull/64
+
+ -- Ondřej Kobližek <koblizeko@gmail.com>  Fri, 11 Oct 2019 13:10:37 +0200
+
+python-b2sdk (1.0.0-1) unstable; urgency=medium
+
+  * New upstream release
+  * d/control:
+    - Add Rules-Requires-Root
+    - Bump standards version to 4.4.1 (no changes)
+
+ -- Ondřej Kobližek <koblizeko@gmail.com>  Fri, 04 Oct 2019 12:30:44 +0200
+
+python-b2sdk (1.0.0~rc1-2) unstable; urgency=medium
+
+  * Rebuild for source upload
+
+ -- Ondřej Kobližek <koblizeko@gmail.com>  Mon, 05 Aug 2019 06:45:31 +0200
+
+python-b2sdk (1.0.0~rc1-1) unstable; urgency=medium
+
+  * Initial release (Closes: #931755)
+
+ -- Ondřej Kobližek <koblizeko@gmail.com>  Fri, 19 Jul 2019 00:20:08 +0200

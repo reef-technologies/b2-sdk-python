@@ -11,12 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 * `version_utils` decorators now ignore `current_version` parameter to better fit `apiver` needs
+* Unpin `setuptools-scm<6.0` as we don't support Python 3.5 (reason for pinning) anymore
 
 ### Fixed
 * Circular symlinks no longer cause infinite loops when syncing a folder
 
 ### Infrastructure
 * Replaced `pyflakes` with `ruff` for linting
+* Add Debian package build to CD
 
 ## [1.21.0] - 2023-04-17
 

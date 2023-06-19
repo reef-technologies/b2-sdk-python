@@ -1,0 +1,11 @@
+#! /usr/bin/make -f
+
+export PYBUILD_NAME=b2sdk
+export PYBUILD_TEST_PYTEST=1
+export PYBUILD_TEST_ARGS=test/static/ test/unit/ -k "not test_requests_notice_file"
+
+%:
+	dh $@ --buildsystem=pybuild --with python3
+
+override_dh_installchangelogs:
+	dh_installchangelogs $(CURDIR)/README.md

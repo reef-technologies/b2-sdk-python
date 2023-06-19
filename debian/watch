@@ -1,0 +1,5 @@
+version=4
+opts=\
+uversionmangle=s/(\d)[_\.\-\+]?((RC|rc|pre|dev|beta|alpha)\d*)$/$1~$2/,\
+filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/python-b2sdk-$1\.tar\.gz/ \
+  https://github.com/Backblaze/b2-sdk-python/tags .*/v?(\d\S*)\.tar\.gz

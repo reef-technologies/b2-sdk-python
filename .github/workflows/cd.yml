@@ -48,3 +48,11 @@ jobs:
         with:
           user: __token__
           password: ${{ env.B2_PYPI_PASSWORD }}
+
+  debian-release:
+    if: ${{ vars.B2_DEBIAN_BUCKET_UPLOAD }}
+    name: Build Debian Package
+    uses: ./.github/workflows/cd_debian.yml
+    secrets: inherit
+    with:
+      b2-upload-bucket: ${{ vars.B2_DEBIAN_BUCKET_UPLOAD }}

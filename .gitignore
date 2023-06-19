@@ -12,3 +12,9 @@ dist
 venv
 .venv
 .vscode
+.pc
+.pybuild
+debian/python3-b2sdk*
+debian/.debhelper
+debian/debhelper-build-stamp
+debian/files

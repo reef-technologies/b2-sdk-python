@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+* Add `retry_time` parameter to retry for some period (in minutes) when an upload or download fails, instead of hardcoded 5 retries 
+
+## [Unreleased]
+
 ### Fixed
 * Require `typing_extensions` on Python 3.11 (already required on earlier versinons) for better compatibility with pydantic v2
 

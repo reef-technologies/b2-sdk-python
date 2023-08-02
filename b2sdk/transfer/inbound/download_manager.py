@@ -35,6 +35,9 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
     # minimum size of a download chunk
     DEFAULT_MIN_PART_SIZE = 100 * 1024 * 1024
 
+    # default retry time, in minutes, when a download fails
+    DEFAULT_RETRY_TIME = 5
+
     # block size used when downloading file. If it is set to a high value,
     # progress reporting will be jumpy, if it's too low, it impacts CPU
     MIN_CHUNK_SIZE = 8192  # ~1MB file will show ~1% progress increment
@@ -48,6 +51,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         write_buffer_size: int | None = None,
         check_hash: bool = True,
         max_download_streams_per_file: int | None = None,
+        retry_time: int | None = None,
         **kwargs
     ):
         """
@@ -55,6 +59,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         """
 
         super().__init__(**kwargs)
+        retry_time = retry_time or self.DEFAULT_RETRY_TIME
         self.strategies = [
             self.PARALLEL_DOWNLOADER_CLASS(
                 min_part_size=self.DEFAULT_MIN_PART_SIZE,
@@ -64,6 +69,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
                 thread_pool=self._thread_pool,
                 check_hash=check_hash,
                 max_streams=max_download_streams_per_file,
+                retry_time=retry_time,
             ),
             self.SIMPLE_DOWNLOADER_CLASS(
                 min_chunk_size=self.MIN_CHUNK_SIZE,
@@ -71,6 +77,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
                 align_factor=write_buffer_size,
                 thread_pool=self._thread_pool,
                 check_hash=check_hash,
+                retry_time=retry_time,
             ),
         ]
         self.write_buffer_size = write_buffer_size

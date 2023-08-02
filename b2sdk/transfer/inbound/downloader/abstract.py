@@ -54,6 +54,7 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
         max_chunk_size: int | None = None,
         align_factor: int | None = None,
         check_hash: bool = True,
+        retry_time: int = 5,
         **kwargs
     ):
         align_factor = align_factor or self.DEFAULT_ALIGN_FACTOR
@@ -68,6 +69,7 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
         self._check_hash = check_hash
         self._thread_pool = thread_pool if thread_pool is not None \
             else self.DEFAULT_THREAD_POOL_CLASS()
+        self._retry_time = retry_time
         super().__init__(**kwargs)
 
     def _get_hasher(self):

@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from contextlib import ExitStack
 from typing import TYPE_CHECKING
 
@@ -39,11 +40,24 @@ class UploadManager(TransferManager, ThreadPoolMixin):
     Handle complex actions around uploads to free raw_api from that responsibility.
     """
 
-    MAX_UPLOAD_ATTEMPTS = 5
+    # default retry time, in minutes, when an upload fails
+    DEFAULT_RETRY_TIME = 5
+    # interval time to wait between retry, in seconds
+    RETRY_INTERVAL_TIME = 0
+
+    def __init__(self, retry_time: int | None = None, **kwargs):
+        """
+        :param retry_time: maximum retry time, in minutes, when an upload fails
+        """
+        super().__init__(**kwargs)
+        self.retry_time = retry_time or self.DEFAULT_RETRY_TIME
 
     @property
     def account_info(self):
         return self.services.session.account_info
+
+    def set_retry_time(self, retry_time: int):
+        self.retry_time = retry_time
 
     def upload_file(
         self,
@@ -145,7 +159,8 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                 if not stream.closed:
                     stream.close()
 
-            for _ in range(self.MAX_UPLOAD_ATTEMPTS):
+            start_time = time.time()
+            while time.time() - start_time < self.retry_time * 60:
                 # if another part has already had an error there's no point in
                 # uploading this part
                 if large_file_upload_state.has_error():
@@ -186,7 +201,7 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                     self.account_info.clear_bucket_upload_data(bucket_id)
 
         large_file_upload_state.set_error(str(exception_list[-1]))
-        raise MaxRetriesExceeded(self.MAX_UPLOAD_ATTEMPTS, exception_list)
+        raise MaxRetriesExceeded(self.retry_time, exception_list)
 
     def _upload_small_file(
         self,
@@ -206,7 +221,8 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         exception_info_list = []
         progress_listener.set_total_bytes(content_length)
         with progress_listener:
-            for _ in range(self.MAX_UPLOAD_ATTEMPTS):
+            start_time = time.time()
+            while time.time() - start_time < self.retry_time * 60:
                 try:
                     with upload_source.open() as file:
                         input_stream = ReadingStreamWithProgress(
@@ -247,5 +263,7 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                         raise
                     exception_info_list.append(e)
                     self.account_info.clear_bucket_upload_data(bucket_id)
+                    if self.RETRY_INTERVAL_TIME:
+                        time.sleep(self.RETRY_INTERVAL_TIME)
 
-        raise MaxRetriesExceeded(self.MAX_UPLOAD_ATTEMPTS, exception_info_list)
+        raise MaxRetriesExceeded(self.retry_time, exception_info_list)

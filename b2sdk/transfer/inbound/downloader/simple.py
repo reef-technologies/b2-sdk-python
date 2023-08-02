@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from io import IOBase
 
 from requests.models import Response
@@ -52,9 +53,11 @@ class SimpleDownloader(AbstractDownloader):
         # or something and the server closes connection, while neither tcp or http have a problem
         # with the truncated output, so we detect it here and try to continue
 
-        num_tries = 5  # this is hardcoded because we are going to replace the entire retry interface soon, so we'll avoid deprecation here and keep it private
-        retries_left = num_tries - 1
-        while retries_left and bytes_read < download_version.content_length:
+        start_time = time.time()
+        while (
+            time.time() - start_time < self._retry_time * 60 and
+            bytes_read < download_version.content_length
+        ):
             new_range = self._get_remote_range(
                 response,
                 download_version,
@@ -62,8 +65,8 @@ class SimpleDownloader(AbstractDownloader):
             # original response is not closed at this point yet, as another layer is responsible for closing it, so a new socket might be allocated,
             # but this is a very rare case and so it is not worth the optimization
             logger.debug(
-                're-download attempts remaining: %i, bytes read already: %i. Getting range %s now.',
-                retries_left, bytes_read, new_range
+                're-download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
+                int(self._retry_time * 60 - (time.time() - start_time)), bytes_read, new_range
             )
             with session.download_file_from_url(
                 response.request.url,
@@ -76,7 +79,6 @@ class SimpleDownloader(AbstractDownloader):
                     file.write(data)
                     digest.update(data)
                     bytes_read += len(data)
-            retries_left -= 1
         return bytes_read, digest.hexdigest()
 
     def download(

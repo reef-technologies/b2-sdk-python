@@ -14,7 +14,7 @@ import queue
 import threading
 from concurrent import futures
 from io import IOBase
-from time import perf_counter_ns
+from time import perf_counter_ns, time
 
 from requests.models import Response
 
@@ -167,6 +167,7 @@ class ParallelDownloader(AbstractDownloader):
             writer,
             first_part,
             chunk_size,
+            self._retry_time,
             encryption=encryption,
         )
         streams = [stream]
@@ -179,6 +180,7 @@ class ParallelDownloader(AbstractDownloader):
                 writer,
                 part,
                 chunk_size,
+                self._retry_time,
                 encryption=encryption,
             )
             streams.append(stream)
@@ -257,6 +259,7 @@ def download_first_part(
     writer: WriterThread,
     first_part: PartToDownload,
     chunk_size: int,
+    retry_time: int,
     encryption: EncryptionSetting | None = None,
 ) -> None:
     """
@@ -266,6 +269,7 @@ def download_first_part(
     :param writer: thread responsible for writing downloaded data
     :param first_part: definition of the part to be downloaded
     :param chunk_size: size (in bytes) of read data chunks
+    :param retry_time: retry time, in seconds, when a download fails
     :param encryption: encryption mode, algorithm and key
     """
     # This function contains a loop that has heavy impact on performance.
@@ -328,14 +332,14 @@ def download_first_part(
         response.close()
 
         url = response.request.url
-        tries_left = 5 - 1  # this is hardcoded because we are going to replace the entire retry interface soon, so we'll avoid deprecation here and keep it private
-        while tries_left and bytes_read < actual_part_size:
+        start_time = time()
+        while time() - start_time < retry_time * 60 and bytes_read < actual_part_size:
             cloud_range = starting_cloud_range.subrange(
                 bytes_read, actual_part_size - 1
             )  # first attempt was for the whole file, but retries are bound correctly
             logger.debug(
-                'download attempts remaining: %i, bytes read already: %i. Getting range %s now.',
-                tries_left, bytes_read, cloud_range
+                'download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
+                int(retry_time * 60 - (time() - start_time)), bytes_read, cloud_range
             )
             with session.download_file_from_url(
                 url,
@@ -358,7 +362,6 @@ def download_first_part(
                         hasher_update(to_write)
 
                     bytes_read += len(to_write)
-            tries_left -= 1
 
     stats_collector.report()
 
@@ -369,6 +372,7 @@ def download_non_first_part(
     writer: WriterThread,
     part_to_download: PartToDownload,
     chunk_size: int,
+    retry_time: int,
     encryption: EncryptionSetting | None = None,
 ) -> None:
     """
@@ -377,6 +381,7 @@ def download_non_first_part(
     :param writer: thread responsible for writing downloaded data
     :param part_to_download: definition of the part to be downloaded
     :param chunk_size: size (in bytes) of read data chunks
+    :param retry_time: retry time, in seconds, when a download fails
     :param encryption: encryption mode, algorithm and key
     """
     writer_queue_put = writer.queue.put
@@ -386,12 +391,12 @@ def download_non_first_part(
 
     starting_cloud_range = part_to_download.cloud_range
 
-    retries_left = 5  # this is hardcoded because we are going to replace the entire retry interface soon, so we'll avoid deprecation here and keep it private
-    while retries_left and bytes_read < actual_part_size:
+    start_time = time()
+    while time() - start_time < retry_time and bytes_read < actual_part_size:
         cloud_range = starting_cloud_range.subrange(bytes_read, actual_part_size - 1)
         logger.debug(
-            'download attempts remaining: %i, bytes read already: %i. Getting range %s now.',
-            retries_left, bytes_read, cloud_range
+            'download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
+            int(retry_time * 60 - (time() - start_time)), bytes_read, cloud_range
         )
         stats_collector = StatsCollector(url, f'{cloud_range.start}:{cloud_range.end}', 'none')
         stats_collector_read = stats_collector.read
@@ -416,7 +421,6 @@ def download_non_first_part(
                         writer_queue_put((False, start_range + bytes_read, to_write))
 
                     bytes_read += len(to_write)
-            retries_left -= 1
 
         stats_collector.report()
 

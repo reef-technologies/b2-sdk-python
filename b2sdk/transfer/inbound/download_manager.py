@@ -59,7 +59,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
         """
 
         super().__init__(**kwargs)
-        retry_time = retry_time or self.DEFAULT_RETRY_TIME
+        self.retry_time = retry_time or self.DEFAULT_RETRY_TIME
         self.strategies = [
             self.PARALLEL_DOWNLOADER_CLASS(
                 min_part_size=self.DEFAULT_MIN_PART_SIZE,
@@ -69,7 +69,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
                 thread_pool=self._thread_pool,
                 check_hash=check_hash,
                 max_streams=max_download_streams_per_file,
-                retry_time=retry_time,
+                retry_time=self.retry_time,
             ),
             self.SIMPLE_DOWNLOADER_CLASS(
                 min_chunk_size=self.MIN_CHUNK_SIZE,
@@ -77,7 +77,7 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
                 align_factor=write_buffer_size,
                 thread_pool=self._thread_pool,
                 check_hash=check_hash,
-                retry_time=retry_time,
+                retry_time=self.retry_time,
             ),
         ]
         self.write_buffer_size = write_buffer_size

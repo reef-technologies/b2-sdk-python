@@ -55,7 +55,7 @@ class SimpleDownloader(AbstractDownloader):
 
         start_time = time.time()
         while (
-            time.time() - start_time < self._retry_time * 60 and
+            time.time() - start_time < self._retry_time and
             bytes_read < download_version.content_length
         ):
             new_range = self._get_remote_range(
@@ -66,7 +66,7 @@ class SimpleDownloader(AbstractDownloader):
             # but this is a very rare case and so it is not worth the optimization
             logger.debug(
                 're-download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
-                int(self._retry_time * 60 - (time.time() - start_time)), bytes_read, new_range
+                int(self._retry_time - (time.time() - start_time)), bytes_read, new_range
             )
             with session.download_file_from_url(
                 response.request.url,

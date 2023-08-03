@@ -35,8 +35,8 @@ class DownloadManager(TransferManager, ThreadPoolMixin, metaclass=B2TraceMetaAbs
     # minimum size of a download chunk
     DEFAULT_MIN_PART_SIZE = 100 * 1024 * 1024
 
-    # default retry time, in minutes, when a download fails
-    DEFAULT_RETRY_TIME = 5
+    # default retry time, in seconds, when a download fails
+    DEFAULT_RETRY_TIME = 300
 
     # block size used when downloading file. If it is set to a high value,
     # progress reporting will be jumpy, if it's too low, it impacts CPU

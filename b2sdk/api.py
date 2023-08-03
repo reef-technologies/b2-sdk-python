@@ -87,7 +87,7 @@ class Services:
         :param save_to_buffer_size: buffer size to use when writing files using DownloadedFile.save_to
         :param check_download_hash: whether to check hash of downloaded files. Can be disabled for files with internal checksums, for example, or to forcefully retrieve objects with corrupted payload or hash value
         :param max_download_streams_per_file: how many streams to use for parallel downloader
-        :param retry_time: maximum retry time, in minutes, when an upload or download fails
+        :param retry_time: maximum retry time, in seconds, when an upload or download fails
         """
         self.api = api
         self.session = api.session
@@ -165,7 +165,7 @@ class B2Api(metaclass=B2TraceMeta):
         :param save_to_buffer_size: buffer size to use when writing files using DownloadedFile.save_to
         :param check_download_hash: whether to check hash of downloaded files. Can be disabled for files with internal checksums, for example, or to forcefully retrieve objects with corrupted payload or hash value
         :param max_download_streams_per_file: number of streams for parallel download manager
-        :param retry_time: maximum retry time, in minutes, when an upload or download fails
+        :param retry_time: maximum retry time, in seconds, when an upload or download fails
         """
         self.session = self.SESSION_CLASS(
             account_info=account_info, cache=cache, api_config=api_config

@@ -40,14 +40,14 @@ class UploadManager(TransferManager, ThreadPoolMixin):
     Handle complex actions around uploads to free raw_api from that responsibility.
     """
 
-    # default retry time, in minutes, when an upload fails
-    DEFAULT_RETRY_TIME = 5
+    # default retry time, in seconds, when an upload fails
+    DEFAULT_RETRY_TIME = 300
     # interval time to wait between retry, in seconds
     RETRY_INTERVAL_TIME = 0
 
     def __init__(self, retry_time: int | None = None, **kwargs):
         """
-        :param retry_time: maximum retry time, in minutes, when an upload fails
+        :param retry_time: maximum retry time, in seconds, when an upload fails
         """
         super().__init__(**kwargs)
         self.retry_time = retry_time or self.DEFAULT_RETRY_TIME
@@ -160,7 +160,7 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                     stream.close()
 
             start_time = time.time()
-            while time.time() - start_time < self.retry_time * 60:
+            while time.time() - start_time < self.retry_time:
                 # if another part has already had an error there's no point in
                 # uploading this part
                 if large_file_upload_state.has_error():
@@ -222,7 +222,7 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         progress_listener.set_total_bytes(content_length)
         with progress_listener:
             start_time = time.time()
-            while time.time() - start_time < self.retry_time * 60:
+            while time.time() - start_time < self.retry_time:
                 try:
                     with upload_source.open() as file:
                         input_stream = ReadingStreamWithProgress(

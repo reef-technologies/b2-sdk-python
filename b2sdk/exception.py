@@ -391,7 +391,7 @@ class MaxRetriesExceeded(B2Error):
 
     def __str__(self):
         exceptions = '\n'.join(str(wrapped_error) for wrapped_error in self.exception_info_list)
-        return 'FAILED to upload after {} minutes of trying. Encountered exceptions: {}'.format(
+        return 'FAILED to upload after {} seconds of trying. Encountered exceptions: {}'.format(
             self.limit,
             exceptions,
         )

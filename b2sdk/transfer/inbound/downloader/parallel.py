@@ -333,13 +333,13 @@ def download_first_part(
 
         url = response.request.url
         start_time = time()
-        while time() - start_time < retry_time * 60 and bytes_read < actual_part_size:
+        while time() - start_time < retry_time and bytes_read < actual_part_size:
             cloud_range = starting_cloud_range.subrange(
                 bytes_read, actual_part_size - 1
             )  # first attempt was for the whole file, but retries are bound correctly
             logger.debug(
                 'download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
-                int(retry_time * 60 - (time() - start_time)), bytes_read, cloud_range
+                int(retry_time - (time() - start_time)), bytes_read, cloud_range
             )
             with session.download_file_from_url(
                 url,
@@ -396,7 +396,7 @@ def download_non_first_part(
         cloud_range = starting_cloud_range.subrange(bytes_read, actual_part_size - 1)
         logger.debug(
             'download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
-            int(retry_time * 60 - (time() - start_time)), bytes_read, cloud_range
+            int(retry_time - (time() - start_time)), bytes_read, cloud_range
         )
         stats_collector = StatsCollector(url, f'{cloud_range.start}:{cloud_range.end}', 'none')
         stats_collector_read = stats_collector.read

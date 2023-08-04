@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 from abc import abstractmethod
 from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
 from io import IOBase
 
 from requests.models import Response
@@ -54,7 +55,7 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
         max_chunk_size: int | None = None,
         align_factor: int | None = None,
         check_hash: bool = True,
-        retry_time: int = 5,
+        retry_time: timedelta | None = None,
         **kwargs
     ):
         align_factor = align_factor or self.DEFAULT_ALIGN_FACTOR

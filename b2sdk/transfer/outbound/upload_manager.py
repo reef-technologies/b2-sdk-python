@@ -10,8 +10,8 @@
 from __future__ import annotations
 
 import logging
-import time
 from contextlib import ExitStack
+from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from b2sdk.encryption.setting import EncryptionMode, EncryptionSetting
@@ -19,6 +19,7 @@ from b2sdk.exception import (
     AlreadyFailed,
     B2Error,
     MaxRetriesExceeded,
+    UploadRetriesTimeout,
 )
 from b2sdk.file_lock import FileRetentionSetting, LegalHold
 from b2sdk.http_constants import HEX_DIGITS_AT_END
@@ -26,6 +27,7 @@ from b2sdk.stream.hashing import StreamWithHash
 from b2sdk.stream.progress import ReadingStreamWithProgress
 
 from ...utils.thread_pool import ThreadPoolMixin
+from ...utils.transfer import RetryCounter
 from ..transfer_manager import TransferManager
 from .progress_reporter import PartProgressReporter
 
@@ -40,24 +42,16 @@ class UploadManager(TransferManager, ThreadPoolMixin):
     Handle complex actions around uploads to free raw_api from that responsibility.
     """
 
-    # default retry time, in seconds, when an upload fails
-    DEFAULT_RETRY_TIME = 300
-    # interval time to wait between retry, in seconds
-    RETRY_INTERVAL_TIME = 0
-
-    def __init__(self, retry_time: int | None = None, **kwargs):
+    def __init__(self, retry_time: timedelta | None = None, **kwargs):
         """
         :param retry_time: maximum retry time, in seconds, when an upload fails
         """
         super().__init__(**kwargs)
-        self.retry_time = retry_time or self.DEFAULT_RETRY_TIME
+        self.retry_counter = RetryCounter(retry_time)
 
     @property
     def account_info(self):
         return self.services.session.account_info
-
-    def set_retry_time(self, retry_time: int):
-        self.retry_time = retry_time
 
     def upload_file(
         self,
@@ -159,8 +153,8 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                 if not stream.closed:
                     stream.close()
 
-            start_time = time.time()
-            while time.time() - start_time < self.retry_time:
+            self.retry_counter.start()
+            while self.retry_counter.count_and_check():
                 # if another part has already had an error there's no point in
                 # uploading this part
                 if large_file_upload_state.has_error():
@@ -201,7 +195,10 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                     self.account_info.clear_bucket_upload_data(bucket_id)
 
         large_file_upload_state.set_error(str(exception_list[-1]))
-        raise MaxRetriesExceeded(self.retry_time, exception_list)
+        if self.retry_counter.retry_time:
+            raise UploadRetriesTimeout(self.retry_counter.retry_time, exception_list)
+        else:
+            raise MaxRetriesExceeded(self.retry_counter.MAXIMUM_RETRY_ATTEMPTS, exception_list)
 
     def _upload_small_file(
         self,
@@ -221,8 +218,8 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         exception_info_list = []
         progress_listener.set_total_bytes(content_length)
         with progress_listener:
-            start_time = time.time()
-            while time.time() - start_time < self.retry_time:
+            self.retry_counter.start()
+            while self.retry_counter.count_and_check():
                 try:
                     with upload_source.open() as file:
                         input_stream = ReadingStreamWithProgress(
@@ -263,7 +260,8 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                         raise
                     exception_info_list.append(e)
                     self.account_info.clear_bucket_upload_data(bucket_id)
-                    if self.RETRY_INTERVAL_TIME:
-                        time.sleep(self.RETRY_INTERVAL_TIME)
 
-        raise MaxRetriesExceeded(self.retry_time, exception_info_list)
+        if self.retry_counter.retry_time:
+            raise UploadRetriesTimeout(self.retry_counter.retry_time, exception_info_list)
+        else:
+            raise MaxRetriesExceeded(self.retry_counter.MAXIMUM_RETRY_ATTEMPTS, exception_info_list)

@@ -391,7 +391,7 @@ class MaxRetriesExceeded(B2Error):
 
     def __str__(self):
         exceptions = '\n'.join(str(wrapped_error) for wrapped_error in self.exception_info_list)
-        return 'FAILED to upload after {} seconds of trying. Encountered exceptions: {}'.format(
+        return 'FAILED to upload after {} tries. Encountered exceptions: {}'.format(
             self.limit,
             exceptions,
         )
@@ -485,6 +485,20 @@ class UnrecognizedBucketType(B2Error):
 class UnsatisfiableRange(B2Error):
     def __str__(self):
         return "The range in the request is outside the size of the file"
+
+
+class UploadRetriesTimeout(B2Error):
+    def __init__(self, limit, exception_info_list):
+        super().__init__()
+        self.limit = limit
+        self.exception_info_list = exception_info_list
+
+    def __str__(self):
+        exceptions = '\n'.join(str(wrapped_error) for wrapped_error in self.exception_info_list)
+        return 'FAILED to upload after {} seconds of retrying. Encountered exceptions: {}'.format(
+            self.limit,
+            exceptions,
+        )
 
 
 class UploadTokenUsedConcurrently(B2Error):

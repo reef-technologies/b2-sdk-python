@@ -1568,10 +1568,8 @@ class TestUpload(TestCaseWithBucket):
             self.bucket.upload_bytes(data, 'file1')
 
     def test_upload_file_too_many_retryable_errors(self):
-        self.simulator.set_upload_errors([CanRetry(True)] * 3)
+        self.simulator.set_upload_errors([CanRetry(True)] * 6)
         data = b'hello world'
-        self.api.services.upload_manager.set_retry_time(5)
-        self.api.services.upload_manager.RETRY_INTERVAL_TIME = 2
         with self.assertRaises(MaxRetriesExceeded):
             self.bucket.upload_bytes(data, 'file1')
 

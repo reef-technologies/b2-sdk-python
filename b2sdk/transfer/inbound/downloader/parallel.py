@@ -13,8 +13,9 @@ import logging
 import queue
 import threading
 from concurrent import futures
+from datetime import timedelta
 from io import IOBase
-from time import perf_counter_ns, time
+from time import perf_counter_ns
 
 from requests.models import Response
 
@@ -22,6 +23,7 @@ from b2sdk.encryption.setting import EncryptionSetting
 from b2sdk.file_version import DownloadVersion
 from b2sdk.session import B2Session
 from b2sdk.utils.range_ import Range
+from b2sdk.utils.transfer import RetryCounter
 
 from .abstract import AbstractDownloader
 from .stats_collector import StatsCollector
@@ -259,7 +261,7 @@ def download_first_part(
     writer: WriterThread,
     first_part: PartToDownload,
     chunk_size: int,
-    retry_time: int,
+    retry_time: timedelta,
     encryption: EncryptionSetting | None = None,
 ) -> None:
     """
@@ -332,14 +334,16 @@ def download_first_part(
         response.close()
 
         url = response.request.url
-        start_time = time()
-        while time() - start_time < retry_time and bytes_read < actual_part_size:
+        retry_counter = RetryCounter(retry_time)
+        retry_counter.start()
+        while retry_counter.count_and_check() and bytes_read < actual_part_size:
             cloud_range = starting_cloud_range.subrange(
                 bytes_read, actual_part_size - 1
             )  # first attempt was for the whole file, but retries are bound correctly
+            remaining_log_format = ' time: %is' if retry_counter.retry_time else ': %i'
             logger.debug(
-                'download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
-                int(retry_time - (time() - start_time)), bytes_read, cloud_range
+                f'download attempts remaining{remaining_log_format}, bytes read already: %i. Getting range %s now.',
+                retry_counter.get_remaining_attempts(), bytes_read, cloud_range
             )
             with session.download_file_from_url(
                 url,
@@ -372,7 +376,7 @@ def download_non_first_part(
     writer: WriterThread,
     part_to_download: PartToDownload,
     chunk_size: int,
-    retry_time: int,
+    retry_time: timedelta,
     encryption: EncryptionSetting | None = None,
 ) -> None:
     """
@@ -391,12 +395,14 @@ def download_non_first_part(
 
     starting_cloud_range = part_to_download.cloud_range
 
-    start_time = time()
-    while time() - start_time < retry_time and bytes_read < actual_part_size:
+    retry_counter = RetryCounter(retry_time)
+    retry_counter.start()
+    while retry_counter.count_and_check() and bytes_read < actual_part_size:
         cloud_range = starting_cloud_range.subrange(bytes_read, actual_part_size - 1)
+        remaining_log_format = ' time: %is' if retry_counter.retry_time else ': %i'
         logger.debug(
-            'download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
-            int(retry_time - (time() - start_time)), bytes_read, cloud_range
+            f'download attempts remaining{remaining_log_format}, bytes read already: %i. Getting range %s now.',
+            retry_counter.get_remaining_attempts(), bytes_read, cloud_range
         )
         stats_collector = StatsCollector(url, f'{cloud_range.start}:{cloud_range.end}', 'none')
         stats_collector_read = stats_collector.read

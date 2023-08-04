@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import logging
-import time
 from io import IOBase
 
 from requests.models import Response
@@ -18,6 +17,7 @@ from requests.models import Response
 from b2sdk.encryption.setting import EncryptionSetting
 from b2sdk.file_version import DownloadVersion
 from b2sdk.session import B2Session
+from b2sdk.utils.transfer import RetryCounter
 
 from .abstract import AbstractDownloader
 
@@ -53,20 +53,19 @@ class SimpleDownloader(AbstractDownloader):
         # or something and the server closes connection, while neither tcp or http have a problem
         # with the truncated output, so we detect it here and try to continue
 
-        start_time = time.time()
-        while (
-            time.time() - start_time < self._retry_time and
-            bytes_read < download_version.content_length
-        ):
+        retry_counter = RetryCounter(self._retry_time)
+        retry_counter.start()
+        while retry_counter.count_and_check() and bytes_read < download_version.content_length:
             new_range = self._get_remote_range(
                 response,
                 download_version,
             ).subrange(bytes_read, actual_size - 1)
             # original response is not closed at this point yet, as another layer is responsible for closing it, so a new socket might be allocated,
             # but this is a very rare case and so it is not worth the optimization
+            remaining_log_format = ' time: %is' if retry_counter.retry_time else ': %i'
             logger.debug(
-                're-download attempts remaining time: %is, bytes read already: %i. Getting range %s now.',
-                int(self._retry_time - (time.time() - start_time)), bytes_read, new_range
+                f're-download attempts remaining{remaining_log_format}, bytes read already: %i. Getting range %s now.',
+                retry_counter.get_remaining_attempts(), bytes_read, new_range
             )
             with session.download_file_from_url(
                 response.request.url,

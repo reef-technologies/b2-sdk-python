@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import suppress
+from datetime import timedelta
 from typing import Generator
 
 from .account_info.abstract import AbstractAccountInfo
@@ -75,7 +76,7 @@ class Services:
         save_to_buffer_size: int | None = None,
         check_download_hash: bool = True,
         max_download_streams_per_file: int | None = None,
-        retry_time: int | None = None,
+        retry_time: timedelta | None = None,
     ):
         """
         Initialize Services object using given session.
@@ -147,7 +148,7 @@ class B2Api(metaclass=B2TraceMeta):
         save_to_buffer_size: int | None = None,
         check_download_hash: bool = True,
         max_download_streams_per_file: int | None = None,
-        retry_time: int | None = None,
+        retry_time: timedelta | None = None,
     ):
         """
         Initialize the API using the given account info.

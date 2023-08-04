@@ -1,6 +1,6 @@
 ######################################################################
 #
-# File: b2sdk/utils/trasnfer.py
+# File: b2sdk/utils/transfer.py
 #
 # Copyright 2023 Backblaze Inc. All Rights Reserved.
 #

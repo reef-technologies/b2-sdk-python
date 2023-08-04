@@ -271,7 +271,7 @@ def download_first_part(
     :param writer: thread responsible for writing downloaded data
     :param first_part: definition of the part to be downloaded
     :param chunk_size: size (in bytes) of read data chunks
-    :param retry_time: retry time, in seconds, when a download fails
+    :param retry_time: retry time when a download fails
     :param encryption: encryption mode, algorithm and key
     """
     # This function contains a loop that has heavy impact on performance.
@@ -385,7 +385,7 @@ def download_non_first_part(
     :param writer: thread responsible for writing downloaded data
     :param part_to_download: definition of the part to be downloaded
     :param chunk_size: size (in bytes) of read data chunks
-    :param retry_time: retry time, in seconds, when a download fails
+    :param retry_time: retry time when a download fails
     :param encryption: encryption mode, algorithm and key
     """
     writer_queue_put = writer.queue.put

@@ -44,7 +44,7 @@ class UploadManager(TransferManager, ThreadPoolMixin):
 
     def __init__(self, retry_time: timedelta | None = None, **kwargs):
         """
-        :param retry_time: maximum retry time, in seconds, when an upload fails
+        :param retry_time: maximum retry time, when an upload fails
         """
         super().__init__(**kwargs)
         self.retry_counter = RetryCounter(retry_time)

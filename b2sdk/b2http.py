@@ -22,8 +22,8 @@ from random import random
 from typing import Any
 
 import requests
-from requests.adapters import HTTPAdapter
 
+from .requests._continue import HTTPAdapter
 from .api_config import DEFAULT_HTTP_API_CONFIG, B2HttpApiConfig
 from .exception import (
     B2ConnectionError,

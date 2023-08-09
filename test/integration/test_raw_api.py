@@ -21,7 +21,7 @@ import pytest
 
 from b2sdk.b2http import B2Http
 from b2sdk.encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
-from b2sdk.exception import DisablingFileLockNotSupported
+from b2sdk.exception import DisablingFileLockNotSupported, InvalidAuthToken
 from b2sdk.file_lock import (
     NO_RETENTION_FILE_SETTING,
     BucketRetentionSetting,
@@ -35,7 +35,7 @@ from b2sdk.utils import hex_sha1_of_stream
 
 
 # TODO: rewrite to separate test cases
-def test_raw_api(dont_cleanup_old_buckets):
+def test_raw_api(dont_cleanup_old_buckets, monkeypatch):
     """
     Exercise the code in B2RawHTTPApi by making each call once, just
     to make sure the parameters are passed in, and the result is
@@ -60,7 +60,7 @@ def test_raw_api(dont_cleanup_old_buckets):
 
     try:
         raw_api = B2RawHTTPApi(B2Http())
-        raw_api_test_helper(raw_api, not dont_cleanup_old_buckets)
+        raw_api_test_helper(raw_api, not dont_cleanup_old_buckets, monkeypatch)
     except Exception:
         traceback.print_exc(file=sys.stdout)
         pytest.fail('test_raw_api failed')
@@ -83,7 +83,7 @@ def authorize_raw_api(raw_api):
     return auth_dict
 
 
-def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
+def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
     """
     Try each of the calls to the raw api.  Raise an
     exception if anything goes wrong.
@@ -548,6 +548,60 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
             bucket_id,
             'allPrivate',
             is_file_lock_enabled=False,
+        )
+
+    # b2_100_continue
+    print('b2_100_continue')
+    file_name = 'test-100-continue.txt'
+    file_contents = b'hello world'
+    file_sha1 = hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents))
+
+    def set_100_header(fn):
+        def wrapper(url, headers, *args, **kwargs):
+            headers.update({
+                'Expect': '100-continue',
+            })
+            return fn(url, headers, *args, **kwargs)
+
+        return wrapper
+
+    with monkeypatch.context() as monkey:
+        monkey.setattr(
+            raw_api.b2_http,
+            'post_content_return_json',
+            set_100_header(raw_api.b2_http.post_content_return_json),
+        )
+        data = io.BytesIO(file_contents)
+
+        with pytest.raises(InvalidAuthToken):
+            raw_api.upload_file(
+                upload_url,
+                upload_auth_token + 'x',
+                file_name,
+                len(file_contents),
+                'text/plain',
+                file_sha1,
+                {'color': 'blue'},
+                data,
+                server_side_encryption=sse_b2_aes,
+            )
+
+        # NOTE: disabling the following check as urllib3 consumes body even if we don't send it
+        # Checking if any data was read.
+        # assert data.tell() == 0
+        # TODO: add test to check the data is not sent with Expect: 100-continue header
+
+        data.seek(0)
+        raw_api.upload_file(
+            upload_url,
+            upload_auth_token,
+            file_name,
+            len(file_contents),
+            'text/plain',
+            file_sha1,
+            {'color': 'blue'},
+            data,
+            server_side_encryption=sse_b2_aes,
         )
 
     # Clean up this test.

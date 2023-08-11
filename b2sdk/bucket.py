@@ -11,8 +11,12 @@ from __future__ import annotations
 
 import fnmatch
 import logging
-import pathlib
 from contextlib import suppress
+from functools import partial
+
+from wcmatch import glob as wcglob
+
+from b2sdk.session import B2Session
 
 from .encryption.setting import EncryptionSetting, EncryptionSettingFactory
 from .encryption.types import EncryptionMode
@@ -49,6 +53,7 @@ from .utils import (
     limit_trace_arguments,
     validate_b2_file_name,
 )
+from .utils.fs import WildcardStyle, get_solid_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -330,6 +335,7 @@ class Bucket(metaclass=B2TraceMeta):
         recursive: bool = False,
         fetch_count: int | None = 10000,
         with_wildcard: bool = False,
+        wildcard_style: WildcardStyle = WildcardStyle.GLOB,
     ):
         """
         Pretend that folders exist and yields the information about the files in a folder.
@@ -351,6 +357,7 @@ class Bucket(metaclass=B2TraceMeta):
         :param with_wildcard: Accepts "*", "?", "[]" and "[!]" in folder_to_list, similarly to what shell does.
                               As of 1.19.0 it can only be enabled when recursive is also enabled.
                               Also, in this mode, folder_to_list is considered to be a filename or a pattern.
+        :param wildcard_style: Style of wildcard to use. Default is WildcardStyle.GLOB ("glob")
         :rtype: generator[tuple[b2sdk.v2.FileVersion, str]]
         :returns: generator of (file_version, folder_name) tuples
 
@@ -369,34 +376,20 @@ class Bucket(metaclass=B2TraceMeta):
         if prefix != '' and not prefix.endswith('/') and not with_wildcard:
             prefix += '/'
 
-        # If we're running with wildcard-matching, we could get
-        # a different prefix from it.  We search for the first
-        # occurrence of the special characters and fetch
-        # parent path from that place.
-        # Examples:
-        #   'b/c/*.txt' –> 'b/c/'
-        #   '*.txt' –> ''
-        #   'a/*/result.[ct]sv' –> 'a/'
         if with_wildcard:
-            for wildcard_character in '*?[':
-                try:
-                    starter_index = folder_to_list.index(wildcard_character)
-                except ValueError:
-                    continue
-
-                # +1 to include the starter character.  Using posix path to
-                # ensure consistent behaviour on Windows (e.g. case sensitivity).
-                path = pathlib.PurePosixPath(folder_to_list[:starter_index + 1])
-                parent_path = str(path.parent)
-                # Path considers dot to be the empty path.
-                # There's no shorter path than that.
-                if parent_path == '.':
-                    prefix = ''
-                    break
-                # We could receive paths in different stage, e.g. 'a/*/result.[ct]sv' has two
-                # possible parent paths: 'a/' and 'a/*/', with the first one being the correct one
-                if len(parent_path) < len(prefix):
-                    prefix = parent_path
+            prefix = get_solid_prefix(prefix, folder_to_list, wildcard_style)
+            if wildcard_style == WildcardStyle.GLOB:
+                wildcard_matcher = partial(
+                    lambda file_name: fnmatch.fnmatchcase(file_name, folder_to_list)
+                )
+            else:
+                wc_flags = (
+                    wcglob.BRACE |  # support {} for multiple options
+                    wcglob.GLOBSTAR  # support ** for recursive matching
+                )
+                wildcard_matcher = partial(
+                    lambda file_name: wcglob.globmatch(file_name, folder_to_list, flags=wc_flags)
+                )
 
         # Loop until all files in the named directory have been listed.
         # The starting point of the first list_file_names request is the
@@ -409,7 +402,8 @@ class Bucket(metaclass=B2TraceMeta):
         current_dir = None
         start_file_name = prefix
         start_file_id = None
-        session = self.api.session
+        session: B2Session = self.api.session
+
         while True:
             if latest_only:
                 response = session.list_file_names(self.id_, start_file_name, fetch_count, prefix)
@@ -417,16 +411,17 @@ class Bucket(metaclass=B2TraceMeta):
                 response = session.list_file_versions(
                     self.id_, start_file_name, start_file_id, fetch_count, prefix
                 )
+
             for entry in response['files']:
                 file_version = self.api.file_version_factory.from_api_response(entry)
                 if not file_version.file_name.startswith(prefix):
                     # We're past the files we care about
                     return
-                if with_wildcard and not fnmatch.fnmatchcase(
-                    file_version.file_name, folder_to_list
-                ):
+
+                if with_wildcard and not wildcard_matcher(file_version.file_name):
                     # File doesn't match our wildcard rules
                     continue
+
                 after_prefix = file_version.file_name[len(prefix):]
                 # In case of wildcards, we don't care about folders at all, and it's recursive by default.
                 if '/' not in after_prefix or recursive:

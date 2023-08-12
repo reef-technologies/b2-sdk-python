@@ -165,9 +165,7 @@ class AWSConnection:
             # Check for 'HTTP/<version> 100 Continue\r\n' or, 'HTTP/<version> 100\r\n'
             if len(parts) >= 2 and parts[0].startswith(b'HTTP/') and parts[1] == b'100':
                 self._consume_headers(fp)
-                logger.debug(
-                    "100 Continue response seen, now sending request body."
-                )
+                logger.debug("100 Continue response seen, now sending request body.")
                 self._send_message_body(message_body)
             elif len(parts) >= 2 and parts[0].startswith(b'HTTP/'):
                 # From the RFC:
@@ -191,9 +189,7 @@ class AWSConnection:
                     int(parts[1]),
                     parts[2].decode('ascii') if len(parts) > 2 else '',
                 )
-                response_class = functools.partial(
-                    AWSHTTPResponse, status_tuple=status_tuple
-                )
+                response_class = functools.partial(AWSHTTPResponse, status_tuple=status_tuple)
                 self.response_class = response_class
                 self._response_received = True
         finally:
@@ -209,10 +205,7 @@ class AWSConnection:
                 # urllib3 2.0 chunks and calls send potentially
                 # thousands of times inside `request` unlike the
                 # standard library. Only log this once for sanity.
-                logger.debug(
-                    "send() called, but response already received. "
-                    "Not sending data."
-                )
+                logger.debug("send() called, but response already received. " "Not sending data.")
             self._send_called = True
             return
         return super().send(str)

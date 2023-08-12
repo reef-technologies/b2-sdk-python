@@ -9,6 +9,7 @@
 ######################################################################
 from __future__ import annotations
 
+import http.client
 import io
 import os
 import random
@@ -565,11 +566,23 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
 
         return wrapper
 
+    orig_send = http.client.HTTPConnection.send
+    sent_data = bytearray()
+
+    def patched_send(self, data):
+        sent_data.extend(data)
+        return orig_send(self, data)
+
     with monkeypatch.context() as monkey:
         monkey.setattr(
             raw_api.b2_http,
             'post_content_return_json',
             set_100_header(raw_api.b2_http.post_content_return_json),
+        )
+        monkey.setattr(
+            http.client.HTTPConnection,
+            "send",
+            patched_send,
         )
         data = io.BytesIO(file_contents)
 
@@ -586,23 +599,8 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
                 server_side_encryption=sse_b2_aes,
             )
 
-        # NOTE: disabling the following check as urllib3 consumes body even if we don't send it
-        # Checking if any data was read.
-        # assert data.tell() == 0
-        # TODO: add test to check the data is not sent with Expect: 100-continue header
-
-        data.seek(0)
-        raw_api.upload_file(
-            upload_url,
-            upload_auth_token,
-            file_name,
-            len(file_contents),
-            'text/plain',
-            file_sha1,
-            {'color': 'blue'},
-            data,
-            server_side_encryption=sse_b2_aes,
-        )
+        # Check if data was sent
+        assert file_contents not in sent_data
 
     # Clean up this test.
     _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)

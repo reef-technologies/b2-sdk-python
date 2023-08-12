@@ -23,7 +23,7 @@ from typing import Any
 
 import requests
 
-from .requests._continue import HTTPAdapter
+from .requests._continue import HTTPAdapterWithContinue
 from .api_config import DEFAULT_HTTP_API_CONFIG, B2HttpApiConfig
 from .exception import (
     B2ConnectionError,
@@ -534,7 +534,7 @@ class B2Http:
         return cls._translate_errors(fcn, post_params)
 
 
-class NotDecompressingHTTPAdapter(HTTPAdapter):
+class NotDecompressingHTTPAdapter(HTTPAdapterWithContinue):
     """
     HTTP adapter that uses :class:`b2sdk.requests.NotDecompressingResponse` instead of the default
     :code:`requests.Response` class.

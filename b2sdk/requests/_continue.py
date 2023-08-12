@@ -1,4 +1,6 @@
-# Code taken and modified from: https://github.com/boto/botocore/blob/1.31.20/botocore/awsrequest.py
+# Code taken from:
+# https://github.com/boto/botocore/blob/754b699bbf34261eae47c9dece3b11d7b58eb03c/botocore/awsrequest.py
+# The code has been modified to work with urllib3>=2.0
 
 # Copyright (c) 2012-2013 Mitch Garnaat http://garnaat.org/
 # Copyright 2012-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -13,17 +15,14 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-
 import functools
 import logging
 from http.client import HTTPResponse
 
-import requests
 import urllib3
 from requests import adapters
 from urllib3.connection import HTTPConnection, VerifiedHTTPSConnection
 from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
-
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +105,7 @@ class AWSConnection:
 
     def _send_output(self, message_body=None, *args, **kwargs):
         self._buffer.extend((b"", b""))
-        msg = self._convert_to_bytes(self._buffer)
+        msg = b"\r\n".join(self._buffer)
         del self._buffer[:]
         # If msg and message_body are sent in a single send() call,
         # it will avoid performance problems caused by the interaction
@@ -120,7 +119,7 @@ class AWSConnection:
             # set, it will trigger this custom behavior.
             logger.debug("Waiting for 100 Continue response.")
             # Wait for 1 second for the server to send a response.
-            if urllib3.util.wait_for_read(self.sock, 1):
+            if urllib3.util.wait_for_read(self.sock, 2):
                 self._handle_expect_response(message_body)
                 return
             else:
@@ -162,13 +161,15 @@ class AWSConnection:
         try:
             maybe_status_line = fp.readline()
             parts = maybe_status_line.split(None, 2)
-            if self._is_100_continue_status(maybe_status_line):
+
+            # Check for 'HTTP/<version> 100 Continue\r\n' or, 'HTTP/<version> 100\r\n'
+            if len(parts) >= 2 and parts[0].startswith(b'HTTP/') and parts[1] == b'100':
                 self._consume_headers(fp)
                 logger.debug(
                     "100 Continue response seen, now sending request body."
                 )
                 self._send_message_body(message_body)
-            elif len(parts) == 3 and parts[0].startswith(b'HTTP/'):
+            elif len(parts) >= 2 and parts[0].startswith(b'HTTP/'):
                 # From the RFC:
                 # Requirements for HTTP/1.1 origin servers:
                 #
@@ -188,7 +189,7 @@ class AWSConnection:
                 status_tuple = (
                     parts[0].decode('ascii'),
                     int(parts[1]),
-                    parts[2].decode('ascii'),
+                    parts[2].decode('ascii') if len(parts) > 2 else '',
                 )
                 response_class = functools.partial(
                     AWSHTTPResponse, status_tuple=status_tuple
@@ -216,15 +217,6 @@ class AWSConnection:
             return
         return super().send(str)
 
-    def _is_100_continue_status(self, maybe_status_line):
-        parts = maybe_status_line.split(None, 2)
-        # Check for HTTP/<version> 100 Continue\r\n
-        return (
-            len(parts) >= 3
-            and parts[0].startswith(b'HTTP/')
-            and parts[1] == b'100'
-        )
-
 
 class AWSHTTPConnection(AWSConnection, HTTPConnection):
     """An HTTPConnection that supports 100 Continue behavior."""
@@ -245,7 +237,7 @@ class AWSHTTPSConnectionPool(HTTPSConnectionPool):
 pool_classes_by_scheme = {"http": AWSHTTPConnectionPool, "https": AWSHTTPSConnectionPool}
 
 
-class HTTPAdapter(adapters.HTTPAdapter):
+class HTTPAdapterWithContinue(adapters.HTTPAdapter):
     def init_poolmanager(
         self, connections, maxsize, block=adapters.DEFAULT_POOLBLOCK, **pool_kwargs
     ):

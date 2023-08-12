@@ -82,7 +82,7 @@ class AWSConnection:
         if headers is None:
             headers = {}
         self._response_received = False
-        if headers.get('Expect', b'') == b'100-continue':
+        if headers.get('Expect', b'') in [b'100-continue', '100-continue']:
             self._expect_header_set = True
         else:
             self._expect_header_set = False

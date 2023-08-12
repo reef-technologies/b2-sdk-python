@@ -602,6 +602,20 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
         # Check if data was sent
         assert file_contents not in sent_data
 
+        # this should not fail
+        data.seek(0)
+        raw_api.upload_file(
+            upload_url,
+            upload_auth_token,
+            file_name,
+            len(file_contents),
+            'text/plain',
+            file_sha1,
+            {'color': 'blue'},
+            data,
+            server_side_encryption=sse_b2_aes,
+        )
+
     # Clean up this test.
     _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)
 

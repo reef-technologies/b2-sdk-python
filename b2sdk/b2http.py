@@ -23,6 +23,7 @@ from typing import Any
 
 import requests
 
+from b2sdk.urllib3._connection import HTTPAdapterWithContinue
 from .api_config import DEFAULT_HTTP_API_CONFIG, B2HttpApiConfig
 from .exception import (
     B2ConnectionError,
@@ -40,7 +41,6 @@ from .exception import (
     interpret_b2_error,
 )
 from .requests import NotDecompressingResponse
-from .requests._continue import HTTPAdapterWithContinue
 from .version import USER_AGENT
 
 LOCALE_LOCK = threading.Lock()

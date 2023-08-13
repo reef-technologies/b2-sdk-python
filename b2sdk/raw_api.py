@@ -351,6 +351,8 @@ class AbstractRawApi(metaclass=ABCMeta):
         legal_hold: LegalHold | None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expect_100_continue: bool = True,
+        expect_100_timeout_seconds: float = 10.0,
     ) -> dict:
         headers = {
             'Authorization': upload_auth_token,
@@ -378,6 +380,10 @@ class AbstractRawApi(metaclass=ABCMeta):
 
         if custom_upload_timestamp is not None:
             headers['X-Bz-Custom-Upload-Timestamp'] = str(custom_upload_timestamp)
+
+        if expect_100_continue:
+            headers['Expect'] = '100-continue'
+            headers['X-Expect-100-Continue-Timeout-Seconds'] = str(expect_100_timeout_seconds)
 
         return headers
 

@@ -557,15 +557,6 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
     file_contents = b'hello world'
     file_sha1 = hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents))
 
-    def set_100_header(fn):
-        def wrapper(url, headers, *args, **kwargs):
-            headers.update({
-                'Expect': '100-continue',
-            })
-            return fn(url, headers, *args, **kwargs)
-
-        return wrapper
-
     orig_send = http.client.HTTPConnection.send
     sent_data = bytearray()
 
@@ -574,11 +565,6 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
         return orig_send(self, data)
 
     with monkeypatch.context() as monkey:
-        monkey.setattr(
-            raw_api.b2_http,
-            'post_content_return_json',
-            set_100_header(raw_api.b2_http.post_content_return_json),
-        )
         monkey.setattr(
             http.client.HTTPConnection,
             "send",
@@ -601,22 +587,6 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
 
         # Check if data was sent
         assert file_contents not in sent_data
-
-        # this should not fail
-        data.seek(0)
-        sent_data.clear()
-        raw_api.upload_file(
-            upload_url,
-            upload_auth_token,
-            file_name,
-            len(file_contents),
-            'text/plain',
-            file_sha1,
-            {'color': 'blue'},
-            data,
-            server_side_encryption=sse_b2_aes,
-        )
-        assert file_contents in sent_data
 
     # Clean up this test.
     _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)

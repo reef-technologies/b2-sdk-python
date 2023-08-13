@@ -26,7 +26,9 @@ class B2HttpApiConfig:
         install_clock_skew_hook: bool = True,
         user_agent_append: str | None = None,
         _raw_api_class: type[AbstractRawApi] | None = None,
-        decode_content: bool = False
+        decode_content: bool = False,
+        expect_100_continue: bool = True,
+        expect_100_continue_timeout_seconds: float = 10.0,
     ):
         """
         A structure with params to be passed to low level API.
@@ -43,6 +45,8 @@ class B2HttpApiConfig:
         self.user_agent_append = user_agent_append
         self.raw_api_class = _raw_api_class or self.DEFAULT_RAW_API_CLASS
         self.decode_content = decode_content
+        self.expect_100_continue = expect_100_continue
+        self.expect_100_continue_timeout_seconds = expect_100_continue_timeout_seconds
 
 
 DEFAULT_HTTP_API_CONFIG = B2HttpApiConfig()

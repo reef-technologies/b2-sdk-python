@@ -1800,6 +1800,8 @@ class RawSimulator(AbstractRawApi):
         legal_hold: LegalHold | None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expect_100_continue: bool = True,
+        expect_100_timeout_seconds: float = 10.0,
     ) -> dict:
 
         # fix to allow calculating headers on unknown key - only for simulation
@@ -1820,6 +1822,8 @@ class RawSimulator(AbstractRawApi):
             legal_hold=legal_hold,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expect_100_continue=expect_100_continue,
+            expect_100_timeout_seconds=expect_100_timeout_seconds,
         )
 
     def upload_file(

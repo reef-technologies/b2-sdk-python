@@ -67,6 +67,7 @@ class AWSConnection:
         self._response_received = False
         self._expect_header_set = False
         self._send_called = False
+        self._continue_timeout = 10.0
 
     def close(self):
         super().close()
@@ -82,6 +83,11 @@ class AWSConnection:
         self._response_received = False
         if headers.get('Expect', b'') in [b'100-continue', '100-continue']:
             self._expect_header_set = True
+            timeout = headers.pop('X-Expect-100-Continue-Timeout-Seconds', self._continue_timeout)
+            try:
+                self._continue_timeout = float(timeout)
+            except (ValueError, TypeError):
+                pass
         else:
             self._expect_header_set = False
             self.response_class = self._original_response_cls
@@ -118,7 +124,7 @@ class AWSConnection:
             # set, it will trigger this custom behavior.
             logger.debug("Waiting for 100 Continue response.")
             # Wait for 10 seconds for the server to send a response.
-            if urllib3.util.wait_for_read(self.sock, 10):
+            if urllib3.util.wait_for_read(self.sock, self._continue_timeout):
                 self._handle_expect_response(message_body)
                 return
             else:

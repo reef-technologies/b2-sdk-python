@@ -19,7 +19,7 @@ import functools
 import logging
 from http.client import HTTPResponse
 
-import urllib3
+import urllib3.util
 from urllib3.connection import HTTPConnection, VerifiedHTTPSConnection
 from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
 
@@ -83,11 +83,8 @@ class AWSConnection:
         self._response_received = False
         if headers.get('Expect', b'') in [b'100-continue', '100-continue']:
             self._expect_header_set = True
-            timeout = headers.pop('X-Expect-100-Continue-Timeout-Seconds', self._continue_timeout)
-            try:
-                self._continue_timeout = float(timeout)
-            except (ValueError, TypeError):
-                pass
+            timeout = headers.pop('X-Expect-100-Timeout', self._continue_timeout)
+            self._continue_timeout = float(timeout)
         else:
             self._expect_header_set = False
             self.response_class = self._original_response_cls

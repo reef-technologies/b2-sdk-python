@@ -352,7 +352,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
         expect_100_continue: bool = True,
-        expect_100_continue_timeout_seconds: float = 10.0,
+        expect_100_timeout: float = 10.0,
     ) -> dict:
         headers = {
             'Authorization': upload_auth_token,
@@ -383,7 +383,7 @@ class AbstractRawApi(metaclass=ABCMeta):
 
         if expect_100_continue:
             headers['Expect'] = '100-continue'
-            headers['X-Expect-100-Continue-Timeout-Seconds'] = str(expect_100_continue_timeout_seconds)
+            headers['X-Expect-100-Timeout'] = str(expect_100_timeout)
 
         return headers
 
@@ -404,7 +404,7 @@ class AbstractRawApi(metaclass=ABCMeta):
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
         expect_100_continue: bool = True,
-        expect_100_continue_timeout_seconds: float = 10.0,
+        expect_100_timeout: float = 10.0,
     ):
         pass
 
@@ -941,7 +941,7 @@ class B2RawHTTPApi(AbstractRawApi):
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
         expect_100_continue: bool = True,
-        expect_100_continue_timeout_seconds: float = 10.0,
+        expect_100_timeout: float = 10.0,
     ):
         """
         Upload one, small file to b2.
@@ -960,7 +960,7 @@ class B2RawHTTPApi(AbstractRawApi):
         :param custom_upload_timestamp: custom upload timestamp for the file
         :param cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
         :param expect_100_continue: whether to use 'Expect: 100-continue' header
-        :param expect_100_continue_timeout_seconds: timeout of 100 response when expect_100_continue is True
+        :param expect_100_timeout: timeout of 100 response when expect_100_continue is True
         :return:
         """
         # Raise UnusableFileName if the file_name doesn't meet the rules.
@@ -978,7 +978,7 @@ class B2RawHTTPApi(AbstractRawApi):
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
             expect_100_continue=expect_100_continue,
-            expect_100_continue_timeout_seconds=expect_100_continue_timeout_seconds,
+            expect_100_timeout=expect_100_timeout,
         )
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 
@@ -992,7 +992,7 @@ class B2RawHTTPApi(AbstractRawApi):
         data_stream,
         server_side_encryption: EncryptionSetting | None = None,
         expect_100_continue: bool = True,
-        expect_100_continue_timeout_seconds: float = 10.0,
+        expect_100_timeout: float = 10.0,
     ):
         headers = {
             'Authorization': upload_auth_token,
@@ -1007,7 +1007,7 @@ class B2RawHTTPApi(AbstractRawApi):
             server_side_encryption.add_to_upload_headers(headers)
         if expect_100_continue:
             headers['Expect'] = '100-continue'
-            headers['X-Expect-100-Continue-Timeout-Seconds'] = str(expect_100_continue_timeout_seconds)
+            headers['X-Expect-100-Timeout'] = str(expect_100_timeout)
 
         return self.b2_http.post_content_return_json(upload_url, headers, data_stream)
 

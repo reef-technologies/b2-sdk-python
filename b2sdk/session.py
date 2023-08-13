@@ -88,7 +88,7 @@ class B2Session:
         }
 
         self.expect_100_continue = api_config.expect_100_continue
-        self.expect_100_continue_timeout_seconds = api_config.expect_100_continue_timeout_seconds
+        self.expect_100_timeout = api_config.expect_100_timeout
 
     def authorize_automatically(self):
         """
@@ -374,7 +374,7 @@ class B2Session:
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
             expect_100_continue=self.expect_100_continue,
-            expect_100_continue_timeout_seconds=self.expect_100_continue_timeout_seconds,
+            expect_100_timeout=self.expect_100_timeout,
         )
 
     def upload_part(
@@ -396,7 +396,7 @@ class B2Session:
             input_stream,
             server_side_encryption,
             expect_100_continue=self.expect_100_continue,
-            expect_100_continue_timeout_seconds=self.expect_100_continue_timeout_seconds,
+            expect_100_timeout=self.expect_100_timeout,
         )
 
     def get_download_url_by_id(self, file_id):

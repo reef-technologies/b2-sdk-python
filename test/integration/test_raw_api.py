@@ -604,6 +604,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
 
         # this should not fail
         data.seek(0)
+        sent_data.clear()
         raw_api.upload_file(
             upload_url,
             upload_auth_token,
@@ -615,6 +616,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
             data,
             server_side_encryption=sse_b2_aes,
         )
+        assert file_contents in sent_data
 
     # Clean up this test.
     _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)

@@ -20,7 +20,6 @@ import logging
 from http.client import HTTPResponse
 
 import urllib3
-from requests import adapters
 from urllib3.connection import HTTPConnection, VerifiedHTTPSConnection
 from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
 
@@ -225,14 +224,3 @@ class AWSHTTPConnectionPool(HTTPConnectionPool):
 
 class AWSHTTPSConnectionPool(HTTPSConnectionPool):
     ConnectionCls = AWSHTTPSConnection
-
-
-pool_classes_by_scheme = {"http": AWSHTTPConnectionPool, "https": AWSHTTPSConnectionPool}
-
-
-class HTTPAdapterWithContinue(adapters.HTTPAdapter):
-    def init_poolmanager(
-        self, connections, maxsize, block=adapters.DEFAULT_POOLBLOCK, **pool_kwargs
-    ):
-        super().init_poolmanager(connections, maxsize, block, **pool_kwargs)
-        self.poolmanager.pool_classes_by_scheme = pool_classes_by_scheme

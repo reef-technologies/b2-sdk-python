@@ -1,6 +1,6 @@
 # Code taken from:
 # https://github.com/boto/botocore/blob/754b699bbf34261eae47c9dece3b11d7b58eb03c/botocore/awsrequest.py
-# The code has been modified to work with urllib3>=2.0
+# The code has been modified to also work with urllib3>=2.0
 
 # Copyright (c) 2012-2013 Mitch Garnaat http://garnaat.org/
 # Copyright 2012-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -117,8 +117,8 @@ class AWSConnection:
             # This is our custom behavior.  If the Expect header was
             # set, it will trigger this custom behavior.
             logger.debug("Waiting for 100 Continue response.")
-            # Wait for 1 second for the server to send a response.
-            if urllib3.util.wait_for_read(self.sock, 2):
+            # Wait for 10 seconds for the server to send a response.
+            if urllib3.util.wait_for_read(self.sock, 10):
                 self._handle_expect_response(message_body)
                 return
             else:

@@ -1,0 +1,10 @@
+botocore
+Copyright 2012-2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+b2sdk includes vendorized parts of the botocore python library for 100-continue functionality.
+
+Copyright 2023 Backblaze Inc.
+Changes made to the original source:
+* Updated botocore.awsrequest.request method to work with str/byte header values (urllib 1.x vs 2.x)
+* Updated botocore.awsrequest._handle_expect_response method to work with b2 responses
+* Updated botocore.awsrequest._send_output method to change 100 response timeout

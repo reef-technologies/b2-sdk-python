@@ -351,8 +351,7 @@ class FileVersion(BaseFileVersion):
             file_retention=self.file_retention,
             legal_hold=self.legal_hold,
             cache_control=self.cache_control,
-            expect_100_continue=self.api.api_config.expect_100_continue,
-            expect_100_timeout_seconds=self.api.api_config.expect_100_continue_timeout_seconds,
+            expect_100_continue=False,
         )
 
         headers_str = ''.join(

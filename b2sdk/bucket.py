@@ -384,11 +384,14 @@ class Bucket(metaclass=B2TraceMeta):
                 )
             else:
                 wc_flags = (
+                    wcglob.CASE |  # case sensitive
                     wcglob.BRACE |  # support {} for multiple options
-                    wcglob.GLOBSTAR  # support ** for recursive matching
+                    wcglob.GLOBSTAR |  # support ** for recursive matching
+                    wcglob.NEGATE  # support [!] for negation
                 )
                 wildcard_matcher = partial(
-                    lambda file_name: wcglob.globmatch(file_name, folder_to_list, flags=wc_flags)
+                    lambda file_name: wcglob.
+                    globmatch(file_name, folder_to_list, flags=wc_flags, limit=100)
                 )
 
         # Loop until all files in the named directory have been listed.

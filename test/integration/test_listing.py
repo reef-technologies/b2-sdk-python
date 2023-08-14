@@ -59,6 +59,14 @@ class TestListing(IntegrationTestBase):
                 },
             ),
             (
+                'a/b{a..c}/z.txt',
+                {
+                    'a/ba/z.txt',
+                    'a/bb/z.txt',
+                    'a/bc/z.txt',
+                },
+            ),
+            (
                 'a/**/z.txt',
                 {
                     'a/ba/z.txt',

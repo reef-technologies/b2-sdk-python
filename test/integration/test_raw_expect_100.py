@@ -5,15 +5,14 @@ import random
 import secrets
 import time
 
-from b2sdk.encryption.setting import EncryptionSetting
-from b2sdk.encryption.types import EncryptionMode, EncryptionAlgorithm
-from b2sdk.exception import InvalidAuthToken
-from b2sdk.utils import hex_sha1_of_stream
 import pytest
-from b2sdk.b2http import B2Http
-from b2sdk.raw_api import REALM_URLS, B2RawHTTPApi
 
-from .fixtures import b2_auth_data
+from b2sdk.b2http import B2Http
+from b2sdk.encryption.setting import EncryptionSetting
+from b2sdk.encryption.types import EncryptionAlgorithm, EncryptionMode
+from b2sdk.exception import InvalidAuthToken
+from b2sdk.raw_api import REALM_URLS, B2RawHTTPApi
+from b2sdk.utils import hex_sha1_of_stream
 
 
 @pytest.fixture

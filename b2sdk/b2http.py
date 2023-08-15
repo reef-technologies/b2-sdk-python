@@ -39,7 +39,7 @@ from .exception import (
     UnknownHost,
     interpret_b2_error,
 )
-from .requests import NotDecompressingResponse, HTTPAdapterWithContinue
+from .requests import HTTPAdapterWithContinue, NotDecompressingResponse
 from .version import USER_AGENT
 
 LOCALE_LOCK = threading.Lock()

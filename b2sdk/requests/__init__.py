@@ -82,8 +82,9 @@ class NotDecompressingResponse(Response):
 
 
 class HTTPAdapterWithContinue(HTTPAdapter):
-    def init_poolmanager(
-        self, connections, maxsize, block=DEFAULT_POOLBLOCK, **pool_kwargs
-    ):
+    def init_poolmanager(self, connections, maxsize, block=DEFAULT_POOLBLOCK, **pool_kwargs):
         super().init_poolmanager(connections, maxsize, block, **pool_kwargs)
-        self.poolmanager.pool_classes_by_scheme = {"http": AWSHTTPConnectionPool, "https": AWSHTTPSConnectionPool}
+        self.poolmanager.pool_classes_by_scheme = {
+            "http": AWSHTTPConnectionPool,
+            "https": AWSHTTPSConnectionPool
+        }

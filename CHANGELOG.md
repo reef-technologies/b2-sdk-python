@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
-* Commands `ls` and `rm` now support shell-like patterns for wildcard matching beside of glob-like patterns.
+* Commands `ls` now supports shell-like patterns for wildcard matching beside of glob-like patterns.
 
 ## [1.23.0] - 2023-08-10
 

@@ -20,7 +20,7 @@ from wcmatch import glob as wcglob
 
 class WildcardStyle(str, Enum):
     GLOB = 'glob'  # supports *, ? [], [!], no escaping
-    SHELL = 'shell'  # support *, **, ?, [], [!], {}, with escaping
+    SHELL = 'shell'  # supports *, **, ?, [], [!], {}, with escaping
 
 
 def _find_unescaped_char(

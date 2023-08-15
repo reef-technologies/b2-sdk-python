@@ -27,7 +27,8 @@ def _find_unescaped_char(
     folder_to_list: str, wildcard_character: str, offset: int = 0
 ) -> int | None:
     """Find the first occurrence of a character in a string, ignoring escaped characters.
-    Raise ValueError if no unescaped character is found.
+
+    :raises ValueError: no unescaped character is found
     """
     max_index = len(folder_to_list)
     while offset < max_index:

@@ -19,7 +19,7 @@ from wcmatch import glob as wcglob
 
 
 class WildcardStyle(str, Enum):
-    GLOB = 'glob'  # support * ? [], [!], no escaping
+    GLOB = 'glob'  # supports *, ? [], [!], no escaping
     SHELL = 'shell'  # support *, **, ?, [], [!], {}, with escaping
 
 

@@ -120,7 +120,6 @@ class AWSConnection:
             # This is our custom behavior.  If the Expect header was
             # set, it will trigger this custom behavior.
             logger.debug("Waiting for 100 Continue response.")
-            # Wait for 10 seconds for the server to send a response.
             if urllib3.util.wait_for_read(self.sock, self._continue_timeout):
                 self._handle_expect_response(message_body)
                 return

@@ -10,12 +10,15 @@
 from __future__ import annotations
 
 import fnmatch
+import logging
 import pathlib
 from enum import Enum
 from functools import partial
 from typing import Callable
 
 from wcmatch import glob as wcglob
+
+logger = logging.getLogger(__name__)
 
 
 class WildcardStyle(str, Enum):
@@ -46,13 +49,14 @@ def _find_unescaped_char(
 def get_solid_prefix(
     current_prefix: str, folder_to_list: str, wildcard_style: WildcardStyle
 ) -> str:
-    """If we're running with wildcard-matching, we could get a different prefix from it.
-    We search for the first occurrence of the special characters and fetch parent path from that place.
+    """Find the longest prefix of the folder that does not contain any wildcard characters.
 
-    Examples:
-       'b/c/*.txt' –> 'b/c/'
-       '*.txt' –> ''
-       'a' –> 'a/'
+    >>> get_solid_prefix('b/c/*.txt', WildcardStyle.SHELL)
+    'b/c/'
+    >>> get_solid_prefix('*.txt', WildcardStyle.SHELL)
+    ''
+    >>> get_solid_prefix('a', WildcardStyle.SHELL)
+    'a/'
     """
     MATCHERS = {
         # wildcard style: (wildcard match checker, allowed wildcard chars)
@@ -77,6 +81,7 @@ def get_solid_prefix(
         try:
             char_index = finder(folder_to_list, wildcard_character)
         except ValueError:
+            logger.debug('no unescaped character found')
             continue
         else:
             solid_length = min(char_index, solid_length)
@@ -107,7 +112,7 @@ def get_wildcard_matcher(match_pattern: str,
             | wcglob.NEGATE  # support [!] for negation
         )
         wildcard_matcher = partial(
-            lambda file_name: wcglob.globmatch(file_name, match_pattern, flags=wc_flags, limit=100)
+            lambda file_name: wcglob.globmatch(file_name, match_pattern, flags=wc_flags)
         )
     elif wildcard_style == WildcardStyle.GLOB:
         wildcard_matcher = partial(lambda file_name: fnmatch.fnmatchcase(file_name, match_pattern))

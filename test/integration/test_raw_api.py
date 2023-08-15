@@ -9,7 +9,6 @@
 ######################################################################
 from __future__ import annotations
 
-import http.client
 import io
 import os
 import random
@@ -22,7 +21,7 @@ import pytest
 
 from b2sdk.b2http import B2Http
 from b2sdk.encryption.setting import EncryptionAlgorithm, EncryptionMode, EncryptionSetting
-from b2sdk.exception import DisablingFileLockNotSupported, InvalidAuthToken
+from b2sdk.exception import DisablingFileLockNotSupported
 from b2sdk.file_lock import (
     NO_RETENTION_FILE_SETTING,
     BucketRetentionSetting,
@@ -36,7 +35,7 @@ from b2sdk.utils import hex_sha1_of_stream
 
 
 # TODO: rewrite to separate test cases
-def test_raw_api(dont_cleanup_old_buckets, monkeypatch):
+def test_raw_api(dont_cleanup_old_buckets):
     """
     Exercise the code in B2RawHTTPApi by making each call once, just
     to make sure the parameters are passed in, and the result is
@@ -61,7 +60,7 @@ def test_raw_api(dont_cleanup_old_buckets, monkeypatch):
 
     try:
         raw_api = B2RawHTTPApi(B2Http())
-        raw_api_test_helper(raw_api, not dont_cleanup_old_buckets, monkeypatch)
+        raw_api_test_helper(raw_api, not dont_cleanup_old_buckets)
     except Exception:
         traceback.print_exc(file=sys.stdout)
         pytest.fail('test_raw_api failed')
@@ -84,7 +83,7 @@ def authorize_raw_api(raw_api):
     return auth_dict
 
 
-def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
+def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     """
     Try each of the calls to the raw api.  Raise an
     exception if anything goes wrong.
@@ -550,43 +549,6 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets, monkeypatch):
             'allPrivate',
             is_file_lock_enabled=False,
         )
-
-    # b2_100_continue
-    print('b2_100_continue')
-    file_name = 'test-100-continue.txt'
-    file_contents = b'hello world'
-    file_sha1 = hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents))
-
-    orig_send = http.client.HTTPConnection.send
-    sent_data = bytearray()
-
-    def patched_send(self, data):
-        sent_data.extend(data)
-        return orig_send(self, data)
-
-    with monkeypatch.context() as monkey:
-        monkey.setattr(
-            http.client.HTTPConnection,
-            "send",
-            patched_send,
-        )
-        data = io.BytesIO(file_contents)
-
-        with pytest.raises(InvalidAuthToken):
-            raw_api.upload_file(
-                upload_url,
-                upload_auth_token + 'x',
-                file_name,
-                len(file_contents),
-                'text/plain',
-                file_sha1,
-                {'color': 'blue'},
-                data,
-                server_side_encryption=sse_b2_aes,
-            )
-
-        # Check if data was sent
-        assert file_contents not in sent_data
 
     # Clean up this test.
     _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)

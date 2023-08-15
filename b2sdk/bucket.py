@@ -354,7 +354,7 @@ class Bucket(metaclass=B2TraceMeta):
                             when ``True``, just returns info about the most recent versions
         :param recursive: if ``True``, list folders recursively
         :param fetch_count: how many entries to return or ``None`` to use the default. Acceptable values: 1 - 10000
-        :param with_wildcard: Accepts "*", "?", "[]" and "[!]" in folder_to_list, similarly to what shell does.
+        :param with_wildcard: Accepts "*", "**", "?", "[]", "[!]", and "{}" in `folder_to_list`, similarly to shell.
                               As of 1.19.0 it can only be enabled when recursive is also enabled.
                               Also, in this mode, folder_to_list is considered to be a filename or a pattern.
         :param wildcard_style: Style of wildcard to use. Default is WildcardStyle.GLOB ("glob")
@@ -371,10 +371,6 @@ class Bucket(metaclass=B2TraceMeta):
         # Every file returned must have a name that starts with the
         # folder name and a "/".
         prefix = folder_to_list
-        # In case of wildcards, we don't assume that this is folder that we're searching through.
-        # It could be an exact file, e.g. 'a/b.txt' that we're trying to locate.
-        if prefix != '' and not prefix.endswith('/') and not with_wildcard:
-            prefix += '/'
 
         if with_wildcard:
             prefix = get_solid_prefix(prefix, folder_to_list, wildcard_style)
@@ -384,15 +380,19 @@ class Bucket(metaclass=B2TraceMeta):
                 )
             else:
                 wc_flags = (
-                    wcglob.CASE |  # case sensitive
-                    wcglob.BRACE |  # support {} for multiple options
-                    wcglob.GLOBSTAR |  # support ** for recursive matching
-                    wcglob.NEGATE  # support [!] for negation
+                    wcglob.CASE  # case sensitive
+                    | wcglob.BRACE  # support {} for multiple options
+                    | wcglob.GLOBSTAR  # support ** for recursive matching
+                    | wcglob.NEGATE  # support [!] for negation
                 )
                 wildcard_matcher = partial(
                     lambda file_name: wcglob.
                     globmatch(file_name, folder_to_list, flags=wc_flags, limit=100)
                 )
+        elif prefix != '' and not prefix.endswith('/'):
+            # we don't assume that this is folder that we're searching through.
+            # It could be an exact file, e.g. 'a/b.txt' that we're trying to locate.
+            prefix += '/'
 
         # Loop until all files in the named directory have been listed.
         # The starting point of the first list_file_names request is the
@@ -406,7 +406,6 @@ class Bucket(metaclass=B2TraceMeta):
         start_file_name = prefix
         start_file_id = None
         session: B2Session = self.api.session
-
         while True:
             if latest_only:
                 response = session.list_file_names(self.id_, start_file_name, fetch_count, prefix)

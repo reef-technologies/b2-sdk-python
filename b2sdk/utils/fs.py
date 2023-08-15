@@ -34,6 +34,7 @@ def _find_unescaped_char(
             offset = starter_index + 1
             continue
         return starter_index
+    raise ValueError("no unescaped character found")
 
 
 def get_solid_prefix(
@@ -45,7 +46,7 @@ def get_solid_prefix(
     Examples:
        'b/c/*.txt' –> 'b/c/'
        '*.txt' –> ''
-       'a/*/result.[ct]sv' –> 'a/'
+       'a' –> 'a/'
     """
     MATCHERS = {
         # wildcard style: (wildcard match checker, allowed wildcard chars)
@@ -65,19 +66,20 @@ def get_solid_prefix(
     except KeyError:
         raise ValueError(f'Unknown wildcard style: {wildcard_style!r}')
 
-    wildcard_position = len(folder_to_list)
+    solid_length = len(folder_to_list)
     for wildcard_character in charset:
         try:
             char_index = finder(folder_to_list, wildcard_character)
         except ValueError:
             continue
         else:
-            wildcard_position = min(char_index, wildcard_position)
+            solid_length = min(char_index, solid_length)
 
     # +1 to include the starter character.  Using posix path to
     # ensure consistent behaviour on Windows (e.g. case sensitivity).
-    path = pathlib.PurePosixPath(folder_to_list[:wildcard_position + 1])
+    path = pathlib.PurePosixPath(folder_to_list[:solid_length + 1])
     parent_path = str(path.parent)
+
     # Path considers dot to be the empty path.
     # There's no shorter path than that.
     if parent_path == '.':

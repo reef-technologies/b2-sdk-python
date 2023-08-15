@@ -53,7 +53,7 @@ from .utils import (
     limit_trace_arguments,
     validate_b2_file_name,
 )
-from .utils.fs import WildcardStyle, get_solid_prefix
+from .utils.wildcards import WildcardStyle, get_solid_prefix
 
 logger = logging.getLogger(__name__)
 

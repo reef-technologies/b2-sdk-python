@@ -1,6 +1,6 @@
 ######################################################################
 #
-# File: b2sdk/utils/fs.py
+# File: b2sdk/utils/wildcards.py
 #
 # Copyright 2023 Backblaze Inc. All Rights Reserved.
 #

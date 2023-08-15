@@ -9,12 +9,8 @@
 ######################################################################
 from __future__ import annotations
 
-import fnmatch
 import logging
 from contextlib import suppress
-from functools import partial
-
-from wcmatch import glob as wcglob
 
 from b2sdk.session import B2Session
 
@@ -53,7 +49,7 @@ from .utils import (
     limit_trace_arguments,
     validate_b2_file_name,
 )
-from .utils.wildcards import WildcardStyle, get_solid_prefix
+from .utils.wildcards import WildcardStyle, get_solid_prefix, get_wildcard_matcher
 
 logger = logging.getLogger(__name__)
 
@@ -374,21 +370,7 @@ class Bucket(metaclass=B2TraceMeta):
 
         if with_wildcard:
             prefix = get_solid_prefix(prefix, folder_to_list, wildcard_style)
-            if wildcard_style == WildcardStyle.GLOB:
-                wildcard_matcher = partial(
-                    lambda file_name: fnmatch.fnmatchcase(file_name, folder_to_list)
-                )
-            else:
-                wc_flags = (
-                    wcglob.CASE  # case sensitive
-                    | wcglob.BRACE  # support {} for multiple options
-                    | wcglob.GLOBSTAR  # support ** for recursive matching
-                    | wcglob.NEGATE  # support [!] for negation
-                )
-                wildcard_matcher = partial(
-                    lambda file_name: wcglob.
-                    globmatch(file_name, folder_to_list, flags=wc_flags, limit=100)
-                )
+            wildcard_matcher = get_wildcard_matcher(folder_to_list, wildcard_style)
         elif prefix != '' and not prefix.endswith('/'):
             # we don't assume that this is folder that we're searching through.
             # It could be an exact file, e.g. 'a/b.txt' that we're trying to locate.

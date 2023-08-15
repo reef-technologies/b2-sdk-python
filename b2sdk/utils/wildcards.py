@@ -9,8 +9,13 @@
 ######################################################################
 from __future__ import annotations
 
+import fnmatch
 import pathlib
 from enum import Enum
+from functools import partial
+from typing import Callable
+
+from wcmatch import glob as wcglob
 
 
 class WildcardStyle(str, Enum):
@@ -88,3 +93,24 @@ def get_solid_prefix(
     # We could receive paths in different stage, e.g. 'a/*/result.[ct]sv' has two
     # possible parent paths: 'a/' and 'a/*/', with the first one being the correct one
     return min(parent_path, current_prefix, key=len)
+
+
+def get_wildcard_matcher(match_pattern: str,
+                         wildcard_style: WildcardStyle) -> Callable[[str], bool]:
+    """Return a wildcard matcher for chosen style and pattern."""
+    if wildcard_style == WildcardStyle.SHELL:
+        wc_flags = (
+            wcglob.CASE  # case sensitive
+            | wcglob.BRACE  # support {} for multiple options
+            | wcglob.GLOBSTAR  # support ** for recursive matching
+            | wcglob.NEGATE  # support [!] for negation
+        )
+        wildcard_matcher = partial(
+            lambda file_name: wcglob.globmatch(file_name, match_pattern, flags=wc_flags, limit=100)
+        )
+    elif wildcard_style == WildcardStyle.GLOB:
+        wildcard_matcher = partial(lambda file_name: fnmatch.fnmatchcase(file_name, match_pattern))
+    else:
+        raise ValueError(f"Unknown wildcard style: {wildcard_style}")
+
+    return wildcard_matcher

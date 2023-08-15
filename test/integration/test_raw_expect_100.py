@@ -23,9 +23,11 @@ from b2sdk.exception import InvalidAuthToken
 from b2sdk.raw_api import REALM_URLS, B2RawHTTPApi
 from b2sdk.utils import hex_sha1_of_stream
 
+from .fixtures import b2_auth_data  # noqa
+
 
 @pytest.fixture
-def expect_100_setup(b2_auth_data, monkeypatch):
+def expect_100_setup(b2_auth_data, monkeypatch):  # noqa
     application_key_id, application_key = b2_auth_data
     raw_api = B2RawHTTPApi(B2Http())
     realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')

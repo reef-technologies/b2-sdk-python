@@ -9,7 +9,7 @@
 ######################################################################
 from b2sdk.transfer.emerge.write_intent import WriteIntent
 from b2sdk.transfer.outbound.upload_source import UploadSourceBytes
-from b2sdk.utils.fs import WildcardStyle
+from b2sdk.utils.wildcards import WildcardStyle
 
 from .base import IntegrationTestBase
 from .fixtures import *  # pyflakes: disable

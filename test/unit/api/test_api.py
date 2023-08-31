@@ -91,7 +91,7 @@ class TestApi:
                     'value': None
                 },
                 'serverSideEncryption': {
-                    'mode': 'none'
+                    'mode': None
                 },
                 'uploadTimestamp': 5000,
                 'cacheControl': 'private, max-age=3600',
@@ -114,7 +114,7 @@ class TestApi:
             'fileName': 'file',
             'fileInfo': {},
             'serverSideEncryption': {
-                'mode': 'none'
+                'mode': None
             },
             'legalHold': None,
             'fileRetention': {
@@ -153,7 +153,7 @@ class TestApi:
             'fileName': 'hidden-file.txt',
             'fileInfo': {},
             'serverSideEncryption': {
-                'mode': 'none'
+                'mode': None
             },
             'legalHold': None,
             'fileRetention': {
@@ -225,7 +225,7 @@ class TestApi:
                         {
                             'isClientAuthorizedToRead': True,
                             'value': {
-                                'mode': 'none'
+                                'mode': None
                             },
                         },
                     'fileLockConfiguration':

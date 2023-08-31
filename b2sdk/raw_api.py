@@ -1041,9 +1041,6 @@ class B2RawHTTPApi(AbstractRawApi):
         if destination_bucket_id is not None:
             kwargs['destinationBucketId'] = destination_bucket_id
         if destination_server_side_encryption is not None:
-            assert destination_server_side_encryption.mode in (
-                EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
-            )
             kwargs['destinationServerSideEncryption'
                   ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
@@ -1089,15 +1086,9 @@ class B2RawHTTPApi(AbstractRawApi):
             _add_range_header(range_dict, bytes_range)
             kwargs['range'] = range_dict['Range']
         if destination_server_side_encryption is not None:
-            assert destination_server_side_encryption.mode in (
-                EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
-            )
             kwargs['destinationServerSideEncryption'
                   ] = destination_server_side_encryption.serialize_to_json_for_request()
         if source_server_side_encryption is not None:
-            assert source_server_side_encryption.mode in (
-                EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
-            )
             kwargs['sourceServerSideEncryption'
                   ] = source_server_side_encryption.serialize_to_json_for_request()
         try:

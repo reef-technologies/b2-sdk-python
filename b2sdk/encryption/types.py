@@ -29,8 +29,8 @@ class EncryptionAlgorithm(Enum):
 class EncryptionMode(Enum):
     """Encryption mode."""
 
-    UNKNOWN = None  #: unknown encryption mode (sdk doesn't know or used key has no rights to know)
-    NONE = "none"  #: no encryption (plaintext)
+    UNKNOWN = "unknown"  #: unknown encryption mode (sdk doesn't know or used key has no rights to know)
+    NONE = None  #: no encryption (plaintext)
     SSE_B2 = 'SSE-B2'  #: server-side encryption with key maintained by B2
     SSE_C = 'SSE-C'  #: server-side encryption with key provided by the client
 

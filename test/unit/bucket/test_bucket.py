@@ -423,8 +423,7 @@ class TestGetFileInfo(TestCaseWithBucket):
             self.assertIsInstance(info, VFileVersionInfo)
         else:
             self.assertIsInstance(info, DownloadVersion)
-        expected = (a_id, 'a', 11, 'b2/x-auto', 'none', NO_RETENTION_FILE_SETTING, LegalHold.UNSET)
-        actual = (
+        assert (a_id, 'a', 11, 'b2/x-auto', None, NO_RETENTION_FILE_SETTING, LegalHold.UNSET) == (
             info.id_,
             info.file_name,
             info.size,
@@ -433,7 +432,6 @@ class TestGetFileInfo(TestCaseWithBucket):
             info.file_retention,
             info.legal_hold,
         )
-        self.assertEqual(expected, actual)
 
     def test_version_by_name_file_lock(self):
         bucket = self.api.create_bucket(
@@ -480,12 +478,10 @@ class TestGetFileInfo(TestCaseWithBucket):
         info = self.bucket.get_file_info_by_id(b_id)
 
         self.assertIsInstance(info, VFileVersionInfo)
-        expected = (b_id, 'b', 11, 'upload', 'b2/x-auto', 'none')
-        actual = (
+        assert (b_id, 'b', 11, 'upload', 'b2/x-auto', None) == (
             info.id_, info.file_name, info.size, info.action, info.content_type,
             info.server_side_encryption.mode.value
         )
-        self.assertEqual(expected, actual)
 
 
 class TestLs(TestCaseWithBucket):
@@ -1480,7 +1476,7 @@ class TestUpload(TestCaseWithBucket):
             self.assertTrue(isinstance(file_info, VFileVersionInfo))
             self.assertEqual(file_info.server_side_encryption, SSE_NONE)
             print(file_info.as_dict())
-            self.assertEqual(file_info.as_dict()['serverSideEncryption'], {'mode': 'none'})
+            self.assertEqual(file_info.as_dict()['serverSideEncryption'], {'mode': None})
 
     @pytest.mark.apiver(from_ver=2)
     def test_upload_local_file_incremental(self):

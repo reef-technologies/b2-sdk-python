@@ -120,6 +120,8 @@ class EncryptionSetting:
         return self.mode == other.mode and self.algorithm == other.algorithm and self.key == other.key
 
     def serialize_to_json_for_request(self):
+        if self.mode == EncryptionMode.UNKNOWN:
+            raise ValueError('cannot use an unknown encryption setting in requests')
         if self.key and self.key.secret is None:
             raise ValueError('cannot use an unknown key in requests')
         return self.as_dict()
@@ -149,7 +151,7 @@ class EncryptionSetting:
         .. code-block:: python
 
             {
-                'mode': 'none'
+                'mode': None
             }
         """
         result = {'mode': self.mode.value}
@@ -227,7 +229,7 @@ class EncryptionSetting:
 class EncryptionSettingFactory:
     # 2021-03-17: for the bucket the response of the server is:
     # if authorized to read:
-    #    "mode": "none"
+    #    "mode": None
     #    or
     #    "mode": "SSE-B2"
     # if not authorized to read:
@@ -289,7 +291,7 @@ class EncryptionSettingFactory:
             "defaultServerSideEncryption": {
                 "isClientAuthorizedToRead" : true,
                 "value": {
-                  "mode" : "none"
+                  "mode" : None
                 }
             }
             ...
@@ -320,9 +322,9 @@ class EncryptionSettingFactory:
     def _from_value_dict(cls, value_dict, key_id=None):
         kwargs = {}
         if value_dict is None:
-            kwargs['mode'] = EncryptionMode.NONE
+            kwargs['mode'] = EncryptionMode.UNKNOWN
         else:
-            mode = EncryptionMode(value_dict['mode'] or 'none')
+            mode = EncryptionMode(value_dict['mode'])
             kwargs['mode'] = mode
 
             algorithm = value_dict.get('algorithm')

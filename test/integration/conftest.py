@@ -19,7 +19,7 @@ import pytest
 from b2sdk.b2http import B2Http
 from b2sdk.raw_api import REALM_URLS, B2RawHTTPApi
 
-from .fixtures import b2_auth_data
+from . import get_b2_auth_data
 
 
 def pytest_addoption(parser):
@@ -42,11 +42,15 @@ def raw_api():
 
 
 @pytest.fixture(scope="session")
-def auth_dict(raw_api, b2_auth_data):
-    application_key_id, application_key = b2_auth_data
-    realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
-    realm_url = REALM_URLS.get(realm, realm)
-    return raw_api.authorize_account(realm_url, application_key_id, application_key)
+def auth_dict(raw_api):
+    try:
+        application_key_id, application_key = get_b2_auth_data()
+    except ValueError as ex:
+        pytest.fail(ex.args[0])
+    else:
+        realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
+        realm_url = REALM_URLS.get(realm, realm)
+        return raw_api.authorize_account(realm_url, application_key_id, application_key)
 
 
 @pytest.fixture(scope="session")

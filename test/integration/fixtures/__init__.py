@@ -15,7 +15,7 @@ import pytest
 from .. import get_b2_auth_data
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def b2_auth_data():
     try:
         return get_b2_auth_data()

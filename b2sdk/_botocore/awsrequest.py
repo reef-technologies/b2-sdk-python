@@ -1,20 +1,15 @@
-# Code taken from:
-# https://github.com/boto/botocore/blob/754b699bbf34261eae47c9dece3b11d7b58eb03c/botocore/awsrequest.py
-# The code has been modified to also work with urllib3>=2.0
-
+######################################################################
+#
+# File: b2sdk/_botocore/awsrequest.py
+#
+# Copyright 2023 Backblaze Inc. All Rights Reserved.
 # Copyright (c) 2012-2013 Mitch Garnaat http://garnaat.org/
 # Copyright 2012-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
-# Licensed under the Apache License, Version 2.0 (the "License"). You
-# may not use this file except in compliance with the License. A copy of
-# the License is located at
+# License https://www.backblaze.com/using_b2_code.html
+# License Apache License 2.0 (http://www.apache.org/licenses/ and LICENSE file in this directory)
 #
-# http://aws.amazon.com/apache2.0/
-#
-# or in the "license" file accompanying this file. This file is
-# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
-# ANY KIND, either express or implied. See the License for the specific
-# language governing permissions and limitations under the License.
+######################################################################
 import functools
 import logging
 from http.client import HTTPResponse

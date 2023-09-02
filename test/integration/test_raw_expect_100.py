@@ -1,10 +1,19 @@
+######################################################################
+#
+# File: test/integration/test_raw_expect_100.py
+#
+# Copyright 2023 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
 import io
 import secrets
 
 import pytest
 
 from b2sdk.encryption.setting import EncryptionSetting
-from b2sdk.encryption.types import EncryptionMode, EncryptionAlgorithm
+from b2sdk.encryption.types import EncryptionAlgorithm, EncryptionMode
 from b2sdk.exception import InvalidAuthToken
 from b2sdk.utils import hex_sha1_of_stream
 

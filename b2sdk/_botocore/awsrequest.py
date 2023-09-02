@@ -10,6 +10,12 @@
 # License Apache License 2.0 (http://www.apache.org/licenses/ and LICENSE file in this directory)
 #
 ######################################################################
+"""\
+This module contains modified parts of the botocore module (https://github.com/boto/botocore).
+The modules original license is included in LICENSE.
+Changes made to the original source are listed in NOTICE, along with original NOTICE.
+"""
+
 import functools
 import logging
 from http.client import HTTPResponse

@@ -19,7 +19,7 @@ Copyright 2021 Backblaze Inc.
 Changes made to the original source:
 * requests.models.Response.iter_content has been overridden to pass `decode_content=False` argument to `self.raw.stream`
   in order to NOT decompress data based on Content-Encoding header
-* requests.adapters.HTTPAdapter has been overriden to use patched Urllib3 connection pools"""
+* requests.adapters.HTTPAdapter has been overridden to use patched Urllib3 connection pools"""
     }
 )
 add_included_source(included_source_meta)

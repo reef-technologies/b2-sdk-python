@@ -8,6 +8,7 @@ Changes made to the original source:
 * Updated botocore.awsrequest.request method to work with str/byte header values (urllib 1.x vs 2.x)
 * Updated botocore.awsrequest._handle_expect_response method to work with b2 responses
 * Updated botocore.awsrequest._send_output method to change 100 response timeout
+* Add a new test test_handles_expect_100_with_no_reason_phrase to TestAWSHTTPConnection test class
 
 ---
 

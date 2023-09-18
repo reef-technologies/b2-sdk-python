@@ -134,4 +134,3 @@ def test_expect_100_data_sent_after_wait(raw_api, upload_url_dict, http_sent_dat
         )
     assert file_contents in http_sent_data
     assert wait_mock.call_count == 1
-    args, _ = wait_mock.call_args

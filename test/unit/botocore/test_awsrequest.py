@@ -218,18 +218,6 @@ class TestAWSHTTPConnection(unittest.TestCase):
         response = conn.getresponse()
         self.assertEqual(response.status, 200)
 
-    def test_tunnel_readline_none_bugfix(self):
-        # Tests whether ``_tunnel`` function is able to work around the
-        # py26 bug of avoiding infinite while loop if nothing is returned.
-        conn = self.create_tunneled_connection(
-            url='s3.amazonaws.com',
-            port=443,
-            response=b'HTTP/1.1 200 OK\r\n',
-        )
-        conn._tunnel()
-        # Ensure proper amount of readline calls were made.
-        self.assertEqual(self.mock_response.fp.readline.call_count, 2)
-
     def test_tunnel_readline_normal(self):
         # Tests that ``_tunnel`` function behaves normally when it comes
         # across the usual http ending.
@@ -342,7 +330,3 @@ class TestAWSHTTPConnection(unittest.TestCase):
             # Verify that we went the request body because we got a 100
             # continue.
             self.assertIn(b'body', s.sent_data)
-
-
-if __name__ == "__main__":
-    unittest.main()

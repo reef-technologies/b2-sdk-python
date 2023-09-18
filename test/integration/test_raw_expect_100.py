@@ -115,7 +115,7 @@ def test_expect_100_data_sent_after_wait(raw_api, upload_url_dict, http_sent_dat
     def patched_wait(*args, **kwargs):
         # verify that, data is not sent before waiting
         assert file_contents not in http_sent_data, "data sent before waiting for 100 Continue"
-        wait_for_read(*args, **kwargs)
+        return wait_for_read(*args, **kwargs)
 
     with mock.patch("urllib3.util.wait_for_read", side_effect=patched_wait) as wait_mock:
         raw_api.upload_file(

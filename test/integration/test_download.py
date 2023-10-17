@@ -145,7 +145,7 @@ class TestDownload(IntegrationTestBase):
             with open(source_file, "w") as fp:
                 fp.write(test_string)
             file_version = bucket.upload_local_file(str(source_file), 'file_to_test')
-            self.b2_api.download_file_by_id(file_id=file_version.id_).save_to("/dev/stdout")
+            self.b2_api.download_file_by_id(file_id=file_version.id_).save_to("-")
 
         # Restore original stdout
         os.dup2(stdout_fd, 1)

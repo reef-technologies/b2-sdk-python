@@ -223,4 +223,4 @@ class DownloadedFile:
         except io.UnsupportedOperation:
             if mode != 'wb+':
                 raise
-            self.save_to(path_, 'wb')
+            self.save_to(path_, 'wb', allow_seeking)

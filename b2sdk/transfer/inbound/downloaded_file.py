@@ -12,7 +12,10 @@ from __future__ import annotations
 import io
 import logging
 import pathlib
-from typing import TYPE_CHECKING
+from typing import (
+    TYPE_CHECKING,
+    Literal,
+)
 
 from requests.models import Response
 
@@ -50,12 +53,13 @@ class MtimeUpdatedFile(io.IOBase):
        #  'some_local_path' has the mod_time set according to metadata in B2
     """
 
-    def __init__(self, path_, mod_time_millis: int, mode='wb+', buffering=None):
+    def __init__(self, path_, mod_time_millis: int, preferred_mode='wb+', buffering=None):
         self.path_ = path_
-        self.mode = mode
+        self.preferred_mode = preferred_mode
         self.buffering = buffering if buffering is not None else -1
         self.mod_time_to_set = mod_time_millis
         self.file = None
+        self.mode = None
 
     def write(self, value):
         """
@@ -93,12 +97,17 @@ class MtimeUpdatedFile(io.IOBase):
 
         # All remaining problems should be with permissions.
         try:
-            self.file = open(self.path_, self.mode, buffering=self.buffering)
+            self.file = open(self.path_, self.preferred_mode, buffering=self.buffering)
+        except io.UnsupportedOperation:
+            if self.preferred_mode == 'wb':
+                raise
+            self.file = open(self.path_, 'wb', buffering=self.buffering)
         except PermissionError as ex:
             raise DestinationDirectoryDoesntAllowOperation() from ex
 
         self.write = self.file.write
         self.read = self.file.read
+        self.mode = self.file.mode
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -165,6 +174,9 @@ class DownloadedFile:
         :param allow_seeking: if False, download strategies that rely on seeking to write data
                               (parallel strategies) will be discarded.
         """
+        if file.mode == 'wb':
+            allow_seeking = False
+
         if self.progress_listener:
             file = WritingStreamWithProgress(file, self.progress_listener)
             if self.range_ is not None:
@@ -187,40 +199,19 @@ class DownloadedFile:
         )
         self._validate_download(bytes_read, actual_sha1)
 
-    def save_to(self, path_, mode='wb+', allow_seeking=True):
+    def save_to(self, path_, preferred_mode: Literal['wb', 'wb+'] = 'wb+', allow_seeking=True):
         """
         Open a local file and write data from B2 cloud to it, also update the mod_time.
 
         :param path_: path to file to be opened
-        :param mode: mode in which the file should be opened
+        :param preferred_mode: preferred mode in which the file should be opened
         :param allow_seeking: if False, download strategies that rely on seeking to write data
                               (parallel strategies) will be discarded.
         """
         with MtimeUpdatedFile(
             path_,
             mod_time_millis=self.download_version.mod_time_millis,
-            mode=mode,
+            preferred_mode=preferred_mode,
             buffering=self.write_buffer_size,
         ) as file:
             self.save(file, allow_seeking=allow_seeking)
-
-    def safe_save_to(self, path_, mode='wb+', allow_seeking=True):
-        """
-        Provides a safe way to save data to a file.
-
-        This method acts as a wrapper around `save_to`. It first attempts to save
-        data in the provided mode. If the mode is 'wb+' and an unsupported
-        operation error arises due to seeking issues, it falls back to 'wb' mode
-        and retries the operation.
-
-        :param path_: path to file to be opened
-        :param mode: mode in which the file should be opened
-        :param allow_seeking: if False, download strategies that rely on seeking to write data
-                              (parallel strategies) will be discarded.
-        """
-        try:
-            self.save_to(path_, mode, allow_seeking)
-        except io.UnsupportedOperation:
-            if mode != 'wb+':
-                raise
-            self.save_to(path_, 'wb', False)

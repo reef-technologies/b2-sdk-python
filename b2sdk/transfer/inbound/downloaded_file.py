@@ -203,3 +203,24 @@ class DownloadedFile:
             buffering=self.write_buffer_size,
         ) as file:
             self.save(file, allow_seeking=allow_seeking)
+
+    def safe_save_to(self, path_, mode='wb+', allow_seeking=True):
+        """
+        Provides a safe way to save data to a file.
+
+        This method acts as a wrapper around `save_to`. It first attempts to save
+        data in the provided mode. If the mode is 'wb+' and an unsupported
+        operation error arises due to seeking issues, it falls back to 'wb' mode
+        and retries the operation.
+
+        :param path_: path to file to be opened
+        :param mode: mode in which the file should be opened
+        :param allow_seeking: if False, download strategies that rely on seeking to write data
+                              (parallel strategies) will be discarded.
+        """
+        try:
+            self.save_to(path_, mode, allow_seeking)
+        except io.UnsupportedOperation:
+            if mode != 'wb+':
+                raise
+            self.save_to(path_, 'wb')

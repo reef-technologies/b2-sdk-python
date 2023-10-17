@@ -124,3 +124,34 @@ class TestDownload(IntegrationTestBase):
             )
             with open(downloaded_uncompressed_file, 'rb') as duf:
                 assert duf.read() == data_to_write
+
+    def test_download_to_non_seekable_file(self):
+        bucket = self.create_bucket()
+        test_string = 'hello world'
+
+        # Create a pipe: r_end and w_end are file descriptors.
+        r_end, w_end = os.pipe()
+
+        # Save the current stdout file descriptor for later restoration
+        stdout_fd = os.dup(1)
+
+        # Duplicate the write end of the pipe to stdout file descriptor (1)
+        os.dup2(w_end, 1)
+        os.close(w_end)
+
+        with TempDir() as temp_dir:
+            temp_dir = pathlib.Path(temp_dir)
+            source_file = temp_dir / 'source.txt'
+            with open(source_file, "w") as fp:
+                fp.write(test_string)
+            file_version = bucket.upload_local_file(str(source_file), 'file_to_test')
+            self.b2_api.download_file_by_id(file_id=file_version.id_).safe_save_to("/dev/stdout")
+
+        # Restore original stdout
+        os.dup2(stdout_fd, 1)
+        os.close(stdout_fd)
+
+        # Read from the read end of the pipe
+        with os.fdopen(r_end, "rb") as f:
+            captured_output = f.read()
+            assert test_string == captured_output.decode()

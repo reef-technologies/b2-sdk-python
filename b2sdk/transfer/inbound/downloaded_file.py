@@ -12,12 +12,10 @@ from __future__ import annotations
 import io
 import logging
 import pathlib
-from typing import (
-    TYPE_CHECKING,
-    Literal,
-)
+from typing import TYPE_CHECKING
 
 from requests.models import Response
+from typing_extensions import Literal
 
 from b2sdk.exception import (
     ChecksumMismatch,

@@ -12,6 +12,7 @@ from __future__ import annotations
 import gzip
 import io
 import pathlib
+import platform
 from pprint import pprint
 from unittest import mock
 
@@ -128,6 +129,7 @@ class TestDownload(IntegrationTestBase):
     def test_download_to_non_seekable_file(self):
         bucket = self.create_bucket()
         test_string = 'hello world'
+        stdout_file_path = "CON" if platform.system() == 'Windows' else "/dev/stdout"
 
         # Create a pipe: r_end and w_end are file descriptors.
         r_end, w_end = os.pipe()
@@ -145,7 +147,7 @@ class TestDownload(IntegrationTestBase):
             with open(source_file, "w") as fp:
                 fp.write(test_string)
             file_version = bucket.upload_local_file(str(source_file), 'file_to_test')
-            self.b2_api.download_file_by_id(file_id=file_version.id_).save_to("-")
+            self.b2_api.download_file_by_id(file_id=file_version.id_).save_to(stdout_file_path)
 
         # Restore original stdout
         os.dup2(stdout_fd, 1)

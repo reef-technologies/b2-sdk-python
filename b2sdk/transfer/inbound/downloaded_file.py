@@ -201,7 +201,7 @@ class DownloadedFile:
         )
         self._validate_download(bytes_read, actual_sha1)
 
-    def save_to(self, path_, mode: Literal['wb', 'wb+'] = None, allow_seeking=True):
+    def save_to(self, path_, mode: Literal['wb', 'wb+'] = None, allow_seeking: bool = None):
         """
         Open a local file and write data from B2 cloud to it, also update the mod_time.
 

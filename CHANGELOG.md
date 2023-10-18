@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-* Fixed to check the readability and parallel strategy for download
+* Support stdout and non-seekable files as download output target
 
 ### Infrastructure
 * Fix readthedocs build

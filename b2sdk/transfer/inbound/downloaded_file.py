@@ -57,7 +57,7 @@ class MtimeUpdatedFile(io.IOBase):
         self,
         path_,
         mod_time_millis: int,
-        mode: Literal['wb', 'wb+'] = None,
+        mode: Literal['wb', 'wb+'] | None = None,
         buffering=None,
     ):
         self.path_ = path_
@@ -178,7 +178,7 @@ class DownloadedFile:
             if bytes_read != desired_length:
                 raise TruncatedOutput(bytes_read, desired_length)
 
-    def save(self, file, allow_seeking: bool = None):
+    def save(self, file, allow_seeking: bool | None = None):
         """
         Read data from B2 cloud and write it to a file-like object
 
@@ -189,10 +189,7 @@ class DownloadedFile:
         if allow_seeking and not file.seekable():
             logger.warning('You allowed seeking for non-seekable file')
         elif allow_seeking is None:
-            if file.mode == 'wb':
-                allow_seeking = False
-            else:
-                allow_seeking = True
+            allow_seeking = file.seekable()
 
         if self.progress_listener:
             file = WritingStreamWithProgress(file, self.progress_listener)
@@ -216,7 +213,12 @@ class DownloadedFile:
         )
         self._validate_download(bytes_read, actual_sha1)
 
-    def save_to(self, path_, mode: Literal['wb', 'wb+'] = None, allow_seeking: bool = None):
+    def save_to(
+        self,
+        path_,
+        mode: Literal['wb', 'wb+'] | None = None,
+        allow_seeking: bool | None = None,
+    ):
         """
         Open a local file and write data from B2 cloud to it, also update the mod_time.
 

@@ -22,7 +22,6 @@ from random import random
 from typing import Any
 
 import requests
-from requests.adapters import HTTPAdapter
 
 from .api_config import DEFAULT_HTTP_API_CONFIG, B2HttpApiConfig
 from .exception import (
@@ -40,7 +39,7 @@ from .exception import (
     UnknownHost,
     interpret_b2_error,
 )
-from .requests import NotDecompressingResponse
+from .requests import HTTPAdapterWithContinue, NotDecompressingResponse
 from .version import USER_AGENT
 
 LOCALE_LOCK = threading.Lock()
@@ -534,7 +533,7 @@ class B2Http:
         return cls._translate_errors(fcn, post_params)
 
 
-class NotDecompressingHTTPAdapter(HTTPAdapter):
+class NotDecompressingHTTPAdapter(HTTPAdapterWithContinue):
     """
     HTTP adapter that uses :class:`b2sdk.requests.NotDecompressingResponse` instead of the default
     :code:`requests.Response` class.

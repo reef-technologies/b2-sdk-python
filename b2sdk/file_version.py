@@ -353,6 +353,7 @@ class FileVersion(BaseFileVersion):
             file_retention=self.file_retention,
             legal_hold=self.legal_hold,
             cache_control=self.cache_control,
+            expect_100_continue=False,
         )
 
         headers_str = ''.join(

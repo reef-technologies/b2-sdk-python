@@ -87,6 +87,9 @@ class B2Session:
             TokenType.UPLOAD_PART: self._upload_part,
         }
 
+        self.expect_100_continue = api_config.expect_100_continue
+        self.expect_100_timeout = api_config.expect_100_timeout
+
     def authorize_automatically(self):
         """
         Perform automatic account authorization, retrieving all account data
@@ -372,6 +375,8 @@ class B2Session:
             legal_hold=legal_hold,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expect_100_continue=self.expect_100_continue,
+            expect_100_timeout=self.expect_100_timeout,
         )
 
     def upload_part(
@@ -392,6 +397,8 @@ class B2Session:
             sha1_sum,
             input_stream,
             server_side_encryption,
+            expect_100_continue=self.expect_100_continue,
+            expect_100_timeout=self.expect_100_timeout,
         )
 
     def get_download_url_by_id(self, file_id):

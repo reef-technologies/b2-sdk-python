@@ -1035,6 +1035,8 @@ class BucketSimulator:
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expect_100_continue: bool = True,
+        expect_100_timeout: float = 10.0,
     ):
         data_bytes = self._simulate_chunked_post(data_stream, content_length)
         assert len(data_bytes) == content_length
@@ -1825,6 +1827,8 @@ class RawSimulator(AbstractRawApi):
         legal_hold: LegalHold | None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expect_100_continue: bool = True,
+        expect_100_timeout: float = 10.0,
     ) -> dict:
 
         # fix to allow calculating headers on unknown key - only for simulation
@@ -1845,6 +1849,8 @@ class RawSimulator(AbstractRawApi):
             legal_hold=legal_hold,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expect_100_continue=expect_100_continue,
+            expect_100_timeout=expect_100_timeout,
         )
 
     def upload_file(
@@ -1862,6 +1868,8 @@ class RawSimulator(AbstractRawApi):
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expect_100_continue: bool = True,
+        expect_100_timeout: float = 10.0,
     ):
         with ConcurrentUsedAuthTokenGuard(
             self.currently_used_auth_tokens[upload_auth_token], upload_auth_token
@@ -1894,6 +1902,8 @@ class RawSimulator(AbstractRawApi):
                 legal_hold=legal_hold,
                 custom_upload_timestamp=custom_upload_timestamp,
                 cache_control=cache_control,
+                expect_100_continue=expect_100_continue,
+                expect_100_timeout=expect_100_timeout,
             )
 
             response = bucket.upload_file(
@@ -1925,6 +1935,8 @@ class RawSimulator(AbstractRawApi):
         sha1_sum,
         input_stream,
         server_side_encryption: EncryptionSetting | None = None,
+        expect_100_continue: bool = True,
+        expect_100_timeout: float = 10.0,
     ):
         with ConcurrentUsedAuthTokenGuard(
             self.currently_used_auth_tokens[upload_auth_token], upload_auth_token

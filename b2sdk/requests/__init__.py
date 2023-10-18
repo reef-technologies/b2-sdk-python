@@ -16,11 +16,13 @@ Changes made to the original source: see NOTICE
 """
 
 from requests import Response, ConnectionError
+from requests.adapters import HTTPAdapter, DEFAULT_POOLBLOCK
 from requests.exceptions import ChunkedEncodingError, ContentDecodingError, StreamConsumedError
 from requests.utils import iter_slices, stream_decode_response_unicode
 from urllib3.exceptions import ProtocolError, DecodeError, ReadTimeoutError
 
 from . import included_source_meta
+from .._botocore.awsrequest import AWSHTTPConnectionPool, AWSHTTPSConnectionPool
 
 
 class NotDecompressingResponse(Response):
@@ -77,3 +79,12 @@ class NotDecompressingResponse(Response):
             setattr(new_response, attr_name, getattr(response, attr_name))
         new_response.raw = response.raw
         return new_response
+
+
+class HTTPAdapterWithContinue(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=DEFAULT_POOLBLOCK, **pool_kwargs):
+        super().init_poolmanager(connections, maxsize, block, **pool_kwargs)
+        self.poolmanager.pool_classes_by_scheme = {
+            "http": AWSHTTPConnectionPool,
+            "https": AWSHTTPSConnectionPool,
+        }

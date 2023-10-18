@@ -78,6 +78,9 @@ class MtimeUpdatedFile(io.IOBase):
         """
         raise NotImplementedError
 
+    def seekable(self):
+        return self.file.seekable()
+
     def seek(self, offset, whence=0):
         return self.file.seek(offset, whence)
 
@@ -183,11 +186,9 @@ class DownloadedFile:
         :param allow_seeking: if False, download strategies that rely on seeking to write data
                               (parallel strategies) will be discarded.
         """
-        if allow_seeking and file.mode == 'wb':
-            logger.warning(
-                'Using \'allow_seeking\' set to False while opening a file in \'wb\' mode is recommended. '
-                'But you\'re using seeking mode.'
-            )
+        if allow_seeking and file.seekable():
+            logger.warning('You allowed seeking for non-seekable file')
+
         elif allow_seeking is None:
             if file.mode == 'wb':
                 allow_seeking = False

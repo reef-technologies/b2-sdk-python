@@ -186,9 +186,8 @@ class DownloadedFile:
         :param allow_seeking: if False, download strategies that rely on seeking to write data
                               (parallel strategies) will be discarded.
         """
-        if allow_seeking and file.seekable():
+        if allow_seeking and not file.seekable():
             logger.warning('You allowed seeking for non-seekable file')
-
         elif allow_seeking is None:
             if file.mode == 'wb':
                 allow_seeking = False

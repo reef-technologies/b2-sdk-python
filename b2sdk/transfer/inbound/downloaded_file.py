@@ -53,7 +53,13 @@ class MtimeUpdatedFile(io.IOBase):
        #  'some_local_path' has the mod_time set according to metadata in B2
     """
 
-    def __init__(self, path_, mod_time_millis: int, mode: Literal['wb', 'wb+'] = None, buffering=None):
+    def __init__(
+        self,
+        path_,
+        mod_time_millis: int,
+        mode: Literal['wb', 'wb+'] = None,
+        buffering=None,
+    ):
         self.path_ = path_
         self.mode = mode
         self.buffering = buffering if buffering is not None else -1
@@ -96,7 +102,11 @@ class MtimeUpdatedFile(io.IOBase):
 
         # All remaining problems should be with permissions.
         try:
-            self.file = open(self.path_, 'wb+' if self.mode is None else self.mode, buffering=self.buffering)
+            self.file = open(
+                self.path_,
+                'wb+' if self.mode is None else self.mode,
+                buffering=self.buffering,
+            )
         except io.UnsupportedOperation:
             if self.mode is not None:
                 raise
@@ -173,7 +183,12 @@ class DownloadedFile:
         :param allow_seeking: if False, download strategies that rely on seeking to write data
                               (parallel strategies) will be discarded.
         """
-        if allow_seeking is None:
+        if allow_seeking and file.mode == 'wb':
+            logger.warning(
+                'Using \'allow_seeking\' set to False while opening a file in \'wb\' mode is recommended. '
+                'But you\'re using seeking mode.'
+            )
+        elif allow_seeking is None:
             if file.mode == 'wb':
                 allow_seeking = False
             else:

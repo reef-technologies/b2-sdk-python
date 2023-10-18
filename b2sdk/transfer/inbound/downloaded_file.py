@@ -12,10 +12,10 @@ from __future__ import annotations
 import io
 import logging
 import pathlib
+import sys
 from typing import TYPE_CHECKING
 
 from requests.models import Response
-from typing_extensions import Literal
 
 from b2sdk.exception import (
     ChecksumMismatch,
@@ -26,6 +26,11 @@ from b2sdk.exception import (
     TruncatedOutput,
 )
 from b2sdk.utils import set_file_mtime
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 from ...encryption.setting import EncryptionSetting
 from ...file_version import DownloadVersion

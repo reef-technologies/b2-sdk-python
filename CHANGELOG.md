@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Infrastructure
+* Use stable Python 3.12 in CI
 * Fix readthedocs build by updating to v2 configuration schema
 * Fix spellcheck erroring out on LICENSE file
 

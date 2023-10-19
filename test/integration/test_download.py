@@ -13,6 +13,7 @@ import gzip
 import io
 import pathlib
 import platform
+import sys
 from pprint import pprint
 from unittest import mock
 
@@ -134,11 +135,14 @@ class TestDownload(IntegrationTestBase):
         # Create a pipe: r_end and w_end are file descriptors.
         r_end, w_end = os.pipe()
 
+        # Get fileno of the /dev/stdout or CON
+        stdout_file_no = sys.__stdout__.fileno()
+
         # Save the current stdout file descriptor for later restoration
-        stdout_fd = os.dup(1)
+        stdout_fd = os.dup(stdout_file_no)
 
         # Duplicate the write end of the pipe to stdout file descriptor (1)
-        os.dup2(w_end, 1)
+        os.dup2(w_end, stdout_file_no)
         os.close(w_end)
 
         with TempDir() as temp_dir:
@@ -150,7 +154,7 @@ class TestDownload(IntegrationTestBase):
             self.b2_api.download_file_by_id(file_id=file_version.id_).save_to(stdout_file_path)
 
         # Restore original stdout
-        os.dup2(stdout_fd, 1)
+        os.dup2(stdout_fd, stdout_file_no)
         os.close(stdout_fd)
 
         # Read from the read end of the pipe

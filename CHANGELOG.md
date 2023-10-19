@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-* Support stdout and non-seekable files as download output target
+* Fix the failure to open a non-seekable file.
 
 ### Infrastructure
 * Fix readthedocs build

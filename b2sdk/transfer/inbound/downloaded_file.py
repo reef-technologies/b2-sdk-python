@@ -81,7 +81,7 @@ class MtimeUpdatedFile(io.IOBase):
         """
         raise NotImplementedError
 
-    def seekable(self):
+    def seekable(self) -> bool:
         return self.file.seekable()
 
     def seek(self, offset, whence=0):
@@ -181,7 +181,7 @@ class DownloadedFile:
             if bytes_read != desired_length:
                 raise TruncatedOutput(bytes_read, desired_length)
 
-    def save(self, file, allow_seeking: bool | None = None):
+    def save(self, file: MtimeUpdatedFile, allow_seeking: bool | None = None):
         """
         Read data from B2 cloud and write it to a file-like object
 

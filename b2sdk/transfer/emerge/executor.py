@@ -49,6 +49,10 @@ class EmergeExecutor:
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         if emerge_plan.is_large_file():
             execution = LargeFileEmergeExecution(
@@ -65,6 +69,10 @@ class EmergeExecutor:
                 max_queue_size=max_queue_size,
                 custom_upload_timestamp=custom_upload_timestamp,
                 cache_control=cache_control,
+                expires=expires,
+                content_disposition=content_disposition,
+                content_encoding=content_encoding,
+                content_language=content_language,
             )
         else:
             if continue_large_file_id is not None:
@@ -81,6 +89,10 @@ class EmergeExecutor:
                 legal_hold=legal_hold,
                 custom_upload_timestamp=custom_upload_timestamp,
                 cache_control=cache_control,
+                expires=expires,
+                content_disposition=content_disposition,
+                content_encoding=content_encoding,
+                content_language=content_language,
             )
         return execution.execute_plan(emerge_plan)
 
@@ -101,6 +113,10 @@ class BaseEmergeExecution(metaclass=ABCMeta):
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         self.services = services
         self.bucket_id = bucket_id
@@ -113,6 +129,10 @@ class BaseEmergeExecution(metaclass=ABCMeta):
         self.legal_hold = legal_hold
         self.custom_upload_timestamp = custom_upload_timestamp
         self.cache_control = cache_control
+        self.expires = expires
+        self.content_disposition = content_disposition
+        self.content_encoding = content_encoding
+        self.content_language = content_language
 
     @abstractmethod
     def execute_plan(self, emerge_plan):
@@ -148,6 +168,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         max_queue_size=None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         super().__init__(
             services,
@@ -161,6 +185,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
             legal_hold=legal_hold,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
         self.continue_large_file_id = continue_large_file_id
         self.max_queue_size = max_queue_size
@@ -271,6 +299,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         emerge_parts_dict=None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         if 'listFiles' not in self.services.session.account_info.get_allowed()['capabilities']:
             return None, {}
@@ -304,6 +336,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
                 legal_hold,
                 custom_upload_timestamp=custom_upload_timestamp,
                 cache_control=cache_control,
+                expires=expires,
+                content_disposition=content_disposition,
+                content_encoding=content_encoding,
+                content_language=content_language,
             )
         elif emerge_parts_dict is not None:
             unfinished_file, finished_parts = self._match_unfinished_file_if_possible(
@@ -316,6 +352,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
                 legal_hold,
                 custom_upload_timestamp=custom_upload_timestamp,
                 cache_control=cache_control,
+                expires=expires,
+                content_disposition=content_disposition,
+                content_encoding=content_encoding,
+                content_language=content_language,
             )
         return unfinished_file, finished_parts
 
@@ -332,6 +372,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         cache_control: str | None = None,
         check_file_info_without_large_file_sha1: bool | None = False,
         eager_mode: bool | None = False,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Search for a matching unfinished large file in the specified bucket.
@@ -389,6 +433,22 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
 
             if cache_control is not None and cache_control != file_.cache_control:
                 logger.debug('Rejecting %s: cacheControl mismatch', file_.file_id)
+                continue
+
+            if expires is not None and expires != file_.expires:
+                logger.debug('Rejecting %s: expires mismatch', file_.file_id)
+                continue
+
+            if content_disposition is not None and content_disposition != file_.content_disposition:
+                logger.debug('Rejecting %s: contentDisposition mismatch', file_.file_id)
+                continue
+
+            if content_encoding is not None and content_encoding != file_.content_encoding:
+                logger.debug('Rejecting %s: contentEncoding mismatch', file_.file_id)
+                continue
+
+            if content_language is not None and content_language != file_.content_language:
+                logger.debug('Rejecting %s: contentLanguage mismatch', file_.file_id)
                 continue
 
             if legal_hold is None:
@@ -467,6 +527,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Search for a matching unfinished large file by plan_id in the specified bucket.
@@ -487,6 +551,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         :param legal_hold: The legal hold status of the file, if any.
         :param custom_upload_timestamp: The custom timestamp for the upload, if any.
         :param cache_control: The cache control settings for the file, if any.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         
         :return: A tuple of the best matching unfinished file and its finished parts. If no match is found, it returns `None`.
         """
@@ -504,6 +572,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
             check_file_info_without_large_file_sha1=False,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     @classmethod
@@ -528,6 +600,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Scan for a suitable unfinished large file in the specified bucket to resume upload.
@@ -552,6 +628,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         :param legal_hold: The legal hold status of the file, if applicable.
         :param custom_upload_timestamp: The custom timestamp for the upload, if set.
         :param cache_control: The cache control settings for the file, if set.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         
         :return: A tuple of the best matching unfinished file and its finished parts. If no match is found, returns `None`.
         """
@@ -569,6 +649,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
             cache_control,
             check_file_info_without_large_file_sha1=True,
             eager_mode=True,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
         if file_ is None:
@@ -684,6 +768,10 @@ class CopyFileExecutionStep(BaseExecutionStep):
             file_retention=execution.file_retention,
             legal_hold=execution.legal_hold,
             cache_control=execution.cache_control,
+            expires=execution.expires,
+            content_disposition=execution.content_disposition,
+            content_encoding=execution.content_encoding,
+            content_language=execution.content_language,
         )
 
 
@@ -742,6 +830,10 @@ class UploadFileExecutionStep(BaseExecutionStep):
             legal_hold=execution.legal_hold,
             custom_upload_timestamp=execution.custom_upload_timestamp,
             cache_control=execution.cache_control,
+            expires=execution.expires,
+            content_disposition=execution.content_disposition,
+            content_encoding=execution.content_encoding,
+            content_language=execution.content_language,
         )
 
 

@@ -67,7 +67,15 @@ class FileVersionInfo(v2.FileVersion):
 
         with suppress(KeyError):
             del kwargs['replication_status']
+            del kwargs['expires']
+            del kwargs['content_disposition']
+            del kwargs['content_encoding']
+            del kwargs['content_language']
         self.replication_status = None
+        self.expires = None
+        self.content_disposition = None
+        self.content_encoding = None
+        self.content_language = None
         assert not kwargs  # after we get rid of everything we don't support in this apiver, this should be empty
 
         if v2.SRC_LAST_MODIFIED_MILLIS in self.file_info:

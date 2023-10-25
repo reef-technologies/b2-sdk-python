@@ -38,7 +38,13 @@ class UnfinishedLargeFile:
         self.encryption = EncryptionSettingFactory.from_file_version_dict(file_dict)
         self.file_retention = FileRetentionSetting.from_file_version_dict(file_dict)
         self.legal_hold = LegalHold.from_file_version_dict(file_dict)
-        self.cache_control = file_dict.get('cacheControl')
+
+        file_info_or_empty = self.file_info or {}
+        self.cache_control = file_info_or_empty.get('b2-cache-control')
+        self.expires = file_info_or_empty.get('b2-expires')
+        self.content_disposition = file_info_or_empty.get('b2-content-disposition')
+        self.content_encoding = file_info_or_empty.get('b2-content-encoding')
+        self.content_language = file_info_or_empty.get('b2-content-language')
 
     def __repr__(self):
         return f'<{self.__class__.__name__} {self.bucket_id} {self.file_name}>'

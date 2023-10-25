@@ -46,6 +46,10 @@ class CopyManager(TransferManager, ThreadPoolMixin):
         legal_hold: LegalHold | None = None,
         file_retention: FileRetentionSetting | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         # Run small copies in the same thread pool as large file copies,
         # so that they share resources during a sync.
@@ -62,6 +66,10 @@ class CopyManager(TransferManager, ThreadPoolMixin):
             legal_hold=legal_hold,
             file_retention=file_retention,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def copy_part(
@@ -152,6 +160,10 @@ class CopyManager(TransferManager, ThreadPoolMixin):
         legal_hold: LegalHold | None = None,
         file_retention: FileRetentionSetting | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         with progress_listener:
             progress_listener.set_total_bytes(copy_source.get_content_length() or 0)
@@ -192,6 +204,10 @@ class CopyManager(TransferManager, ThreadPoolMixin):
                 legal_hold=legal_hold,
                 file_retention=file_retention,
                 cache_control=cache_control,
+                expires=expires,
+                content_disposition=content_disposition,
+                content_encoding=content_encoding,
+                content_language=content_language,
             )
             file_version = self.services.api.file_version_factory.from_api_response(response)
             if progress_listener is not None:

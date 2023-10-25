@@ -50,6 +50,10 @@ class BaseFileVersion:
         'mod_time_millis',
         'replication_status',
         'cache_control',
+        'expires',
+        'content_disposition',
+        'content_encoding',
+        'content_language',
     ]
     _TYPE_MATCHER = re.compile('[a-z0-9]+_[a-z0-9]+_f([0-9]).*')
     _FILE_TYPE = {
@@ -74,6 +78,10 @@ class BaseFileVersion:
         legal_hold: LegalHold = LegalHold.UNSET,
         replication_status: ReplicationStatus | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         self.api = api
         self.id_ = id_
@@ -88,6 +96,10 @@ class BaseFileVersion:
         self.legal_hold = legal_hold
         self.replication_status = replication_status
         self.cache_control = cache_control
+        self.expires = expires
+        self.content_disposition = content_disposition
+        self.content_encoding = content_encoding
+        self.content_language = content_language
 
         if SRC_LAST_MODIFIED_MILLIS in self.file_info:
             self.mod_time_millis = int(self.file_info[SRC_LAST_MODIFIED_MILLIS])
@@ -129,6 +141,10 @@ class BaseFileVersion:
             'legal_hold': self.legal_hold,
             'replication_status': self.replication_status,
             'cache_control': self.cache_control,
+            'expires': self.expires,
+            'content_disposition': self.content_disposition,
+            'content_encoding': self.content_encoding,
+            'content_language': self.content_language,
         }  # yapf: disable
 
     def as_dict(self):
@@ -140,7 +156,6 @@ class BaseFileVersion:
             'serverSideEncryption': self.server_side_encryption.as_dict(),
             'legalHold': self.legal_hold.value,
             'fileRetention': self.file_retention.as_dict(),
-            'cacheControl': self.cache_control,
         }
 
         if self.size is not None:
@@ -260,6 +275,10 @@ class FileVersion(BaseFileVersion):
         legal_hold: LegalHold = LegalHold.UNSET,
         replication_status: ReplicationStatus | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         self.account_id = account_id
         self.bucket_id = bucket_id
@@ -280,6 +299,10 @@ class FileVersion(BaseFileVersion):
             legal_hold=legal_hold,
             replication_status=replication_status,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def _get_args_for_clone(self):
@@ -353,6 +376,10 @@ class FileVersion(BaseFileVersion):
             file_retention=self.file_retention,
             legal_hold=self.legal_hold,
             cache_control=self.cache_control,
+            expires=self.expires,
+            content_disposition=self.content_disposition,
+            content_encoding=self.content_encoding,
+            content_language=self.content_language,
         )
 
         headers_str = ''.join(
@@ -378,12 +405,7 @@ class DownloadVersion(BaseFileVersion):
     """
     __slots__ = [
         'range_',
-        'content_disposition',
         'content_length',
-        'content_language',
-        '_expires',
-        '_cache_control',
-        'content_encoding',
     ]
 
     def __init__(
@@ -412,8 +434,8 @@ class DownloadVersion(BaseFileVersion):
         self.content_disposition = content_disposition
         self.content_length = content_length
         self.content_language = content_language
-        self._expires = expires  # TODO: parse the string representation of this timestamp to datetime in DownloadVersionFactory
-        self._cache_control = cache_control  # TODO: parse the string representation of this mapping to dict in DownloadVersionFactory
+        self.expires = expires
+        self.cache_control = cache_control
         self.content_encoding = content_encoding
 
         super().__init__(
@@ -430,6 +452,10 @@ class DownloadVersion(BaseFileVersion):
             legal_hold=legal_hold,
             replication_status=replication_status,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def _get_args_for_clone(self):
@@ -437,12 +463,7 @@ class DownloadVersion(BaseFileVersion):
         args.update(
             {
                 'range_': self.range_,
-                'content_disposition': self.content_disposition,
                 'content_length': self.content_length,
-                'content_language': self.content_language,
-                'expires': self._expires,
-                'cache_control': self._cache_control,
-                'content_encoding': self.content_encoding,
             }
         )
         return args
@@ -517,6 +538,10 @@ class FileVersionFactory:
         replication_status = replication_status_value and ReplicationStatus[
             replication_status_value.upper()]
         cache_control = (file_info or {}).get('b2-cache-control')
+        expires = (file_info or {}).get('b2-expires')
+        content_disposition = (file_info or {}).get('b2-content-disposition')
+        content_encoding = (file_info or {}).get('b2-content-encoding')
+        content_language = (file_info or {}).get('b2-content-language')
 
         return self.FILE_VERSION_CLASS(
             self.api,
@@ -536,6 +561,10 @@ class FileVersionFactory:
             legal_hold,
             replication_status,
             cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
 
@@ -575,10 +604,11 @@ class DownloadVersionFactory:
             size = content_length = int(headers['Content-Length'])
             range_ = Range(0, max(size - 1, 0))
 
-        if 'Cache-Control' in headers:
-            cache_control = b2_url_decode(headers['Cache-Control'])
-        else:
-            cache_control = None
+        cache_control = b2_url_decode(headers['Cache-Control']) if 'Cache-Control' in headers else None
+        expires = b2_url_decode(headers['Expires']) if 'Expires' in headers else None
+        content_disposition = b2_url_decode(headers['Content-Disposition']) if 'Content-Disposition' in headers else None
+        content_language = b2_url_decode(headers['Content-Language']) if 'Content-Language' in headers else None
+        content_encoding = b2_url_decode(headers['Content-Encoding']) if 'Content-Encoding' in headers else None
 
         return DownloadVersion(
             api=self.api,
@@ -591,12 +621,12 @@ class DownloadVersionFactory:
             upload_timestamp=int(headers['x-bz-upload-timestamp']),
             server_side_encryption=EncryptionSettingFactory.from_response_headers(headers),
             range_=range_,
-            content_disposition=headers.get('Content-Disposition'),
+            content_disposition=content_disposition,
             content_length=content_length,
-            content_language=headers.get('Content-Language'),
-            expires=headers.get('Expires'),
+            content_language=content_language,
+            expires=expires,
             cache_control=cache_control,
-            content_encoding=headers.get('Content-Encoding'),
+            content_encoding=content_encoding,
             file_retention=FileRetentionSetting.from_response_headers(headers),
             legal_hold=LegalHold.from_response_headers(headers),
             replication_status=ReplicationStatus.from_response_headers(headers),

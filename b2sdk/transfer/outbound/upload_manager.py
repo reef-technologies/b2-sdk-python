@@ -58,6 +58,10 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         f = self._thread_pool.submit(
             self._upload_small_file,
@@ -72,6 +76,10 @@ class UploadManager(TransferManager, ThreadPoolMixin):
             legal_hold,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
         return f
 
@@ -201,6 +209,10 @@ class UploadManager(TransferManager, ThreadPoolMixin):
         legal_hold: LegalHold | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         content_length = upload_source.get_content_length()
         exception_info_list = []
@@ -233,6 +245,10 @@ class UploadManager(TransferManager, ThreadPoolMixin):
                             legal_hold=legal_hold,
                             custom_upload_timestamp=custom_upload_timestamp,
                             cache_control=cache_control,
+                            expires=expires,
+                            content_disposition=content_disposition,
+                            content_encoding=content_encoding,
+                            content_language=content_language,
                         )
                         if content_sha1 == HEX_DIGITS_AT_END:
                             content_sha1 = input_stream.hash

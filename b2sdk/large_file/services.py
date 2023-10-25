@@ -87,6 +87,10 @@ class LargeFileServices:
         file_retention: FileRetentionSetting | None = None,
         legal_hold: LegalHold | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Start a large file transfer.
@@ -98,6 +102,10 @@ class LargeFileServices:
         :param b2sdk.v2.FileRetentionSetting file_retention: file retention setting
         :param b2sdk.v2.LegalHold legal_hold: legal hold setting
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         """
         return UnfinishedLargeFile(
             self.services.session.start_large_file(
@@ -109,6 +117,10 @@ class LargeFileServices:
                 file_retention=file_retention,
                 legal_hold=legal_hold,
                 cache_control=cache_control,
+                expires=expires,
+                content_disposition=content_disposition,
+                content_encoding=content_encoding,
+                content_language=content_language,
             )
         )
 

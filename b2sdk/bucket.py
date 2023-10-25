@@ -110,6 +110,36 @@ class Bucket(metaclass=B2TraceMeta):
         self.is_file_lock_enabled = is_file_lock_enabled
         self.replication = replication
 
+    def _merge_file_info_and_headers_params(
+            self,
+            file_info: dict | None,
+            cache_control: str | None,
+            expires: str | None,
+            content_disposition: str | None,
+            content_encoding: str | None,
+            content_language: str | None,
+        ) -> dict | None:
+            if file_info is not None:
+                file_info = {**file_info}
+
+            for name, value in [
+                ('cache_control', cache_control),
+                ('expires', expires),
+                ('content_disposition', content_disposition),
+                ('content_encoding', content_encoding),
+                ('content_language', content_language),
+            ]:
+                if value is None:
+                    continue
+                if file_info is None:
+                    file_info = {}
+                file_info_key = f'b2-{name.replace("_", "-")}'
+                if file_info_key in file_info and file_info[file_info_key] != value:
+                    logger.warning('Overriding %s from file_info with value %s from explicit %s argument', name, value, name)
+                file_info[file_info_key] = value
+
+            return file_info
+        
     def get_fresh_state(self) -> Bucket:
         """
         Fetch all the information about this bucket and return a new bucket object.
@@ -496,6 +526,10 @@ class Bucket(metaclass=B2TraceMeta):
         large_file_sha1: Sha1HexDigest | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Upload bytes in memory to a B2 file.
@@ -514,6 +548,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param Sha1HexDigest,None large_file_sha1: SHA-1 hash of the result file or ``None`` if unknown
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         :rtype: b2sdk.v2.FileVersion
         """
         upload_source = UploadSourceBytes(data_bytes)
@@ -529,6 +567,10 @@ class Bucket(metaclass=B2TraceMeta):
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def upload_local_file(
@@ -546,6 +588,10 @@ class Bucket(metaclass=B2TraceMeta):
         upload_mode: UploadMode = UploadMode.FULL,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Upload a file on local disk to a B2 file.
@@ -570,6 +616,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param b2sdk.v2.UploadMode upload_mode: desired upload mode
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         :rtype: b2sdk.v2.FileVersion
         """
         upload_source = UploadSourceLocalFile(local_path=local_file, content_sha1=sha1_sum)
@@ -589,6 +639,14 @@ class Bucket(metaclass=B2TraceMeta):
                     # the upload will be incremental, but the SHA1 sum is unknown, calculate it now
                     large_file_sha1 = upload_source.get_content_sha1()
 
+        file_info = self._merge_file_info_and_headers_params(
+            file_info=file_info,
+            cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
+        )
         return self.concatenate(
             sources,
             file_name,
@@ -601,7 +659,6 @@ class Bucket(metaclass=B2TraceMeta):
             legal_hold=legal_hold,
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
-            cache_control=cache_control,
         )
 
     def upload_unbound_stream(
@@ -624,6 +681,10 @@ class Bucket(metaclass=B2TraceMeta):
         unused_buffer_timeout_seconds: float = 3600.0,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Upload an unbound file-like read-only object to a B2 file.
@@ -688,6 +749,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param unused_buffer_timeout_seconds: amount of time that a buffer can be idle before returning error
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         :rtype: b2sdk.v2.FileVersion
         """
         if buffers_count <= 1:
@@ -702,6 +767,14 @@ class Bucket(metaclass=B2TraceMeta):
             planner = self.api.services.emerger.get_emerge_planner()
             buffer_size = planner.recommended_upload_part_size
 
+        file_info = self._merge_file_info_and_headers_params(
+            file_info=file_info,
+            cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
+        )
         return self._create_file(
             self.api.services.emerger.emerge_unbound,
             UnboundWriteIntentGenerator(
@@ -727,7 +800,6 @@ class Bucket(metaclass=B2TraceMeta):
             max_queue_size=buffers_count - 1,
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
-            cache_control=cache_control,
         )
 
     def upload(
@@ -744,6 +816,10 @@ class Bucket(metaclass=B2TraceMeta):
         large_file_sha1: Sha1HexDigest | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Upload a file to B2, retrying as needed.
@@ -771,6 +847,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param Sha1HexDigest,None large_file_sha1: SHA-1 hash of the result file or ``None`` if unknown
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         :rtype: b2sdk.v2.FileVersion
         """
         return self.create_file(
@@ -787,6 +867,10 @@ class Bucket(metaclass=B2TraceMeta):
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def create_file(
@@ -806,6 +890,10 @@ class Bucket(metaclass=B2TraceMeta):
         large_file_sha1=None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Creates a new file in this bucket using an iterable (list, tuple etc) of remote or local sources.
@@ -838,6 +926,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param Sha1HexDigest,None large_file_sha1: SHA-1 hash of the result file or ``None`` if unknown
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         """
         return self._create_file(
             self.api.services.emerger.emerge,
@@ -856,6 +948,10 @@ class Bucket(metaclass=B2TraceMeta):
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def create_file_stream(
@@ -875,6 +971,10 @@ class Bucket(metaclass=B2TraceMeta):
         large_file_sha1=None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Creates a new file in this bucket using a stream of multiple remote or local sources.
@@ -909,6 +1009,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param Sha1HexDigest,None large_file_sha1: SHA-1 hash of the result file or ``None`` if unknown
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         """
         return self._create_file(
             self.api.services.emerger.emerge_stream,
@@ -927,6 +1031,10 @@ class Bucket(metaclass=B2TraceMeta):
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def _create_file(
@@ -945,11 +1053,24 @@ class Bucket(metaclass=B2TraceMeta):
         min_part_size=None,
         max_part_size=None,
         large_file_sha1=None,
+        cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
         **kwargs
     ):
         validate_b2_file_name(file_name)
         progress_listener = progress_listener or DoNothingProgressListener()
 
+        file_info = self._merge_file_info_and_headers_params(
+            file_info=file_info,
+            cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
+        )
         return emerger_method(
             self.id_,
             write_intents_iterable,
@@ -985,6 +1106,10 @@ class Bucket(metaclass=B2TraceMeta):
         large_file_sha1=None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Creates a new file in this bucket by concatenating multiple remote or local sources.
@@ -1014,6 +1139,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param Sha1HexDigest,None large_file_sha1: SHA-1 hash of the result file or ``None`` if unknown
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         """
         return self.create_file(
             list(WriteIntent.wrap_sources_iterator(outbound_sources)),
@@ -1031,6 +1160,10 @@ class Bucket(metaclass=B2TraceMeta):
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def concatenate_stream(
@@ -1048,6 +1181,10 @@ class Bucket(metaclass=B2TraceMeta):
         large_file_sha1: Sha1HexDigest | None = None,
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Creates a new file in this bucket by concatenating stream of multiple remote or local sources.
@@ -1073,6 +1210,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param Sha1HexDigest,None large_file_sha1: SHA-1 hash of the result file or ``None`` if unknown
         :param int,None custom_upload_timestamp: override object creation date, expressed as a number of milliseconds since epoch
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         """
         return self.create_file_stream(
             WriteIntent.wrap_sources_iterator(outbound_sources_iterator),
@@ -1088,6 +1229,10 @@ class Bucket(metaclass=B2TraceMeta):
             large_file_sha1=large_file_sha1,
             custom_upload_timestamp=custom_upload_timestamp,
             cache_control=cache_control,
+            expires=expires,
+            content_disposition=content_disposition,
+            content_encoding=content_encoding,
+            content_language=content_language,
         )
 
     def get_download_url(self, filename):
@@ -1131,6 +1276,10 @@ class Bucket(metaclass=B2TraceMeta):
         cache_control: str | None = None,
         min_part_size=None,
         max_part_size=None,
+        expires: str | None = None,
+        content_disposition: str | None = None,
+        content_encoding: str | None = None,
+        content_language: str | None = None,
     ):
         """
         Creates a new file in this bucket by (server-side) copying from an existing file.
@@ -1159,6 +1308,10 @@ class Bucket(metaclass=B2TraceMeta):
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
         :param int min_part_size: lower limit of part size for the transfer planner, in bytes
         :param int max_part_size: upper limit of part size for the transfer planner, in bytes
+        :param str,None expires: TODO expires exp
+        :param str,None content_disposition: TODO content_disposition exp
+        :param str,None content_encoding: TODO content_encoding exp
+        :param str,None content_language: TODO content_language exp
         """
 
         copy_source = CopySource(
@@ -1174,6 +1327,14 @@ class Bucket(metaclass=B2TraceMeta):
             validate_b2_file_name(new_file_name)
             try:
                 progress_listener = progress_listener or DoNothingProgressListener()
+                file_info = self._merge_file_info_and_headers_params(
+                    file_info=file_info,
+                    cache_control=cache_control,
+                    expires=expires,
+                    content_disposition=content_disposition,
+                    content_encoding=content_encoding,
+                    content_language=content_language,
+                )
                 return self.api.services.copy_manager.copy_file(
                     copy_source,
                     new_file_name,
@@ -1185,7 +1346,6 @@ class Bucket(metaclass=B2TraceMeta):
                     source_encryption=source_encryption,
                     file_retention=file_retention,
                     legal_hold=legal_hold,
-                    cache_control=cache_control,
                 ).result()
             except CopySourceTooBig as e:
                 copy_source.length = e.size

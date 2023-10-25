@@ -516,7 +516,7 @@ class FileVersionFactory:
         replication_status_value = file_version_dict.get('replicationStatus')
         replication_status = replication_status_value and ReplicationStatus[
             replication_status_value.upper()]
-        cache_control = file_version_dict.get('cacheControl')
+        cache_control = (file_info or {}).get('b2-cache-control')
 
         return self.FILE_VERSION_CLASS(
             self.api,

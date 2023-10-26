@@ -24,7 +24,6 @@ from .helpers import authorize
 
 
 class TestDownload(IntegrationTestBase):
-
     def _b2_file_info_kwargs(self):
         kwargs = {
             'cache_control': 'max-age=3600 sdfsdf',

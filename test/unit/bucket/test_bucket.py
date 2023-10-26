@@ -162,6 +162,7 @@ class StubProgressListener(AbstractProgressListener):
     For a total byte count of 100, and updates at 33 and 66, the returned
     string looks like: "100: 33 66"
     """
+
     def __init__(self):
         self.total = None
         self.history = []
@@ -216,6 +217,7 @@ class CanRetry(B2Error):
     """
     An exception that can be retryable, or not.
     """
+
     def __init__(self, can_retry):
         super().__init__(None, None, None, None, None)
         self.can_retry = can_retry
@@ -2328,6 +2330,7 @@ class DownloadTests(DownloadTestsBase):
 
 class EmptyFileDownloadScenarioMixin:
     """ use with DownloadTests, but not for TestDownloadParallel as it does not like empty files """
+
     def test_download_by_name_empty_file(self):
         self.file_version = self.bucket.upload_bytes(b'', 'empty')
         self.download_file_by_name('empty', progress_listener=self.progress_listener)
@@ -2336,6 +2339,7 @@ class EmptyFileDownloadScenarioMixin:
 
 class UnverifiedChecksumDownloadScenarioMixin:
     """ use with DownloadTests """
+
     def test_download_by_name_unverified_checksum(self):
         with TempDir() as d:
             path = os.path.join(d, 'file1')
@@ -2458,6 +2462,7 @@ class TruncatedFakeResponse(FakeResponse):
     A special FakeResponse class which returns only the first 4 bytes of data.
     Use it to test followup retries for truncated download issues.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_bytes = self.data_bytes[:4]

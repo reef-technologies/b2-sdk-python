@@ -570,6 +570,7 @@ class DownloadVersionFactory:
     """
     Construct :py:class:`b2sdk.v2.DownloadVersion` objects from download headers.
     """
+
     def __init__(self, api: B2Api):
         self.api = api
 
@@ -644,6 +645,7 @@ class FileIdAndName:
 
     Used to return data from calls to b2_delete_file_version and b2_cancel_large_file.
     """
+
     def __init__(self, file_id: str, file_name: str):
         self.file_id = file_id
         self.file_name = file_name

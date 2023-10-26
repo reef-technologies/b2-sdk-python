@@ -460,12 +460,10 @@ class DownloadVersion(BaseFileVersion):
 
     def _get_args_for_clone(self):
         args = super()._get_args_for_clone()
-        args.update(
-            {
-                'range_': self.range_,
-                'content_length': self.content_length,
-            }
-        )
+        args.update({
+            'range_': self.range_,
+            'content_length': self.content_length,
+        })
         return args
 
 
@@ -572,7 +570,6 @@ class DownloadVersionFactory:
     """
     Construct :py:class:`b2sdk.v2.DownloadVersion` objects from download headers.
     """
-
     def __init__(self, api: B2Api):
         self.api = api
 
@@ -604,11 +601,19 @@ class DownloadVersionFactory:
             size = content_length = int(headers['Content-Length'])
             range_ = Range(0, max(size - 1, 0))
 
-        cache_control = b2_url_decode(headers['Cache-Control']) if 'Cache-Control' in headers else None
+        cache_control = b2_url_decode(
+            headers['Cache-Control']
+        ) if 'Cache-Control' in headers else None
         expires = b2_url_decode(headers['Expires']) if 'Expires' in headers else None
-        content_disposition = b2_url_decode(headers['Content-Disposition']) if 'Content-Disposition' in headers else None
-        content_language = b2_url_decode(headers['Content-Language']) if 'Content-Language' in headers else None
-        content_encoding = b2_url_decode(headers['Content-Encoding']) if 'Content-Encoding' in headers else None
+        content_disposition = b2_url_decode(
+            headers['Content-Disposition']
+        ) if 'Content-Disposition' in headers else None
+        content_language = b2_url_decode(
+            headers['Content-Language']
+        ) if 'Content-Language' in headers else None
+        content_encoding = b2_url_decode(
+            headers['Content-Encoding']
+        ) if 'Content-Encoding' in headers else None
 
         return DownloadVersion(
             api=self.api,
@@ -639,7 +644,6 @@ class FileIdAndName:
 
     Used to return data from calls to b2_delete_file_version and b2_cancel_large_file.
     """
-
     def __init__(self, file_id: str, file_name: str):
         self.file_id = file_id
         self.file_name = file_name

@@ -162,7 +162,6 @@ class StubProgressListener(AbstractProgressListener):
     For a total byte count of 100, and updates at 33 and 66, the returned
     string looks like: "100: 33 66"
     """
-
     def __init__(self):
         self.total = None
         self.history = []
@@ -217,7 +216,6 @@ class CanRetry(B2Error):
     """
     An exception that can be retryable, or not.
     """
-
     def __init__(self, can_retry):
         super().__init__(None, None, None, None, None)
         self.can_retry = can_retry
@@ -1376,6 +1374,26 @@ class TestUpdate(TestCaseWithBucket):
 
 
 class TestUpload(TestCaseWithBucket):
+    def _b2_file_info_kwargs_and_raw_dict(self):
+        kwargs = {
+            'cache_control': 'max-age=3600',
+            'expires': '2010-01-01',
+            'content_disposition': 'attachment; filename="fname.ext"',
+            'content_encoding': 'utf-8',
+            'content_language': 'en_US',
+        }
+        file_info = {'b2-' + k.replace('_', '-'): v for k, v in kwargs.items()}
+        return kwargs, file_info
+
+    def _assert_correct_b2_file_info(self, file_info):
+        kwargs, raw_file_info = self._b2_file_info_kwargs_and_raw_dict()
+        if apiver_deps.V <= 1:
+            return
+        for key, value in raw_file_info.items():
+            self.assertEqual(value, file_info.file_info[key])
+        for key, value in kwargs.items():
+            self.assertEqual(value, getattr(file_info, key))
+
     def test_upload_bytes(self):
         data = b'hello world'
         file_info = self.bucket.upload_bytes(data, 'file1')
@@ -1444,24 +1462,24 @@ class TestUpload(TestCaseWithBucket):
             self.assertEqual(retention, file_info.file_retention)
             self.assertEqual(LegalHold.ON, file_info.legal_hold)
 
-    def test_upload_local_file_cache_control(self):
+    def test_upload_local_file_with_b2_file_info(self):
         with TempDir() as d:
             path = os.path.join(d, 'file1')
             data = b'hello world'
             write_file(path, data)
+            header_kwargs, _ = self._b2_file_info_kwargs_and_raw_dict()
             file_info = self.bucket.upload_local_file(
-                path, 'file1', encryption=SSE_C_AES, cache_control='max-age=3600'
+                path, 'file1', encryption=SSE_C_AES, **header_kwargs
             )
             self._check_file_contents('file1', data)
-            self.assertEqual(file_info.cache_control, 'max-age=3600')
+            self._assert_correct_b2_file_info(file_info)
 
-    def test_upload_bytes_cache_control(self):
+    def test_upload_bytes_with_b2_file_info(self):
         data = b'hello world'
-        file_info = self.bucket.upload_bytes(
-            data, 'file1', encryption=SSE_C_AES, cache_control='max-age=3600'
-        )
+        kwargs, _ = self._b2_file_info_kwargs_and_raw_dict()
+        file_info = self.bucket.upload_bytes(data, 'file1', encryption=SSE_C_AES, **kwargs)
         self.assertTrue(isinstance(file_info, VFileVersionInfo))
-        self.assertEqual(file_info.cache_control, 'max-age=3600')
+        self._assert_correct_b2_file_info(file_info)
 
     def test_upload_bytes_progress(self):
         data = b'hello world'
@@ -1598,6 +1616,21 @@ class TestUpload(TestCaseWithBucket):
         self._check_file_contents('file1', data)
         self._check_large_file_sha1('file1', hex_sha1_of_bytes(data))
         self.assertTrue(progress_listener.is_valid())
+
+    def test_upload_large_with_b2_file_info(self):
+        data = self._make_data(self.simulator.MIN_PART_SIZE * 3)
+        kwargs, _ = self._b2_file_info_kwargs_and_raw_dict()
+        result = self.bucket.upload_bytes(data, 'file1', **kwargs)
+        self._assert_correct_b2_file_info(result)
+
+    def test_upload_local_large_with_b2_file_info(self):
+        with TempDir() as d:
+            path = os.path.join(d, 'file1')
+            data = self._make_data(self.simulator.MIN_PART_SIZE * 3)
+            write_file(path, data)
+            kwargs, _ = self._b2_file_info_kwargs_and_raw_dict()
+            result = self.bucket.upload_local_file(path, 'file1', **kwargs)
+            self._assert_correct_b2_file_info(result)
 
     def test_upload_local_large_file(self):
         with TempDir() as d:
@@ -2295,7 +2328,6 @@ class DownloadTests(DownloadTestsBase):
 
 class EmptyFileDownloadScenarioMixin:
     """ use with DownloadTests, but not for TestDownloadParallel as it does not like empty files """
-
     def test_download_by_name_empty_file(self):
         self.file_version = self.bucket.upload_bytes(b'', 'empty')
         self.download_file_by_name('empty', progress_listener=self.progress_listener)
@@ -2304,7 +2336,6 @@ class EmptyFileDownloadScenarioMixin:
 
 class UnverifiedChecksumDownloadScenarioMixin:
     """ use with DownloadTests """
-
     def test_download_by_name_unverified_checksum(self):
         with TempDir() as d:
             path = os.path.join(d, 'file1')
@@ -2427,7 +2458,6 @@ class TruncatedFakeResponse(FakeResponse):
     A special FakeResponse class which returns only the first 4 bytes of data.
     Use it to test followup retries for truncated download issues.
     """
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_bytes = self.data_bytes[:4]

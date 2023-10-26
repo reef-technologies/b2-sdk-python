@@ -111,35 +111,38 @@ class Bucket(metaclass=B2TraceMeta):
         self.replication = replication
 
     def _merge_file_info_and_headers_params(
-            self,
-            file_info: dict | None,
-            cache_control: str | None,
-            expires: str | None,
-            content_disposition: str | None,
-            content_encoding: str | None,
-            content_language: str | None,
-        ) -> dict | None:
-            if file_info is not None:
-                file_info = {**file_info}
+        self,
+        file_info: dict | None,
+        cache_control: str | None,
+        expires: str | None,
+        content_disposition: str | None,
+        content_encoding: str | None,
+        content_language: str | None,
+    ) -> dict | None:
+        if file_info is not None:
+            file_info = {**file_info}
 
-            for name, value in [
-                ('cache_control', cache_control),
-                ('expires', expires),
-                ('content_disposition', content_disposition),
-                ('content_encoding', content_encoding),
-                ('content_language', content_language),
-            ]:
-                if value is None:
-                    continue
-                if file_info is None:
-                    file_info = {}
-                file_info_key = f'b2-{name.replace("_", "-")}'
-                if file_info_key in file_info and file_info[file_info_key] != value:
-                    logger.warning('Overriding %s from file_info with value %s from explicit %s argument', name, value, name)
-                file_info[file_info_key] = value
+        for name, value in [
+            ('cache_control', cache_control),
+            ('expires', expires),
+            ('content_disposition', content_disposition),
+            ('content_encoding', content_encoding),
+            ('content_language', content_language),
+        ]:
+            if value is None:
+                continue
+            if file_info is None:
+                file_info = {}
+            file_info_key = f'b2-{name.replace("_", "-")}'
+            if file_info_key in file_info and file_info[file_info_key] != value:
+                logger.warning(
+                    'Overriding %s from file_info with value %s from explicit %s argument', name,
+                    value, name
+                )
+            file_info[file_info_key] = value
 
-            return file_info
-        
+        return file_info
+
     def get_fresh_state(self) -> Bucket:
         """
         Fetch all the information about this bucket and return a new bucket object.

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Infrastructure
 * Fix readthedocs build
 * Fix spellcheck erroring out on LICENSE file
+* Add `expires`, `content_disposition`, `content_encoding`, `content_language` to various `Bucket` methods.
 
 ## [1.24.1] - 2023-09-27
 

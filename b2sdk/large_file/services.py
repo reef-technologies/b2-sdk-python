@@ -102,10 +102,10 @@ class LargeFileServices:
         :param b2sdk.v2.FileRetentionSetting file_retention: file retention setting
         :param b2sdk.v2.LegalHold legal_hold: legal hold setting
         :param str,None cache_control: an optional cache control setting. Syntax based on the section 14.9 of RFC 2616. Example string value: 'public, max-age=86400, s-maxage=3600, no-transform'.
-        :param str,None expires: TODO expires exp
-        :param str,None content_disposition: TODO content_disposition exp
-        :param str,None content_encoding: TODO content_encoding exp
-        :param str,None content_language: TODO content_language exp
+        :param str,None expires: an optional cache expiration setting. Syntax based on the section 14.21 of RFC 2616. Example string value: 'Thu, 01 Dec 2050 16:00:00 GMT'.
+        :param str,None content_disposition: an optional content disposition setting. Syntax based on the section 19.5.1 of RFC 2616. Example string value: 'attachment; filename="fname.ext"'.
+        :param str,None content_encoding: an optional content encoding setting. Syntax based on the section 14.11 of RFC 2616. Example string value: 'gzip'.
+        :param str,None content_language: an optional content language setting. Syntax based on the section 14.12 of RFC 2616. Example string value: 'mi, en'.
         """
         return UnfinishedLargeFile(
             self.services.session.start_large_file(

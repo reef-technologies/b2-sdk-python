@@ -551,10 +551,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         :param legal_hold: The legal hold status of the file, if any.
         :param custom_upload_timestamp: The custom timestamp for the upload, if any.
         :param cache_control: The cache control settings for the file, if any.
-        :param str,None expires: TODO expires exp
-        :param str,None content_disposition: TODO content_disposition exp
-        :param str,None content_encoding: TODO content_encoding exp
-        :param str,None content_language: TODO content_language exp
+        :param str,None expires: an optional cache expiration setting. Syntax based on the section 14.21 of RFC 2616. Example string value: 'Thu, 01 Dec 2050 16:00:00 GMT'.
+        :param str,None content_disposition: an optional content disposition setting. Syntax based on the section 19.5.1 of RFC 2616. Example string value: 'attachment; filename="fname.ext"'.
+        :param str,None content_encoding: an optional content encoding setting. Syntax based on the section 14.11 of RFC 2616. Example string value: 'gzip'.
+        :param str,None content_language: an optional content language setting. Syntax based on the section 14.12 of RFC 2616. Example string value: 'mi, en'.
         
         :return: A tuple of the best matching unfinished file and its finished parts. If no match is found, it returns `None`.
         """
@@ -628,10 +628,10 @@ class LargeFileEmergeExecution(BaseEmergeExecution):
         :param legal_hold: The legal hold status of the file, if applicable.
         :param custom_upload_timestamp: The custom timestamp for the upload, if set.
         :param cache_control: The cache control settings for the file, if set.
-        :param str,None expires: TODO expires exp
-        :param str,None content_disposition: TODO content_disposition exp
-        :param str,None content_encoding: TODO content_encoding exp
-        :param str,None content_language: TODO content_language exp
+        :param str,None expires: an optional cache expiration setting. Syntax based on the section 14.21 of RFC 2616. Example string value: 'Thu, 01 Dec 2050 16:00:00 GMT'.
+        :param str,None content_disposition: an optional content disposition setting. Syntax based on the section 19.5.1 of RFC 2616. Example string value: 'attachment; filename="fname.ext"'.
+        :param str,None content_encoding: an optional content encoding setting. Syntax based on the section 14.11 of RFC 2616. Example string value: 'gzip'.
+        :param str,None content_language: an optional content language setting. Syntax based on the section 14.12 of RFC 2616. Example string value: 'mi, en'.
         
         :return: A tuple of the best matching unfinished file and its finished parts. If no match is found, returns `None`.
         """

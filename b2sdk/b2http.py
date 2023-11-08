@@ -19,7 +19,7 @@ import threading
 import time
 from contextlib import contextmanager
 from random import random
-from typing import Any
+from typing import Any, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -41,6 +41,7 @@ from .exception import (
     interpret_b2_error,
 )
 from .requests import NotDecompressingResponse
+from .retries.retry_manager import RetryHandler
 from .version import USER_AGENT
 
 LOCALE_LOCK = threading.Lock()
@@ -218,13 +219,12 @@ class B2Http:
 
     def post_content_return_json(
         self,
-        url,
-        headers,
-        data,
-        try_count: int = TRY_COUNT_DATA,
-        post_params=None,
-        _timeout: int | None = None,
-    ):
+        url: str,
+        headers: dict[str, str],
+        data: io.BytesIO,
+        retry_handler: RetryHandler,
+        post_params: Optional[dict] = None,
+    ) -> dict[str, Any]:
         """
         Use like this:
 
@@ -236,11 +236,11 @@ class B2Http:
            except B2Error as e:
                ...
 
-        :param str url: a URL to call
-        :param dict headers: headers to send.
-        :param data: bytes (Python 3) or str (Python 2), or a file-like object, to send
+        :param url: a URL to call
+        :param headers: headers to send.
+        :param data: file-like object, to send
+        :param retry_handler: configuration for retries
         :return: a dict that is the decoded JSON
-        :rtype: dict
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
 
@@ -253,13 +253,13 @@ class B2Http:
                 url,
                 headers=request_headers,
                 data=data,
-                timeout=(self.CONNECTION_TIMEOUT, _timeout or self.TIMEOUT_FOR_UPLOAD),
+                timeout=retry_handler.get_session_timeouts(),
             )
             self._run_post_request_hooks('POST', url, request_headers, response)
             return response
 
         try:
-            response = self._translate_and_retry(do_post, try_count, post_params)
+            response = self._translate_and_retry(do_post, retry_handler, post_params)
         except B2RequestTimeout:
             # this forces a token refresh, which is necessary if request is still alive
             # on the server but has terminated for some reason on the client. See #79
@@ -274,7 +274,13 @@ class B2Http:
         finally:
             response.close()
 
-    def post_json_return_json(self, url, headers, params, try_count: int = TRY_COUNT_OTHER):
+    def post_json_return_json(
+        self,
+        url: str,
+        headers: dict[str, str],
+        params: Optional[dict],
+        retry_handler: RetryHandler,
+    ) -> dict[str, Any]:
         """
         Use like this:
 
@@ -286,30 +292,23 @@ class B2Http:
            except B2Error as e:
                ...
 
-        :param str url: a URL to call
-        :param dict headers: headers to send.
-        :param dict params: a dict that will be converted to JSON
+        :param url: a URL to call
+        :param headers: headers to send.
+        :param params: a dict that will be converted to JSON
+        :param retry_handler: configuration for retries
         :return: the decoded JSON document
-        :rtype: dict
         """
-
-        # This is not just b2_copy_file or b2_copy_part, but it would not
-        # be good to find out by analyzing the url.
-        # In the future a more generic system between raw_api and b2http
-        # to indicate the timeouts should be designed.
-        timeout = self.TIMEOUT_FOR_COPY
 
         data = io.BytesIO(json.dumps(params).encode())
         return self.post_content_return_json(
             url,
             headers,
             data,
-            try_count,
+            retry_handler,
             params,
-            _timeout=timeout,
         )
 
-    def get_content(self, url, headers, try_count: int = TRY_COUNT_DOWNLOAD):
+    def get_content(self, url: str, headers: dict[str, str], retry_handler: RetryHandler) -> ResponseContextManager:
         """
         Fetches content from a URL.
 
@@ -328,9 +327,9 @@ class B2Http:
             - headers
             - iter_content()
 
-        :param str url: a URL to call
-        :param dict headers: headers to send
-        :param int try_count: a number or retries
+        :param url: a URL to call
+        :param headers: headers to send
+        :param retry_handler: configuration for retries
         :return: Context manager that returns an object that supports iter_content()
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
@@ -342,19 +341,19 @@ class B2Http:
                 url,
                 headers=request_headers,
                 stream=True,
-                timeout=(self.CONNECTION_TIMEOUT, self.TIMEOUT),
+                timeout=retry_handler.get_session_timeouts(),
             )
             self._run_post_request_hooks('GET', url, request_headers, response)
             return response
 
-        response = self._translate_and_retry(do_get, try_count, None)
+        response = self._translate_and_retry(do_get, retry_handler, None)
         return ResponseContextManager(response)
 
     def head_content(
         self,
         url: str,
         headers: dict[str, Any],
-        try_count: int = TRY_COUNT_HEAD,
+        retry_handler: RetryHandler,
     ) -> dict[str, Any]:
         """
         Does a HEAD instead of a GET for the URL.
@@ -373,11 +372,10 @@ class B2Http:
         The response object is only guaranteed to have:
             - headers
 
-        :param str url: a URL to call
-        :param dict headers: headers to send
-        :param int try_count: a number or retries
+        :param url: a URL to call
+        :param headers: headers to send
+        :param retry_handler: configuration for retries
         :return: the decoded response
-        :rtype: dict
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
 
@@ -388,12 +386,12 @@ class B2Http:
                 url,
                 headers=request_headers,
                 stream=True,
-                timeout=(self.CONNECTION_TIMEOUT, self.TIMEOUT),
+                timeout=retry_handler.get_session_timeouts(),
             )
             self._run_post_request_hooks('HEAD', url, request_headers, response)
             return response
 
-        return self._translate_and_retry(do_head, try_count, None)
+        return self._translate_and_retry(do_head, retry_handler, None)
 
     @classmethod
     def _get_user_agent(cls, user_agent_append):
@@ -410,12 +408,12 @@ class B2Http:
             callback.post_request(method, url, headers, response)
 
     @classmethod
-    def _translate_errors(cls, fcn, post_params=None):
+    def _translate_errors(cls, fcn, post_params: Optional[dict]=None):
         """
         Call the given function, turning any exception raised into the right
         kind of B2Error.
 
-        :param dict post_params: request parameters
+        :param post_params: request parameters
         """
         response = None
         try:
@@ -491,30 +489,26 @@ class B2Http:
             raise UnknownError(text)
 
     @classmethod
-    def _translate_and_retry(cls, fcn, try_count, post_params=None):
+    def _translate_and_retry(cls, fcn, retry_handler: RetryHandler, post_params: Optional[dict]=None):
         """
         Try calling fcn try_count times, retrying only if
         the exception is a retryable B2Error.
 
-        :param int try_count: a number of retries
-        :param dict post_params: request parameters
+        :param post_params: request parameters
         """
-        # For all but the last try, catch the exception.
-        wait_time = 1.0
-        max_wait_time = 64
-        for _ in range(try_count - 1):
+        while True:
             try:
                 return cls._translate_errors(fcn, post_params)
             except B2Error as e:
                 if not e.should_retry_http():
                     raise
+
+                retry_handler.operation_failed()
+                if not retry_handler.should_retry():
+                    raise
+
                 logger.debug(str(e), exc_info=True)
-                if e.retry_after_seconds is not None:
-                    sleep_duration = e.retry_after_seconds
-                    sleep_reason = 'server asked us to'
-                else:
-                    sleep_duration = wait_time
-                    sleep_reason = 'that is what the default exponential backoff is'
+                sleep_duration, sleep_reason = retry_handler.get_retry_backoff(e.retry_after_seconds)
 
                 logger.info(
                     'Pausing thread for %i seconds because %s',
@@ -522,16 +516,6 @@ class B2Http:
                     sleep_reason,
                 )
                 time.sleep(sleep_duration)
-
-                # Set up wait time for the next iteration
-                wait_time *= 1.5
-                if wait_time > max_wait_time:
-                    # avoid clients synchronizing and causing a wave
-                    # of requests when connectivity is restored
-                    wait_time = max_wait_time + random()
-
-        # If the last try gets an exception, it will be raised.
-        return cls._translate_errors(fcn, post_params)
 
 
 class NotDecompressingHTTPAdapter(HTTPAdapter):

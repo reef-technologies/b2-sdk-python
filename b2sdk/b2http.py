@@ -18,7 +18,6 @@ import socket
 import threading
 import time
 from contextlib import contextmanager
-from random import random
 from typing import Any, Optional
 
 import requests
@@ -41,6 +40,8 @@ from .exception import (
     interpret_b2_error,
 )
 from .requests import NotDecompressingResponse
+from .retries.legacy_retry_manager import DEFAULT_POST_JSON_RETRY_HANDLER, DEFAULT_POST_OPERATION_RETRY_HANDLER, \
+    DEFAULT_GET_OPERATION_RETRY_HANDLER, DEFAULT_HEAD_OPERATION_RETRY_HANDLER
 from .retries.retry_manager import RetryHandler
 from .version import USER_AGENT
 
@@ -153,7 +154,7 @@ class ClockSkewHook(HttpCallback):
         # Check the difference.
         max_allowed = 10 * 60  # ten minutes, in seconds
         skew = local_time - server_time
-        skew_seconds = skew.total_seconds()
+        skew_seconds = int(skew.total_seconds())
         if max_allowed < abs(skew_seconds):
             raise ClockSkew(skew_seconds)
 
@@ -185,15 +186,6 @@ class B2Http:
     is not a part of the interface and is subject to change.
     """
 
-    CONNECTION_TIMEOUT = 3 + 6 + 12 + 24 + 1  # 4 standard tcp retransmissions + 1s latency
-    TIMEOUT = 128
-    TIMEOUT_FOR_COPY = 1200  # 20 minutes as server-side copy can take time
-    TIMEOUT_FOR_UPLOAD = 128
-    TRY_COUNT_DATA = 20
-    TRY_COUNT_DOWNLOAD = 20
-    TRY_COUNT_HEAD = 5
-    TRY_COUNT_OTHER = 5
-
     def __init__(self, api_config: B2HttpApiConfig = DEFAULT_HTTP_API_CONFIG):
         """
         Initialize with a reference to the requests module, which makes
@@ -222,7 +214,7 @@ class B2Http:
         url: str,
         headers: dict[str, str],
         data: io.BytesIO,
-        retry_handler: RetryHandler,
+        retry_handler: Optional[RetryHandler] = None,
         post_params: Optional[dict] = None,
     ) -> dict[str, Any]:
         """
@@ -239,10 +231,11 @@ class B2Http:
         :param url: a URL to call
         :param headers: headers to send.
         :param data: file-like object, to send
-        :param retry_handler: configuration for retries
+        :param retry_handler: configuration for retries and timeouts
         :return: a dict that is the decoded JSON
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
+        retry_handler = retry_handler or DEFAULT_POST_OPERATION_RETRY_HANDLER
 
         # Do the HTTP POST.  This may retry, so each post needs to
         # rewind the data back to the beginning.
@@ -279,7 +272,7 @@ class B2Http:
         url: str,
         headers: dict[str, str],
         params: Optional[dict],
-        retry_handler: RetryHandler,
+        retry_handler: Optional[RetryHandler] = None,
     ) -> dict[str, Any]:
         """
         Use like this:
@@ -295,20 +288,24 @@ class B2Http:
         :param url: a URL to call
         :param headers: headers to send.
         :param params: a dict that will be converted to JSON
-        :param retry_handler: configuration for retries
+        :param retry_handler: configuration for retries and timeouts
         :return: the decoded JSON document
         """
-
         data = io.BytesIO(json.dumps(params).encode())
         return self.post_content_return_json(
             url,
             headers,
             data,
-            retry_handler,
+            retry_handler or DEFAULT_POST_JSON_RETRY_HANDLER,
             params,
         )
 
-    def get_content(self, url: str, headers: dict[str, str], retry_handler: RetryHandler) -> ResponseContextManager:
+    def get_content(
+        self,
+        url: str,
+        headers: dict[str, str],
+        retry_handler: Optional[RetryHandler] = None,
+    ) -> ResponseContextManager:
         """
         Fetches content from a URL.
 
@@ -329,10 +326,11 @@ class B2Http:
 
         :param url: a URL to call
         :param headers: headers to send
-        :param retry_handler: configuration for retries
+        :param retry_handler: configuration for retries and timeouts
         :return: Context manager that returns an object that supports iter_content()
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
+        retry_handler = retry_handler or DEFAULT_GET_OPERATION_RETRY_HANDLER
 
         # Do the HTTP GET.
         def do_get():
@@ -353,7 +351,7 @@ class B2Http:
         self,
         url: str,
         headers: dict[str, Any],
-        retry_handler: RetryHandler,
+        retry_handler: Optional[RetryHandler] = None,
     ) -> dict[str, Any]:
         """
         Does a HEAD instead of a GET for the URL.
@@ -374,10 +372,11 @@ class B2Http:
 
         :param url: a URL to call
         :param headers: headers to send
-        :param retry_handler: configuration for retries
+        :param retry_handler: configuration for retries and timeouts
         :return: the decoded response
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
+        retry_handler = retry_handler or DEFAULT_HEAD_OPERATION_RETRY_HANDLER
 
         # Do the HTTP HEAD.
         def do_head():
@@ -588,6 +587,6 @@ def test_http():
     try:
         with b2_http.get_content('https://www.backblazeb2.com:80/bad_url', {}) as response:
             assert False, 'should have failed with connection error'
-            response.iter_content()  # make pyflakes happy
+            response.iter_content()  # noqa: make pyflakes happy
     except B2ConnectionError:
         pass

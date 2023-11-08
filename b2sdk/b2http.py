@@ -170,6 +170,7 @@ class B2Http:
     - post_json_return_json
     - post_content_return_json
     - get_content
+    - head_content
 
     The methods that return JSON either return a Python dict or
     raise a subclass of B2Error.  They can be used like this:
@@ -182,8 +183,8 @@ class B2Http:
        except B2Error as e:
            ...
 
-    Please note that the timeout/retry system, including class-level variables,
-    is not a part of the interface and is subject to change.
+    All the operations accept RetryHandler as a mean of providing timeouts, retry logic, and backoff strategy.
+    If no object is provided, a reasonable default (matching the legacy behavior) will be used.
     """
 
     def __init__(self, api_config: B2HttpApiConfig = DEFAULT_HTTP_API_CONFIG):
@@ -497,7 +498,9 @@ class B2Http:
         """
         while True:
             try:
-                return cls._translate_errors(fcn, post_params)
+                response = cls._translate_errors(fcn, post_params)
+                retry_handler.operation_succeeded()
+                return response
             except B2Error as e:
                 if not e.should_retry_http():
                     raise

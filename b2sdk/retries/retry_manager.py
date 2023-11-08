@@ -2,6 +2,9 @@ from typing import Optional, Tuple
 
 
 class RetryHandler:
+    def operation_succeeded(self) -> None:
+        pass
+
     def operation_failed(self) -> None:
         pass
 

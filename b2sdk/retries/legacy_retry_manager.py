@@ -1,7 +1,7 @@
 from random import random
 from typing import Optional, NamedTuple, Tuple
 
-from b2sdk.retries.retry_manager import RetryManager, RetryHandler
+from .retry_manager import RetryManager, RetryHandler
 
 
 class LegacyRetryConfig(NamedTuple):
@@ -21,6 +21,7 @@ class LegacyRetryHandler(RetryHandler):
         # These two can take up to 20 minutes to complete.
         'b2_copy_file': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=1200),
         'b2_copy_part': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=1200),
+        # The default config handles the remainder of the `json_content` cases.
 
         'get_content': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=128),
         'head_content': LegacyRetryConfig(retry_count=5, idle_io_timeout_seconds=128),
@@ -68,6 +69,7 @@ class LegacyRetryManager(RetryManager):
 
 
 DEFAULT_POST_OPERATION_RETRY_HANDLER = LegacyRetryHandler('post_content')
+# This used to be the default for JSON operations.
 DEFAULT_POST_JSON_RETRY_HANDLER = LegacyRetryHandler('b2_copy_file')
 DEFAULT_GET_OPERATION_RETRY_HANDLER = LegacyRetryHandler('get_content')
 DEFAULT_HEAD_OPERATION_RETRY_HANDLER = LegacyRetryHandler('head_content')

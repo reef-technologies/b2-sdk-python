@@ -14,11 +14,14 @@ from typing import Callable
 import requests
 
 from .raw_api import AbstractRawApi, B2RawHTTPApi
+from .retries.legacy_retry_manager import LegacyRetryManager
+from .retries.retry_manager import RetryManager
 
 
 class B2HttpApiConfig:
 
     DEFAULT_RAW_API_CLASS = B2RawHTTPApi
+    DEFAULT_RETRY_MANAGER_CLASS = LegacyRetryManager
 
     def __init__(
         self,
@@ -26,7 +29,8 @@ class B2HttpApiConfig:
         install_clock_skew_hook: bool = True,
         user_agent_append: str | None = None,
         _raw_api_class: type[AbstractRawApi] | None = None,
-        decode_content: bool = False
+        decode_content: bool = False,
+        retry_manager: type[RetryManager] | None = None,
     ):
         """
         A structure with params to be passed to low level API.
@@ -37,12 +41,14 @@ class B2HttpApiConfig:
         :param _raw_api_class: AbstractRawApi-compliant class
         :param decode_content: If true, the underlying http backend will try to decode encoded files when downloading,
                                based on the response headers
+        :param retry_manager: RetryManager-compliant class
         """
         self.http_session_factory = http_session_factory
         self.install_clock_skew_hook = install_clock_skew_hook
         self.user_agent_append = user_agent_append
         self.raw_api_class = _raw_api_class or self.DEFAULT_RAW_API_CLASS
         self.decode_content = decode_content
+        self.retry_manager_class = retry_manager or self.DEFAULT_RETRY_MANAGER_CLASS
 
 
 DEFAULT_HTTP_API_CONFIG = B2HttpApiConfig()

@@ -16,6 +16,8 @@ from enum import Enum, unique
 from logging import getLogger
 from typing import Any
 
+from .b2http import B2Http
+
 try:
     from typing_extensions import NotRequired, TypedDict
 except ImportError:
@@ -439,7 +441,7 @@ class B2RawHTTPApi(AbstractRawApi):
     which is relatively quick.
     """
 
-    def __init__(self, b2_http):
+    def __init__(self, b2_http: B2Http):
         self.b2_http = b2_http
 
     def _post_json(self, base_url, api_name, auth, **params) -> dict[str, Any]:
@@ -455,7 +457,7 @@ class B2RawHTTPApi(AbstractRawApi):
         """
         url = f'{base_url}/b2api/{API_VERSION}/{api_name}'
         headers = {'Authorization': auth}
-        return self.b2_http.post_json_return_json(url, headers, params)
+        return self.b2_http.post_json_return_json(url, headers, params, api_name=api_name)
 
     def authorize_account(self, realm_url, application_key_id, application_key):
         auth = b'Basic ' + base64.b64encode((f'{application_key_id}:{application_key}').encode())
@@ -562,7 +564,7 @@ class B2RawHTTPApi(AbstractRawApi):
 
         :param str account_auth_token_or_none: an optional account auth token to pass in
         :param str url: the full URL to download from
-        :param tuple range: two-element tuple for http Range header
+        :param tuple range_: two-element tuple for http Range header
         :param b2sdk.v2.EncryptionSetting encryption: encryption settings for downloading
         :return: b2_http response
         """

@@ -40,8 +40,6 @@ from .exception import (
     interpret_b2_error,
 )
 from .requests import NotDecompressingResponse
-from .retries.legacy_retry_manager import DEFAULT_POST_JSON_RETRY_HANDLER, DEFAULT_POST_OPERATION_RETRY_HANDLER, \
-    DEFAULT_GET_OPERATION_RETRY_HANDLER, DEFAULT_HEAD_OPERATION_RETRY_HANDLER
 from .retries.retry_manager import RetryHandler
 from .version import USER_AGENT
 
@@ -200,6 +198,7 @@ class B2Http:
         self.callbacks = []
         if api_config.install_clock_skew_hook:
             self.add_callback(ClockSkewHook())
+        self.retry_manager = api_config.retry_manager_class()
 
     def add_callback(self, callback):
         """
@@ -236,7 +235,7 @@ class B2Http:
         :return: a dict that is the decoded JSON
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
-        retry_handler = retry_handler or DEFAULT_POST_OPERATION_RETRY_HANDLER
+        retry_handler = retry_handler or self.retry_manager.get_handler('post_content')
 
         # Do the HTTP POST.  This may retry, so each post needs to
         # rewind the data back to the beginning.
@@ -272,8 +271,9 @@ class B2Http:
         self,
         url: str,
         headers: dict[str, str],
-        params: Optional[dict],
-        retry_handler: Optional[RetryHandler] = None,
+        params: dict | None,
+        retry_handler: RetryHandler | None = None,
+        api_name: str | None = None,
     ) -> dict[str, Any]:
         """
         Use like this:
@@ -289,7 +289,8 @@ class B2Http:
         :param url: a URL to call
         :param headers: headers to send.
         :param params: a dict that will be converted to JSON
-        :param retry_handler: configuration for retries and timeouts
+        :param retry_handler: configuration for retries and timeouts; has a priority over `api_name`
+        :param api_name: optional name of the B2 API called, so that we can use better retry strategy for this call
         :return: the decoded JSON document
         """
         data = io.BytesIO(json.dumps(params).encode())
@@ -297,7 +298,7 @@ class B2Http:
             url,
             headers,
             data,
-            retry_handler or DEFAULT_POST_JSON_RETRY_HANDLER,
+            retry_handler or self.retry_manager.get_handler(api_name or 'post_json'),
             params,
         )
 
@@ -331,7 +332,7 @@ class B2Http:
         :return: Context manager that returns an object that supports iter_content()
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
-        retry_handler = retry_handler or DEFAULT_GET_OPERATION_RETRY_HANDLER
+        retry_handler = retry_handler or self.retry_manager.get_handler('get_content')
 
         # Do the HTTP GET.
         def do_get():
@@ -353,7 +354,7 @@ class B2Http:
         url: str,
         headers: dict[str, Any],
         retry_handler: Optional[RetryHandler] = None,
-    ) -> dict[str, Any]:
+    ):
         """
         Does a HEAD instead of a GET for the URL.
         The response's content is limited to the headers.
@@ -377,7 +378,7 @@ class B2Http:
         :return: the decoded response
         """
         request_headers = {**headers, 'User-Agent': self.user_agent}
-        retry_handler = retry_handler or DEFAULT_HEAD_OPERATION_RETRY_HANDLER
+        retry_handler = retry_handler or self.retry_manager.get_handler('head_content')
 
         # Do the HTTP HEAD.
         def do_head():

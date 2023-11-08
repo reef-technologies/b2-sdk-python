@@ -66,10 +66,3 @@ class LegacyRetryHandler(RetryHandler):
 class LegacyRetryManager(RetryManager):
     def get_handler(self, api_or_method_name: str) -> RetryHandler:
         return LegacyRetryHandler(api_or_method_name)
-
-
-DEFAULT_POST_OPERATION_RETRY_HANDLER = LegacyRetryHandler('post_content')
-# This used to be the default for JSON operations.
-DEFAULT_POST_JSON_RETRY_HANDLER = LegacyRetryHandler('b2_copy_file')
-DEFAULT_GET_OPERATION_RETRY_HANDLER = LegacyRetryHandler('get_content')
-DEFAULT_HEAD_OPERATION_RETRY_HANDLER = LegacyRetryHandler('head_content')

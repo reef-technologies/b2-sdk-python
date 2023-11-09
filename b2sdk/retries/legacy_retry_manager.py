@@ -14,8 +14,8 @@ from .retry_manager import RetryManager, RetryHandler
 
 
 class LegacyRetryConfig(NamedTuple):
-    retry_count: int
-    idle_io_timeout_seconds: float
+    retry_count: int = 5
+    idle_io_timeout_seconds: float = 128
 
     connection_timeout_seconds: float = 3 + 6 + 12 + 24 + 1  # 4 standard tcp retransmissions + 1s latency
 
@@ -25,28 +25,9 @@ class LegacyRetryConfig(NamedTuple):
 
 
 class LegacyRetryHandler(RetryHandler):
-    # These configurations match the original configurations previously set up in B2Http.
-    # The only difference now is that only the `b2_copy_file` and `b2_copy_part` are getting
-    # the 20-minute timeout, while the rest of the `post_json` APIs are using the default 128 seconds.
-    CONFIGS = {
-        'post_content': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=128),
-        # These two can take up to 20 minutes to complete.
-        'b2_copy_file': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=20 * 60),
-        'b2_copy_part': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=20 * 60),
-        # The default config handles the remainder of the `json_content` cases.
-
-        'get_content': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=128),
-        'head_content': LegacyRetryConfig(retry_count=5, idle_io_timeout_seconds=128),
-        # Remaining cases are handled by the default config.
-    }
-    DEFAULT_CONFIG = LegacyRetryConfig(
-        retry_count=5,
-        idle_io_timeout_seconds=128,
-    )
-
-    def __init__(self, api_or_method_name: str):
+    def __init__(self, retry_config: LegacyRetryConfig):
         super().__init__()
-        self.config = self.CONFIGS.get(api_or_method_name, self.DEFAULT_CONFIG)
+        self.config = retry_config
 
         # Marking it as `None` so that the first failed operation will start the backoff process.
         self.wait_time_seconds = None
@@ -71,7 +52,7 @@ class LegacyRetryHandler(RetryHandler):
         )
 
     def should_retry(self) -> bool:
-        return self.retry_count >= 0
+        return self.retry_count > 0
 
     def get_retry_backoff(self, proposed_backoff_seconds: Optional[float] = None) -> Tuple[float, str]:
         if proposed_backoff_seconds is not None:
@@ -83,5 +64,23 @@ class LegacyRetryHandler(RetryHandler):
 
 
 class LegacyRetryManager(RetryManager):
+    # These configurations match the original configurations previously set up in B2Http.
+    # The only difference now is that only the `b2_copy_file` and `b2_copy_part` are getting
+    # the 20-minute timeout, while the rest of the `post_json` APIs are using the default 128 seconds.
+    CONFIGS = {
+        'post_content': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=128),
+        # These two can take up to 20 minutes to complete.
+        'b2_copy_file': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=20 * 60),
+        'b2_copy_part': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=20 * 60),
+        # The default config handles the remainder of the `json_content` cases.
+        'post_json': LegacyRetryConfig(),
+
+        'get_content': LegacyRetryConfig(retry_count=20, idle_io_timeout_seconds=128),
+        'head_content': LegacyRetryConfig(retry_count=5, idle_io_timeout_seconds=128),
+        # Remaining cases are handled by the default config.
+    }
+    DEFAULT_CONFIG = LegacyRetryConfig()
+
     def get_handler(self, api_or_method_name: str) -> RetryHandler:
-        return LegacyRetryHandler(api_or_method_name)
+        config = self.CONFIGS.get(api_or_method_name, self.DEFAULT_CONFIG)
+        return LegacyRetryHandler(config)

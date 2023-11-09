@@ -32,6 +32,8 @@ from apiver_deps_exception import (
 )
 
 from b2sdk.b2http import setlocale
+from b2sdk.retries.legacy_retry_manager import LegacyRetryConfig, LegacyRetryHandler, LegacyRetryManager
+from b2sdk.retries.retry_manager import RetryHandler
 
 from ..test_base import TestBase
 
@@ -137,24 +139,29 @@ class TestTranslateAndRetry(TestBase):
         self.response = MagicMock()
         self.response.status_code = 200
 
+    @classmethod
+    def make_retry_handler(cls, retry_count: int) -> RetryHandler:
+        config = LegacyRetryConfig(retry_count=retry_count)
+        return LegacyRetryHandler(config)
+
     def test_works_first_try(self):
         fcn = MagicMock()
         fcn.side_effect = [self.response]
-        self.assertIs(self.response, B2Http._translate_and_retry(fcn, 3))
+        self.assertIs(self.response, B2Http._translate_and_retry(fcn, self.make_retry_handler(3)))
 
     def test_non_retryable(self):
         with patch('time.sleep') as mock_time:
             fcn = MagicMock()
             fcn.side_effect = [BadJson('a'), self.response]
             with self.assertRaises(BadJson):
-                B2Http._translate_and_retry(fcn, 3)
+                B2Http._translate_and_retry(fcn, self.make_retry_handler(3))
             self.assertEqual([], mock_time.mock_calls)
 
     def test_works_second_try(self):
         with patch('time.sleep') as mock_time:
             fcn = MagicMock()
             fcn.side_effect = [ServiceError('a'), self.response]
-            self.assertIs(self.response, B2Http._translate_and_retry(fcn, 3))
+            self.assertIs(self.response, B2Http._translate_and_retry(fcn, self.make_retry_handler(3)))
             self.assertEqual([call(1.0)], mock_time.mock_calls)
 
     def test_never_works(self):
@@ -166,14 +173,14 @@ class TestTranslateAndRetry(TestBase):
                 ServiceError('a'), self.response
             ]
             with self.assertRaises(ServiceError):
-                B2Http._translate_and_retry(fcn, 3)
+                B2Http._translate_and_retry(fcn, self.make_retry_handler(3))
             self.assertEqual([call(1.0), call(1.5)], mock_time.mock_calls)
 
     def test_too_many_requests_works_after_sleep(self):
         with patch('time.sleep') as mock_time:
             fcn = MagicMock()
             fcn.side_effect = [TooManyRequests(retry_after_seconds=2), self.response]
-            self.assertIs(self.response, B2Http._translate_and_retry(fcn, 3))
+            self.assertIs(self.response, B2Http._translate_and_retry(fcn, self.make_retry_handler(3)))
             self.assertEqual([call(2)], mock_time.mock_calls)
 
     def test_too_many_requests_failed_after_sleep(self):
@@ -184,7 +191,7 @@ class TestTranslateAndRetry(TestBase):
                 TooManyRequests(retry_after_seconds=5),
             ]
             with self.assertRaises(TooManyRequests):
-                B2Http._translate_and_retry(fcn, 2)
+                B2Http._translate_and_retry(fcn, self.make_retry_handler(2))
             self.assertEqual([call(2)], mock_time.mock_calls)
 
     def test_too_many_requests_retry_header_combination_one(self):
@@ -198,7 +205,7 @@ class TestTranslateAndRetry(TestBase):
                 TooManyRequests(retry_after_seconds=2),
                 self.response,
             ]
-            self.assertIs(self.response, B2Http._translate_and_retry(fcn, 4))
+            self.assertIs(self.response, B2Http._translate_and_retry(fcn, self.make_retry_handler(4)))
             self.assertEqual([call(2), call(1.5), call(2)], mock_time.mock_calls)
 
     def test_too_many_requests_retry_header_combination_two(self):
@@ -212,7 +219,7 @@ class TestTranslateAndRetry(TestBase):
                 TooManyRequests(),
                 self.response,
             ]
-            self.assertIs(self.response, B2Http._translate_and_retry(fcn, 4))
+            self.assertIs(self.response, B2Http._translate_and_retry(fcn, self.make_retry_handler(4)))
             self.assertEqual([call(1.0), call(5), call(2.25)], mock_time.mock_calls)
 
 
@@ -277,11 +284,12 @@ class TestB2Http(TestBase):
         self.response.status_code = 200
         with self.b2_http.get_content(self.URL, self.HEADERS) as r:
             self.assertIs(self.response, r)
+        retry_handler = LegacyRetryManager().get_handler('get_content')
         self.session.get.assert_called_with(
             self.URL,
             headers=self.EXPECTED_HEADERS,
             stream=True,
-            timeout=(B2Http.CONNECTION_TIMEOUT, B2Http.TIMEOUT),
+            timeout=retry_handler.get_session_timeouts(),
         )
         self.response.close.assert_not_called()  # prevent premature close() on requests.Response
 

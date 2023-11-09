@@ -16,8 +16,6 @@ from enum import Enum, unique
 from logging import getLogger
 from typing import Any
 
-from .b2http import B2Http
-
 try:
     from typing_extensions import NotRequired, TypedDict
 except ImportError:
@@ -441,7 +439,7 @@ class B2RawHTTPApi(AbstractRawApi):
     which is relatively quick.
     """
 
-    def __init__(self, b2_http: B2Http):
+    def __init__(self, b2_http):
         self.b2_http = b2_http
 
     def _post_json(self, base_url, api_name, auth, **params) -> dict[str, Any]:

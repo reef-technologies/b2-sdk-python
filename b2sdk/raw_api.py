@@ -457,6 +457,7 @@ class B2RawHTTPApi(AbstractRawApi):
         """
         url = f'{base_url}/b2api/{API_VERSION}/{api_name}'
         headers = {'Authorization': auth}
+        # RawApi now leaks the api name to the layer below, so that additional logic can be applied basing on it.
         return self.b2_http.post_json_return_json(url, headers, params, api_name=api_name)
 
     def authorize_account(self, realm_url, application_key_id, application_key):

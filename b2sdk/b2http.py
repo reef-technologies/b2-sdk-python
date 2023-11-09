@@ -290,7 +290,8 @@ class B2Http:
         :param headers: headers to send.
         :param params: a dict that will be converted to JSON
         :param retry_handler: configuration for retries and timeouts; has a priority over `api_name`
-        :param api_name: optional name of the B2 API called, so that we can use better retry strategy for this call
+        :param api_name: optional name of the B2 API called, so that we can use better retry strategy for this call.
+                         If none is provided, a default retry strategy will be used.
         :return: the decoded JSON document
         """
         data = io.BytesIO(json.dumps(params).encode())

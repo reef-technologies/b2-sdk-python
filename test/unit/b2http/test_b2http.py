@@ -284,7 +284,7 @@ class TestB2Http(TestBase):
         self.response.status_code = 200
         with self.b2_http.get_content(self.URL, self.HEADERS) as r:
             self.assertIs(self.response, r)
-        retry_handler = LegacyRetryManager().get_handler('get_content')
+        retry_handler = LegacyRetryManager().get_handler('get_content', self.URL)
         self.session.get.assert_called_with(
             self.URL,
             headers=self.EXPECTED_HEADERS,

@@ -28,5 +28,5 @@ class RetryHandler:
 
 
 class RetryManager:
-    def get_handler(self, api_or_method_name: str) -> RetryHandler:
+    def get_handler(self, api_or_method_name: str, url: str) -> RetryHandler:
         pass

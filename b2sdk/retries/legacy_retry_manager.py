@@ -81,6 +81,9 @@ class LegacyRetryManager(RetryManager):
     }
     DEFAULT_CONFIG = LegacyRetryConfig()
 
-    def get_handler(self, api_or_method_name: str) -> RetryHandler:
-        config = self.CONFIGS.get(api_or_method_name, self.DEFAULT_CONFIG)
+    def get_config(self, api_or_method_name: str) -> LegacyRetryConfig:
+        return self.CONFIGS.get(api_or_method_name, self.DEFAULT_CONFIG)
+
+    def get_handler(self, api_or_method_name: str, url: str) -> RetryHandler:
+        config = self.get_config(api_or_method_name)
         return LegacyRetryHandler(config)

@@ -16,6 +16,7 @@ import re
 import sys
 import time
 import traceback
+from contextlib import suppress
 from test.integration.helpers import get_lifecycle_rules
 
 import pytest
@@ -34,6 +35,34 @@ from b2sdk.raw_api import ALL_CAPABILITIES, REALM_URLS, B2RawHTTPApi
 from b2sdk.replication.setting import ReplicationConfiguration, ReplicationRule
 from b2sdk.replication.types import ReplicationStatus
 from b2sdk.utils import hex_sha1_of_stream
+
+
+class BucketCleaner:
+    def __init__(self, should_clean_old_buckets: bool):
+        self.clean_single_args = []
+        self.should_clean_old_buckets = should_clean_old_buckets
+        self.clean_old_args = []
+
+    def defer_clean_and_delete_bucket(self, *args):
+        self.clean_single_args.append(args)
+
+    def defer_cleanup_old_buckets(self, *args):
+        self.clean_old_args.append(args)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for args in self.clean_old_args:
+            with suppress(Exception):
+                _clean_and_delete_bucket(*args)
+
+        if not self.should_clean_old_buckets:
+            return
+
+        for args in self.clean_single_args:
+            with suppress(Exception):
+                _cleanup_old_buckets(*args)
 
 
 # TODO: rewrite to separate test cases
@@ -62,8 +91,10 @@ def test_raw_api(dont_cleanup_old_buckets):
 
     try:
         raw_api = B2RawHTTPApi(B2Http())
-        raw_api_test_helper(raw_api, not dont_cleanup_old_buckets)
-    except Exception:
+
+        with BucketCleaner(not dont_cleanup_old_buckets) as bucket_cleaner:
+            raw_api_test_helper(raw_api, bucket_cleaner)
+    except Exception:  # noqa
         traceback.print_exc(file=sys.stdout)
         pytest.fail('test_raw_api failed')
 
@@ -85,7 +116,7 @@ def authorize_raw_api(raw_api):
     return auth_dict
 
 
-def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
+def raw_api_test_helper(raw_api: B2RawHTTPApi, bucket_cleaner: BucketCleaner):
     """
     Try each of the calls to the raw api.  Raise an
     exception if anything goes wrong.
@@ -155,6 +186,9 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     )
     bucket_id = bucket_dict['bucketId']
     first_bucket_revision = bucket_dict['revision']
+    bucket_cleaner.defer_clean_and_delete_bucket(
+        raw_api, api_url, account_auth_token, account_id, bucket_id
+    )
 
     #################################
     print('b2 / replication')
@@ -202,6 +236,14 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
                 source_key_id=replication_source_key,
             ),
         )
+        bucket_cleaner.defer_clean_and_delete_bucket(
+            raw_api,
+            api_url,
+            account_auth_token,
+            account_id,
+            replication_source_bucket_dict['bucketId'],
+        )
+
         assert 'replicationConfiguration' in replication_source_bucket_dict
         assert replication_source_bucket_dict['replicationConfiguration'] == {
             'isClientAuthorizedToRead': True,
@@ -312,14 +354,6 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         'value': None,
     }
 
-    _clean_and_delete_bucket(
-        raw_api,
-        api_url,
-        account_auth_token,
-        account_id,
-        replication_source_bucket_dict['bucketId'],
-    )
-
     #################
     print('b2_update_bucket')
     sse_b2_aes = EncryptionSetting(
@@ -335,7 +369,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         (sse_b2_aes, None),
         (sse_b2_aes, BucketRetentionSetting(RetentionMode.NONE)),
     ]:
-        bucket_dict = raw_api.update_bucket(
+        _bucket_dict = raw_api.update_bucket(
             api_url,
             account_auth_token,
             account_id,
@@ -349,6 +383,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     print('b2_list_buckets')
     bucket_list_dict = raw_api.list_buckets(api_url, account_auth_token, account_id)
     #print(bucket_list_dict)
+    bucket_cleaner.defer_cleanup_old_buckets(raw_api, auth_dict, bucket_list_dict)
 
     # b2_get_upload_url
     print('b2_get_upload_url')
@@ -566,13 +601,6 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     with pytest.raises(Unauthorized):
         raw_api.delete_file_version(api_url, account_auth_token, file_id, file_name)
     raw_api.delete_file_version(api_url, account_auth_token, file_id, file_name, True)
-
-    # Clean up this test.
-    _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id)
-
-    if should_cleanup_old_buckets:
-        # Clean up from old tests. Empty and delete any buckets more than an hour old.
-        _cleanup_old_buckets(raw_api, auth_dict, bucket_list_dict)
 
 
 def cleanup_old_buckets():

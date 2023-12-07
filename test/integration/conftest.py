@@ -12,18 +12,22 @@ from __future__ import annotations
 import http
 import http.client
 import os
+import socket
 from test.integration import get_b2_auth_data
 from test.integration.bucket_cleaner import BucketCleaner
 from test.integration.helpers import (
     BUCKET_CREATED_AT_MILLIS,
     authorize,
-    get_bucket_name_prefix,
     random_bucket_name,
 )
 
 import pytest
 
 from b2sdk.utils import current_time_millis
+from b2sdk.v2 import (
+    BUCKET_NAME_CHARS_UNIQ,
+    BUCKET_NAME_LENGTH_RANGE,
+)
 
 
 def pytest_addoption(parser):
@@ -56,7 +60,33 @@ def b2_auth_data():
 
 @pytest.fixture(scope="session")
 def bucket_name_prefix():
-    return get_bucket_name_prefix(8)
+    if os.environ.get('B2_BUCKET_NAME_PREFIX'):
+        return os.environ['B2_BUCKET_NAME_PREFIX']
+
+    if os.environ.get('CI') is not None:
+        return 'github-'
+
+    short_hostname = socket.gethostname().split('.', maxsplit=1)[0]
+
+    # Clean the hostname a bit.
+    clean_hostname = []
+    for char in short_hostname:
+        if char not in BUCKET_NAME_CHARS_UNIQ:
+            clean_hostname.append('-')
+        else:
+            clean_hostname.append(char)
+
+    # Append with dashes up to the minimal length.
+    while len(clean_hostname) < BUCKET_NAME_LENGTH_RANGE[0]:
+        clean_hostname.append('-')
+
+    # If it's all the dashes – use default instead.
+    if clean_hostname.count('-') == len(clean_hostname):
+        clean_hostname = 'local-'
+    else:
+        clean_hostname = ''.join(clean_hostname)
+
+    return clean_hostname
 
 
 @pytest.fixture(scope="session")

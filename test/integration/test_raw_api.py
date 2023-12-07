@@ -16,6 +16,7 @@ import re
 import sys
 import time
 import traceback
+from test.integration.helpers import get_lifecycle_rules
 
 import pytest
 
@@ -149,6 +150,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         account_id,
         bucket_name,
         'allPublic',
+        lifecycle_rules=get_lifecycle_rules(),
         is_file_lock_enabled=True,
     )
     bucket_id = bucket_dict['bucketId']
@@ -187,6 +189,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
             account_id,
             replication_source_bucket_name,
             'allPublic',
+            lifecycle_rules=get_lifecycle_rules(),
             is_file_lock_enabled=True,
             replication=ReplicationConfiguration(
                 rules=[

@@ -18,6 +18,7 @@ from b2sdk.v2 import (
     DEFAULT_HTTP_API_CONFIG,
     B2Api,
     InMemoryAccountInfo,
+    LifecycleRule,
 )
 
 GENERAL_BUCKET_NAME_PREFIX = 'sdktst'
@@ -45,3 +46,16 @@ def authorize(b2_auth_data, api_config=DEFAULT_HTTP_API_CONFIG):
     realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
     b2_api.authorize_account(realm, *b2_auth_data)
     return b2_api, info
+
+
+def get_lifecycle_rules() -> list[LifecycleRule]:
+    """
+    Provides a lifecycle rules for all the buckets, ensuring
+    that even if the bucket lingers unused, it's still empty
+    and doesn't cost anything.
+    """
+    return [dict(
+        fileNamePrefix='',
+        daysFromUploadingToHiding=1,
+        daysFromHidingToDeleting=1,
+    )]

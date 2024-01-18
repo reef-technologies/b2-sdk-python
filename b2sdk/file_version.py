@@ -326,6 +326,16 @@ class FileVersion(BaseFileVersion):
             result['action'] = self.action
         if self.content_md5 is not None:
             result['contentMd5'] = self.content_md5
+        if self.cache_control is not None:
+            result['cacheControl'] = self.cache_control
+        if self.content_disposition is not None:
+            result['contentDisposition'] = self.content_disposition
+        if self.content_encoding is not None:
+            result['contentEncoding'] = self.content_encoding
+        if self.content_language is not None:
+            result['contentLanguage'] = self.content_language
+        if self.expires is not None:
+            result['expires'] = self.expires
 
         return result
 

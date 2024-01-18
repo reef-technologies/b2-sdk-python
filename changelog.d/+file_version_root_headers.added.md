@@ -1,0 +1,1 @@
+Add file info headers to the root of file version dictionary.

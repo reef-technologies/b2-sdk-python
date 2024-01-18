@@ -197,3 +197,38 @@ class TestFileVersion:
 
     # FileVersion.download tests are not here, because another test file already has all the facilities for such test
     # prepared
+
+    def test_file_version_as_dict_root_headers(self):
+        file_info = {
+            'b2-cache-control': 'private, max-age=3600',
+            'b2-content-disposition': 'attachment',
+            'b2-content-encoding': 'text',
+            'b2-content-language': 'en_US',
+            'b2-expires': '2100-01-01',
+        }
+
+        def _check_headers_in_dict_root(file_version):
+            file_version_dict = file_version.as_dict()
+            assert file_version_dict['cacheControl'] == file_info['b2-cache-control']
+            assert file_version_dict['contentDisposition'] == file_info['b2-content-disposition']
+            assert file_version_dict['contentEncoding'] == file_info['b2-content-encoding']
+            assert file_version_dict['contentLanguage'] == file_info['b2-content-language']
+            assert file_version_dict['expires'] == file_info['b2-expires']
+
+        file_version = self.bucket.upload_bytes(b'nothing', 'root_test', file_info=file_info)
+        _check_headers_in_dict_root(file_version)
+
+        fetched_file_version = self.api.get_file_info(file_version.id_)
+        _check_headers_in_dict_root(fetched_file_version)
+
+        fetched_file_version = self.api.get_file_info_by_name(
+            self.bucket.name, file_version.file_name
+        )
+        _check_headers_in_dict_root(fetched_file_version)
+
+        copied_file_version = self.bucket.copy(file_version.id_, "root_test_copied")
+        _check_headers_in_dict_root(copied_file_version)
+
+        for file_version, _ in self.bucket.ls():
+            if file_version.file_name.startswith('root_test'):
+                _check_headers_in_dict_root(file_version)

@@ -198,7 +198,8 @@ class TestFileVersion:
     # FileVersion.download tests are not here, because another test file already has all the facilities for such test
     # prepared
 
-    def test_file_version_as_dict_root_headers(self):
+    @pytest.mark.apiver(from_ver=2)
+    def test_file_version_headers_in_dict_root(self):
         file_info = {
             'b2-cache-control': 'private, max-age=3600',
             'b2-content-disposition': 'attachment',

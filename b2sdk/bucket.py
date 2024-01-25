@@ -116,8 +116,10 @@ class Bucket(metaclass=B2TraceMeta):
         if value is not None:
             if name in file_info and file_info[name] != value:
                 logger.warning(
-                    'Overwriting file info key %s with value %s (previous value %s)', name, value,
-                    file_info[name]
+                    'Overwriting file info key %s with value %s (previous value %s)',
+                    name,
+                    value,
+                    file_info[name],
                 )
             file_info[name] = value
 
@@ -222,7 +224,7 @@ class Bucket(metaclass=B2TraceMeta):
                 default_retention=default_retention,
                 replication=replication,
                 is_file_lock_enabled=is_file_lock_enabled,
-            )
+            ),
         )
 
     def cancel_large_file(self, file_id):
@@ -425,7 +427,7 @@ class Bucket(metaclass=B2TraceMeta):
 
                 # +1 to include the starter character.  Using posix path to
                 # ensure consistent behaviour on Windows (e.g. case sensitivity).
-                path = pathlib.PurePosixPath(folder_to_list[:starter_index + 1])
+                path = pathlib.PurePosixPath(folder_to_list[: starter_index + 1])
                 parent_path = str(path.parent)
                 # Path considers dot to be the empty path.
                 # There's no shorter path than that.
@@ -466,7 +468,7 @@ class Bucket(metaclass=B2TraceMeta):
                 ):
                     # File doesn't match our wildcard rules
                     continue
-                after_prefix = file_version.file_name[len(prefix):]
+                after_prefix = file_version.file_name[len(prefix) :]
                 # In case of wildcards, we don't care about folders at all, and it's recursive by default.
                 if '/' not in after_prefix or recursive:
                     # This is not a folder, so we'll print it out and
@@ -655,7 +657,7 @@ class Bucket(metaclass=B2TraceMeta):
 
                 sources = upload_source.get_incremental_sources(
                     existing_file_info,
-                    self.api.session.account_info.get_absolute_minimum_part_size()
+                    self.api.session.account_info.get_absolute_minimum_part_size(),
                 )
 
                 if len(sources) > 1 and not large_file_sha1:
@@ -1111,7 +1113,7 @@ class Bucket(metaclass=B2TraceMeta):
         content_disposition: str | None = None,
         content_encoding: str | None = None,
         content_language: str | None = None,
-        **kwargs
+        **kwargs,
     ):
         validate_b2_file_name(file_name)
         progress_listener = progress_listener or DoNothingProgressListener()
@@ -1139,7 +1141,7 @@ class Bucket(metaclass=B2TraceMeta):
             min_part_size=min_part_size,
             max_part_size=max_part_size,
             large_file_sha1=large_file_sha1,
-            **kwargs
+            **kwargs,
         )
 
     def concatenate(
@@ -1486,6 +1488,7 @@ class BucketFactory:
     """
     This is a factory for creating bucket objects from different kind of objects.
     """
+
     BUCKET_CLASS = staticmethod(Bucket)
 
     @classmethod

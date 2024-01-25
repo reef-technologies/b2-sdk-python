@@ -15,7 +15,9 @@ from b2sdk import _v3 as v3
 class _OldAbstractDeprecatorMixin:
     def __call__(self, *args, **kwargs):
         if self.cutoff_version:
-            assert self.current_version < self.cutoff_version, '{} decorator is still used in version {} when old {} name {!r} was scheduled to be dropped in {}. It is time to remove the mapping.'.format(
+            assert (
+                self.current_version < self.cutoff_version
+            ), '{} decorator is still used in version {} when old {} name {!r} was scheduled to be dropped in {}. It is time to remove the mapping.'.format(
                 self.__class__.__name__,
                 self.current_version,
                 self.WHAT,
@@ -23,7 +25,9 @@ class _OldAbstractDeprecatorMixin:
                 self.cutoff_version,
             )
         ret = super().__call__(*args, **kwargs)
-        assert self.changed_version <= self.current_version, '{} decorator indicates that the replacement of {} {!r} should take place in the future version {}, while the current version is {}. It looks like should be _discouraged_ at this point and not _deprecated_ yet. Consider using {!r} decorator instead.'.format(
+        assert (
+            self.changed_version <= self.current_version
+        ), '{} decorator indicates that the replacement of {} {!r} should take place in the future version {}, while the current version is {}. It looks like should be _discouraged_ at this point and not _deprecated_ yet. Consider using {!r} decorator instead.'.format(
             self.__class__.__name__,
             self.WHAT,
             self.source,

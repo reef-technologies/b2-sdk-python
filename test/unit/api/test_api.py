@@ -103,19 +103,9 @@ class TestApi:
                     'b2-cache-control': 'private, max-age=3600',
                 },
                 'fileName': 'file',
-                'fileRetention': {
-                    'isClientAuthorizedToRead': True,
-                    'value': {
-                        'mode': None
-                    }
-                },
-                'legalHold': {
-                    'isClientAuthorizedToRead': True,
-                    'value': None
-                },
-                'serverSideEncryption': {
-                    'mode': 'none'
-                },
+                'fileRetention': {'isClientAuthorizedToRead': True, 'value': {'mode': None}},
+                'legalHold': {'isClientAuthorizedToRead': True, 'value': None},
+                'serverSideEncryption': {'mode': 'none'},
                 'uploadTimestamp': 5000,
             }
         else:
@@ -135,14 +125,9 @@ class TestApi:
             'fileId': '9999',
             'fileName': 'file',
             'fileInfo': {},
-            'serverSideEncryption': {
-                'mode': 'none'
-            },
+            'serverSideEncryption': {'mode': 'none'},
             'legalHold': None,
-            'fileRetention': {
-                'mode': None,
-                'retainUntilTimestamp': None
-            },
+            'fileRetention': {'mode': None, 'retainUntilTimestamp': None},
             'size': 11,
             'uploadTimestamp': 5000,
             'contentType': 'b2/x-auto',
@@ -173,14 +158,9 @@ class TestApi:
             'fileId': '9998',
             'fileName': 'hidden-file.txt',
             'fileInfo': {},
-            'serverSideEncryption': {
-                'mode': 'none'
-            },
+            'serverSideEncryption': {'mode': 'none'},
             'legalHold': None,
-            'fileRetention': {
-                'mode': None,
-                'retainUntilTimestamp': None
-            },
+            'fileRetention': {'mode': None, 'retainUntilTimestamp': None},
             'size': 0,
             'uploadTimestamp': 5001,
             'contentSha1': 'none',
@@ -216,7 +196,7 @@ class TestApi:
             'file',
             encryption=encr_setting,
             legal_hold=lh_setting,
-            file_retention=retention_setting
+            file_retention=retention_setting,
         )
 
         result = self.api.get_file_info_by_name('bucket1', 'file')
@@ -241,27 +221,19 @@ class TestApi:
                     'lifecycleRules': [],
                     'options': set(),
                     'revision': 1,
-                    'defaultServerSideEncryption':
-                        {
-                            'isClientAuthorizedToRead': True,
-                            'value': {
-                                'mode': 'none'
-                            },
+                    'defaultServerSideEncryption': {
+                        'isClientAuthorizedToRead': True,
+                        'value': {'mode': 'none'},
+                    },
+                    'fileLockConfiguration': {
+                        'isClientAuthorizedToRead': True,
+                        'value': {
+                            'defaultRetention': {'mode': None, 'period': None},
+                            'isFileLockEnabled': None,
                         },
-                    'fileLockConfiguration':
-                        {
-                            'isClientAuthorizedToRead': True,
-                            'value':
-                                {
-                                    'defaultRetention': {
-                                        'mode': None,
-                                        'period': None
-                                    },
-                                    'isFileLockEnabled': None
-                                }
-                        },
+                    },
                 },
-                marks=pytest.mark.apiver(to_ver=0)
+                marks=pytest.mark.apiver(to_ver=0),
             ),
         ],
     )
@@ -306,8 +278,12 @@ class TestApi:
             mode=EncryptionMode.SSE_B2,
             algorithm=EncryptionAlgorithm.AES256,
         )
-        no_encryption = EncryptionSetting(mode=EncryptionMode.NONE,)
-        unknown_encryption = EncryptionSetting(mode=EncryptionMode.UNKNOWN,)
+        no_encryption = EncryptionSetting(
+            mode=EncryptionMode.NONE,
+        )
+        unknown_encryption = EncryptionSetting(
+            mode=EncryptionMode.UNKNOWN,
+        )
 
         b1 = self.api.create_bucket(
             'bucket1',
@@ -359,7 +335,9 @@ class TestApi:
             mode=EncryptionMode.SSE_B2,
             algorithm=EncryptionAlgorithm.AES256,
         )
-        no_encryption = EncryptionSetting(mode=EncryptionMode.NONE,)
+        no_encryption = EncryptionSetting(
+            mode=EncryptionMode.NONE,
+        )
         if not should_be_encrypted:
             assert bucket.default_server_side_encryption == no_encryption
         else:
@@ -528,9 +506,13 @@ class TestApi:
     @pytest.mark.apiver(to_ver=1)
     def test_provide_raw_api_v1(self):
         from apiver_deps import B2RawApi  # test for legacy name
+
         old_style_api = B2Api(raw_api=B2RawApi(B2Http(user_agent_append='test append')))
         new_style_api = B2Api(api_config=B2HttpApiConfig(user_agent_append='test append'))
-        assert old_style_api.session.raw_api.b2_http.user_agent == new_style_api.session.raw_api.b2_http.user_agent
+        assert (
+            old_style_api.session.raw_api.b2_http.user_agent
+            == new_style_api.session.raw_api.b2_http.user_agent
+        )
         with pytest.raises(InvalidArgument):
             B2Api(
                 raw_api=B2RawApi(B2Http(user_agent_append='test append')),
@@ -572,8 +554,11 @@ class TestApi:
         assert create_result.key_name == 'testkey'
         assert create_result.capabilities == ['readFiles']
         assert create_result.account_id == self.account_info.get_account_id()
-        assert (now + 100 -
-                10) * 1000 < create_result.expiration_timestamp_millis < (now + 100 + 10) * 1000
+        assert (
+            (now + 100 - 10) * 1000
+            < create_result.expiration_timestamp_millis
+            < (now + 100 + 10) * 1000
+        )
         assert create_result.bucket_id == bucket.id_
         assert create_result.name_prefix == 'name'
         # assert create_result.options == ...  TODO
@@ -600,7 +585,10 @@ class TestApi:
             assert delete_result.key_name == create_result.key_name
             assert delete_result.capabilities == create_result.capabilities
             assert delete_result.account_id == create_result.account_id
-            assert delete_result.expiration_timestamp_millis == create_result.expiration_timestamp_millis
+            assert (
+                delete_result.expiration_timestamp_millis
+                == create_result.expiration_timestamp_millis
+            )
             assert delete_result.bucket_id == create_result.bucket_id
             assert delete_result.name_prefix == create_result.name_prefix
 
@@ -621,7 +609,8 @@ class TestApi:
                 'expirationTimestamp': None,
                 'keyName': f'testkey{ind}',
                 'namePrefix': None,
-            } for ind in [
+            }
+            for ind in [
                 0,
                 1,
                 10,
@@ -691,8 +680,7 @@ class TestApi:
         created_file = bucket.upload_bytes(
             b'hello world',
             'file',
-            file_retention=FileRetentionSetting(RetentionMode.GOVERNANCE,
-                                                int(time.time()) + 100),
+            file_retention=FileRetentionSetting(RetentionMode.GOVERNANCE, int(time.time()) + 100),
         )
 
         with pytest.raises(AccessDenied):

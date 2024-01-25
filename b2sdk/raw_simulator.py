@@ -64,7 +64,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_bytes_range(data_bytes, bytes_range):
-    """ Slice bytes array using bytes range """
+    """Slice bytes array using bytes range"""
     if bytes_range is None:
         return data_bytes
     if bytes_range[0] > bytes_range[1]:
@@ -73,7 +73,7 @@ def get_bytes_range(data_bytes, bytes_range):
         raise UnsatisfiableRange()
     if bytes_range[1] > len(data_bytes):
         raise UnsatisfiableRange()
-    return data_bytes[bytes_range[0]:bytes_range[1] + 1]
+    return data_bytes[bytes_range[0] : bytes_range[1] + 1]
 
 
 class KeySimulator:
@@ -83,8 +83,16 @@ class KeySimulator:
     """
 
     def __init__(
-        self, account_id, name, application_key_id, key, capabilities, expiration_timestamp_or_none,
-        bucket_id_or_none, bucket_name_or_none, name_prefix_or_none
+        self,
+        account_id,
+        name,
+        application_key_id,
+        key,
+        capabilities,
+        expiration_timestamp_or_none,
+        bucket_id_or_none,
+        bucket_name_or_none,
+        name_prefix_or_none,
     ):
         self.name = name
         self.account_id = account_id
@@ -102,8 +110,8 @@ class KeySimulator:
             bucketId=self.bucket_id_or_none,
             applicationKeyId=self.application_key_id,
             capabilities=self.capabilities,
-            expirationTimestamp=self.expiration_timestamp_or_none and
-            self.expiration_timestamp_or_none * 1000,
+            expirationTimestamp=self.expiration_timestamp_or_none
+            and self.expiration_timestamp_or_none * 1000,
             keyName=self.name,
             namePrefix=self.name_prefix_or_none,
         )
@@ -230,16 +238,14 @@ class FileSimulator:
                 content_length = range_[1] - range_[0] + 1
         else:
             content_length = len(self.data_bytes)
-        headers = CaseInsensitiveDict(
-            {
-                'content-length': content_length,
-                'content-type': self.content_type,
-                'x-bz-content-sha1': self.content_sha1,
-                'x-bz-upload-timestamp': self.upload_timestamp,
-                'x-bz-file-id': self.file_id,
-                'x-bz-file-name': b2_url_encode(self.name),
-            }
-        )
+        headers = CaseInsensitiveDict({
+            'content-length': content_length,
+            'content-type': self.content_type,
+            'x-bz-content-sha1': self.content_sha1,
+            'x-bz-upload-timestamp': self.upload_timestamp,
+            'x-bz-file-id': self.file_id,
+            'x-bz-file-name': b2_url_encode(self.name),
+        })
         for key, value in self.file_info.items():
             key_lower = key.lower()
             if key_lower in self.SPECIAL_FILE_INFOS:
@@ -269,10 +275,12 @@ class FileSimulator:
             if self.server_side_encryption.mode == EncryptionMode.SSE_B2:
                 headers['X-Bz-Server-Side-Encryption'] = self.server_side_encryption.algorithm.value
             elif self.server_side_encryption.mode == EncryptionMode.SSE_C:
-                headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'
-                       ] = self.server_side_encryption.algorithm.value
-                headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'
-                       ] = self.server_side_encryption.key.key_md5()
+                headers['X-Bz-Server-Side-Encryption-Customer-Algorithm'] = (
+                    self.server_side_encryption.algorithm.value
+                )
+                headers['X-Bz-Server-Side-Encryption-Customer-Key-Md5'] = (
+                    self.server_side_encryption.key.key_md5()
+                )
             elif self.server_side_encryption.mode in (EncryptionMode.NONE, EncryptionMode.UNKNOWN):
                 pass
             else:
@@ -299,8 +307,9 @@ class FileSimulator:
             replicationStatus=self.replication_status and self.replication_status.value,
         )  # yapf: disable
         if self.server_side_encryption is not None:
-            result['serverSideEncryption'
-                  ] = self.server_side_encryption.serialize_to_json_for_request()
+            result['serverSideEncryption'] = (
+                self.server_side_encryption.serialize_to_json_for_request()
+            )
         result['fileRetention'] = self._file_retention_dict(account_auth_token)
         result['legalHold'] = self._legal_hold_dict(account_auth_token)
         return result
@@ -320,8 +329,9 @@ class FileSimulator:
             replicationStatus=self.replication_status and self.replication_status.value,
         )  # yapf: disable
         if self.server_side_encryption is not None:
-            result['serverSideEncryption'
-                  ] = self.server_side_encryption.serialize_to_json_for_request()
+            result['serverSideEncryption'] = (
+                self.server_side_encryption.serialize_to_json_for_request()
+            )
         result['fileRetention'] = self._file_retention_dict(account_auth_token)
         result['legalHold'] = self._legal_hold_dict(account_auth_token)
         return result
@@ -344,8 +354,9 @@ class FileSimulator:
             replicationStatus=self.replication_status and self.replication_status.value,
         )  # yapf: disable
         if self.server_side_encryption is not None:
-            result['serverSideEncryption'
-                  ] = self.server_side_encryption.serialize_to_json_for_request()
+            result['serverSideEncryption'] = (
+                self.server_side_encryption.serialize_to_json_for_request()
+            )
         result['fileRetention'] = self._file_retention_dict(account_auth_token)
         result['legalHold'] = self._legal_hold_dict(account_auth_token)
         return result
@@ -363,8 +374,9 @@ class FileSimulator:
         else:
             file_lock_configuration['value'] = {'mode': self.file_retention.mode.value}
             if self.file_retention.retain_until is not None:
-                file_lock_configuration['value']['retainUntilTimestamp'
-                                                ] = self.file_retention.retain_until
+                file_lock_configuration['value']['retainUntilTimestamp'] = (
+                    self.file_retention.retain_until
+                )
         return file_lock_configuration
 
     def _legal_hold_dict(self, account_auth_token):
@@ -412,7 +424,8 @@ class FileSimulator:
         max_part_count = max_part_count or 100
         parts = [
             part.as_list_parts_dict()
-            for part in self.parts if part is not None and start_part_number <= part.part_number
+            for part in self.parts
+            if part is not None and start_part_number <= part.part_number
         ]
         if len(parts) <= max_part_count:
             next_part_number = None
@@ -458,14 +471,14 @@ class FakeResponse:
         self.url = url
         self.range_ = range_
         if range_ is not None:
-            self.data_bytes = self.data_bytes[range_[0]:range_[1] + 1]
+            self.data_bytes = self.data_bytes[range_[0] : range_[1] + 1]
 
     def iter_content(self, chunk_size=1):
         start = 0
         rnd = random.Random(self.url)
         while start <= len(self.data_bytes):
             time.sleep(rnd.random() * 0.01)
-            yield self.data_bytes[start:start + chunk_size]
+            yield self.data_bytes[start : start + chunk_size]
             start += chunk_size
 
     @property
@@ -480,7 +493,6 @@ class FakeResponse:
 
 
 class BucketSimulator:
-
     # File IDs start at 9999 and count down, so they sort in the order
     # returned by list_file_versions. The IDs are strings.
     FIRST_FILE_NUMBER = 9999
@@ -530,8 +542,14 @@ class BucketSimulator:
         self.default_retention = NO_RETENTION_BUCKET_SETTING
         self.replication = replication
         if self.replication is not None:
-            assert self.replication.asReplicationSource is None or self.replication.asReplicationSource.rules
-            assert self.replication.asReplicationDestination is None or self.replication.asReplicationDestination.sourceToDestinationKeyMapping
+            assert (
+                self.replication.asReplicationSource is None
+                or self.replication.asReplicationSource.rules
+            )
+            assert (
+                self.replication.asReplicationDestination is None
+                or self.replication.asReplicationDestination.sourceToDestinationKeyMapping
+            )
 
     def get_file(self, file_id, file_name) -> FileSimulator:
         try:
@@ -563,8 +581,9 @@ class BucketSimulator:
             default_sse['isClientAuthorizedToRead'] = True
             default_sse['value'] = {'mode': self.default_server_side_encryption.mode.value}
             if self.default_server_side_encryption.algorithm is not None:
-                default_sse['value']['algorithm'
-                                    ] = self.default_server_side_encryption.algorithm.value
+                default_sse['value']['algorithm'] = (
+                    self.default_server_side_encryption.algorithm.value
+                )
         else:
             default_sse['value'] = {'mode': EncryptionMode.UNKNOWN.value}
 
@@ -655,8 +674,9 @@ class BucketSimulator:
         range_=None,
         encryption: EncryptionSetting | None = None,
     ):
-        files = self.list_file_names(self.api.current_token, file_name,
-                                     1)['files']  # token is not important here
+        files = self.list_file_names(self.api.current_token, file_name, 1)[
+            'files'
+        ]  # token is not important here
         if len(files) == 0:
             raise FileNotPresent(file_id_or_name=file_name)
 
@@ -691,7 +711,7 @@ class BucketSimulator:
 
     def get_file_info_by_name(self, account_auth_token, file_name):
         # Sorting files by name and ID, so lower ID (newer upload) is returned first.
-        for ((name, id), file) in sorted(self.file_name_and_id_to_file.items()):
+        for (name, id), file in sorted(self.file_name_and_id_to_file.items()):
             if file_name == name:
                 return file.as_download_headers(account_auth_token_or_none=account_auth_token)
         raise FileNotPresent(file_id_or_name=file_name, bucket_name=self.bucket_name)
@@ -699,21 +719,33 @@ class BucketSimulator:
     def get_upload_url(self, account_auth_token):
         upload_id = next(self.upload_url_counter)
         upload_url = 'https://upload.example.com/%s/%d/%s' % (
-            self.bucket_id, upload_id, account_auth_token
+            self.bucket_id,
+            upload_id,
+            account_auth_token,
         )
         return dict(bucketId=self.bucket_id, uploadUrl=upload_url, authorizationToken=upload_url)
 
     def get_upload_part_url(self, account_auth_token, file_id):
         upload_url = 'https://upload.example.com/part/%s/%d/%s' % (
-            file_id, random.randint(1, 10**9), account_auth_token
+            file_id,
+            random.randint(1, 10**9),
+            account_auth_token,
         )
         return dict(bucketId=self.bucket_id, uploadUrl=upload_url, authorizationToken=upload_url)
 
     def hide_file(self, account_auth_token, file_name):
         file_id = self._next_file_id()
         file_sim = self.FILE_SIMULATOR_CLASS(
-            self.account_id, self, file_id, 'hide', file_name, None, "none", {}, b'',
-            next(self.upload_timestamp_counter)
+            self.account_id,
+            self,
+            file_id,
+            'hide',
+            file_name,
+            None,
+            "none",
+            {},
+            b'',
+            next(self.upload_timestamp_counter),
         )
         self.file_id_to_file[file_id] = file_sim
         self.file_name_and_id_to_file[file_sim.sort_key()] = file_sim
@@ -820,14 +852,14 @@ class BucketSimulator:
             copy_file_sim.file_info = file_info or file_sim.file_info
 
         ## long term storage of that file has action="upload", but here we need to return action="copy", just this once
-        #class TestFileVersionFactory(FileVersionFactory):
+        # class TestFileVersionFactory(FileVersionFactory):
         #    FILE_VERSION_CLASS = self.FILE_SIMULATOR_CLASS
 
-        #file_version_dict = copy_file_sim.as_upload_result(account_auth_token)
-        #del file_version_dict['action']
-        #print(file_version_dict)
-        #copy_file_sim_with_action_copy = TestFileVersionFactory(self.api).from_api_response(file_version_dict, force_action='copy')
-        #return copy_file_sim_with_action_copy
+        # file_version_dict = copy_file_sim.as_upload_result(account_auth_token)
+        # del file_version_dict['action']
+        # print(file_version_dict)
+        # copy_file_sim_with_action_copy = TestFileVersionFactory(self.api).from_api_response(file_version_dict, force_action='copy')
+        # return copy_file_sim_with_action_copy
 
         # TODO: the code above cannot be used right now because FileSimulator.__init__ is incompatible with FileVersionFactory / FileVersion.__init__ - refactor is needed
         # for now we'll just return the newly constructed object with a copy action...
@@ -854,8 +886,9 @@ class BucketSimulator:
         max_file_count=None,
         prefix=None,
     ):
-        assert prefix is None or start_file_name is None or start_file_name.startswith(prefix
-                                                                                      ), locals()
+        assert (
+            prefix is None or start_file_name is None or start_file_name.startswith(prefix)
+        ), locals()
         start_file_name = start_file_name or ''
         max_file_count = max_file_count or 100
         result_files = []
@@ -886,8 +919,9 @@ class BucketSimulator:
         max_file_count=None,
         prefix=None,
     ):
-        assert prefix is None or start_file_name is None or start_file_name.startswith(prefix
-                                                                                      ), locals()
+        assert (
+            prefix is None or start_file_name is None or start_file_name.startswith(prefix)
+        ), locals()
         start_file_name = start_file_name or ''
         start_file_id = start_file_id or ''
         max_file_count = max_file_count or 100
@@ -897,8 +931,8 @@ class BucketSimulator:
         for key in sorted(self.file_name_and_id_to_file):
             (file_name, file_id) = key
             if (start_file_name < file_name) or (
-                start_file_name == file_name and
-                (start_file_id == '' or int(start_file_id) <= int(file_id))
+                start_file_name == file_name
+                and (start_file_id == '' or int(start_file_id) <= int(file_id))
             ):
                 file_sim = self.file_name_and_id_to_file[key]
                 if prefix is not None and not file_name.startswith(prefix):
@@ -920,9 +954,11 @@ class BucketSimulator:
         start_file_id = start_file_id or self.FIRST_FILE_ID
         max_file_count = max_file_count or 100
         all_unfinished_ids = set(
-            k for (k, v) in self.file_id_to_file.items()
-            if v.action == 'start' and k <= start_file_id and
-            (prefix is None or v.name.startswith(prefix))
+            k
+            for (k, v) in self.file_id_to_file.items()
+            if v.action == 'start'
+            and k <= start_file_id
+            and (prefix is None or v.name.startswith(prefix))
         )
         ids_in_order = sorted(all_unfinished_ids, reverse=True)
 
@@ -950,7 +986,9 @@ class BucketSimulator:
     ):
         file_id = self._next_file_id()
         sse = server_side_encryption or self.default_server_side_encryption
-        if sse:  # FIXME: remove this part when RawApi<->Encryption adapters are implemented properly
+        if (
+            sse
+        ):  # FIXME: remove this part when RawApi<->Encryption adapters are implemented properly
             file_info = sse.add_key_id_to_file_info(file_info)
 
         upload_timestamp = next(self.upload_timestamp_counter)
@@ -986,8 +1024,10 @@ class BucketSimulator:
                 raise DisablingFileLockNotSupported()
 
             if (
-                not self.is_file_lock_enabled and is_file_lock_enabled and self.replication and
-                self.replication.is_source
+                not self.is_file_lock_enabled
+                and is_file_lock_enabled
+                and self.replication
+                and self.replication.is_source
             ):
                 raise SourceReplicationConflict()
 
@@ -1042,7 +1082,9 @@ class BucketSimulator:
         file_id = self._next_file_id()
 
         encryption = server_side_encryption or self.default_server_side_encryption
-        if encryption:  # FIXME: remove this part when RawApi<->Encryption adapters are implemented properly
+        if (
+            encryption
+        ):  # FIXME: remove this part when RawApi<->Encryption adapters are implemented properly
             file_info = encryption.add_key_id_to_file_info(file_info)
 
         upload_timestamp = next(self.upload_timestamp_counter)
@@ -1420,7 +1462,7 @@ class RawSimulator(AbstractRawApi):
         account_auth_token_or_none,
         url,
         range_=None,
-        encryption: EncryptionSetting | None = None
+        encryption: EncryptionSetting | None = None,
     ):
         # TODO: check auth token if bucket is not public
         matcher = self.DOWNLOAD_URL_MATCHER.match(url)
@@ -1476,16 +1518,14 @@ class RawSimulator(AbstractRawApi):
         bucket = self._get_bucket_by_id(bucket_id)
         self._assert_account_auth(api_url, account_auth_token, bucket.account_id, 'shareFiles')
         return {
-            'bucketId':
+            'bucketId': bucket_id,
+            'fileNamePrefix': file_name_prefix,
+            'authorizationToken': 'fake_download_auth_token_%s_%s_%d'
+            % (
                 bucket_id,
-            'fileNamePrefix':
-                file_name_prefix,
-            'authorizationToken':
-                'fake_download_auth_token_%s_%s_%d' % (
-                    bucket_id,
-                    b2_url_encode(file_name_prefix),
-                    valid_duration_in_seconds,
-                )
+                b2_url_encode(file_name_prefix),
+                valid_duration_in_seconds,
+            ),
         }
 
     def get_file_info_by_id(self, api_url, account_auth_token, file_id):
@@ -1571,7 +1611,10 @@ class RawSimulator(AbstractRawApi):
         destination_server_side_encryption: EncryptionSetting | None = None,
         source_server_side_encryption: EncryptionSetting | None = None,
     ):
-        if destination_server_side_encryption is not None and destination_server_side_encryption.mode == EncryptionMode.SSE_B2:
+        if (
+            destination_server_side_encryption is not None
+            and destination_server_side_encryption.mode == EncryptionMode.SSE_B2
+        ):
             raise ValueError(
                 'unsupported sse mode for copy_part!'
             )  # SSE-B2 is only to be marked in b2_start_large_file
@@ -1617,7 +1660,8 @@ class RawSimulator(AbstractRawApi):
         ]
         bucket_list = [
             bucket.bucket_dict(account_auth_token)
-            for bucket in sorted_buckets if self._bucket_matches(bucket, bucket_id, bucket_name)
+            for bucket in sorted_buckets
+            if self._bucket_matches(bucket, bucket_id, bucket_name)
         ]
         return dict(buckets=bucket_list)
 
@@ -1627,9 +1671,8 @@ class RawSimulator(AbstractRawApi):
                 return bucket.bucket_id
 
     def _bucket_matches(self, bucket, bucket_id, bucket_name):
-        return (
-            (bucket_id is None or bucket.bucket_id == bucket_id) and
-            (bucket_name is None or bucket.bucket_name == bucket_name)
+        return (bucket_id is None or bucket.bucket_id == bucket_id) and (
+            bucket_name is None or bucket.bucket_name == bucket_name
         )
 
     def list_file_names(
@@ -1685,7 +1728,7 @@ class RawSimulator(AbstractRawApi):
         account_auth_token,
         account_id,
         max_key_count=1000,
-        start_application_key_id=None
+        start_application_key_id=None,
     ):
         self._assert_account_auth(api_url, account_auth_token, account_id, 'listKeys')
         next_application_key_id = None
@@ -1722,7 +1765,7 @@ class RawSimulator(AbstractRawApi):
         bucket_id,
         start_file_id=None,
         max_file_count=None,
-        prefix=None
+        prefix=None,
     ):
         bucket = self._get_bucket_by_id(bucket_id)
         self._assert_account_auth(
@@ -1779,7 +1822,15 @@ class RawSimulator(AbstractRawApi):
         replication: ReplicationConfiguration | None = None,
         is_file_lock_enabled: bool | None = None,
     ):
-        assert bucket_type or bucket_info or cors_rules or lifecycle_rules or default_server_side_encryption or replication or is_file_lock_enabled is not None
+        assert (
+            bucket_type
+            or bucket_info
+            or cors_rules
+            or lifecycle_rules
+            or default_server_side_encryption
+            or replication
+            or is_file_lock_enabled is not None
+        )
         bucket = self._get_bucket_by_id(bucket_id)
         self._assert_account_auth(api_url, account_auth_token, bucket.account_id, 'writeBuckets')
         return bucket._update_bucket(
@@ -1808,11 +1859,12 @@ class RawSimulator(AbstractRawApi):
         legal_hold: LegalHold | None,
         custom_upload_timestamp: int | None = None,
     ) -> dict:
-
         # fix to allow calculating headers on unknown key - only for simulation
-        if server_side_encryption is not None \
-           and server_side_encryption.mode == EncryptionMode.SSE_C \
-           and server_side_encryption.key.secret is None:
+        if (
+            server_side_encryption is not None
+            and server_side_encryption.mode == EncryptionMode.SSE_C
+            and server_side_encryption.key.secret is None
+        ):
             server_side_encryption.key.secret = b'secret'
 
         return super().get_upload_file_headers(
@@ -1856,7 +1908,9 @@ class RawSimulator(AbstractRawApi):
             bucket = self._get_bucket_by_id(bucket_id)
             if server_side_encryption is not None:
                 assert server_side_encryption.mode in (
-                    EncryptionMode.NONE, EncryptionMode.SSE_B2, EncryptionMode.SSE_C
+                    EncryptionMode.NONE,
+                    EncryptionMode.SSE_B2,
+                    EncryptionMode.SSE_C,
                 )
                 file_info = server_side_encryption.add_key_id_to_file_info(file_info)
 

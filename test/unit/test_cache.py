@@ -32,8 +32,7 @@ def auth_info_cache():
 
 
 @pytest.fixture(
-    scope="class", params=[lazy_fixture('in_memory_cache'),
-                           lazy_fixture('auth_info_cache')]
+    scope="class", params=[lazy_fixture('in_memory_cache'), lazy_fixture('auth_info_cache')]
 )
 def cache(request):
     return request.param

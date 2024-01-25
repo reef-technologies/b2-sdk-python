@@ -45,7 +45,7 @@ def pytest_configure(config):
     sys.path.insert(0, str(Path(__file__).parent / config.getoption('--api') / 'apiver'))
     config.addinivalue_line(
         'markers',
-        'apiver(*args, *, from_ver=0, to_ver=sys.maxsize): mark test to run only for specific apivers'
+        'apiver(*args, *, from_ver=0, to_ver=sys.maxsize): mark test to run only for specific apivers',
     )
 
 

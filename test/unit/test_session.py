@@ -37,7 +37,7 @@ class TestAuthorizeAccount:
                     allowed=mock.ANY,
                     application_key_id='123',
                 ),
-                marks=pytest.mark.apiver(from_ver=2)
+                marks=pytest.mark.apiver(from_ver=2),
             ),
             pytest.param(
                 dict(
@@ -52,7 +52,7 @@ class TestAuthorizeAccount:
                     allowed=mock.ANY,
                     application_key_id='123',
                 ),
-                marks=pytest.mark.apiver(to_ver=1)
+                marks=pytest.mark.apiver(to_ver=1),
             ),
         ],
     )

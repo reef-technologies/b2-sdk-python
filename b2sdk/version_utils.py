@@ -50,7 +50,9 @@ class AbstractVersionDecorator(metaclass=ABCMeta):
         The actual implementation of decorator. Needs self.source to be set before it's called.
         """
         if self.cutoff_version and self.changed_version:
-            assert self.changed_version < self.cutoff_version, '{} decorator is set to start renaming {} {!r} starting at version {} and finishing in {}. It needs to start at a lower version and finish at a higher version.'.format(
+            assert (
+                self.changed_version < self.cutoff_version
+            ), '{} decorator is set to start renaming {} {!r} starting at version {} and finishing in {}. It needs to start at a lower version and finish at a higher version.'.format(
                 self.__class__.__name__,
                 self.WHAT,
                 self.source,
@@ -80,6 +82,7 @@ class rename_argument(AbstractDeprecator):
     5
     >>>
     """
+
     WHAT = 'argument'
     ALTERNATIVE_DECORATOR = 'discourage_argument'
 
@@ -98,7 +101,9 @@ class rename_argument(AbstractDeprecator):
         @wraps(func)
         def wrapper(*args, **kwargs):
             if self.source in kwargs:
-                assert self.target not in kwargs, 'both argument names were provided: {!r} (deprecated) and {!r} (new)'.format(
+                assert (
+                    self.target not in kwargs
+                ), 'both argument names were provided: {!r} (deprecated) and {!r} (new)'.format(
                     self.source, self.target
                 )
                 kwargs[self.target] = kwargs[self.source]
@@ -133,6 +138,7 @@ class rename_function(AbstractDeprecator):
     >>>
 
     """
+
     WHAT = 'function'
     ALTERNATIVE_DECORATOR = 'discourage_function'
 
@@ -148,8 +154,7 @@ class rename_function(AbstractDeprecator):
         @wraps(func)
         def wrapper(*args, **kwargs):
             warnings.warn(
-                '{!r} is deprecated since version {} - it was moved to {!r}, please switch to use that. The proxy for the old name is going to be removed in {}.'
-                .format(
+                '{!r} is deprecated since version {} - it was moved to {!r}, please switch to use that. The proxy for the old name is going to be removed in {}.'.format(
                     func.__name__,
                     self.changed_version,
                     self.target,

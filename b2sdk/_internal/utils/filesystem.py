@@ -18,7 +18,6 @@ def points_to_fifo(path: pathlib.Path) -> bool:
     """Check if the path points to a fifo."""
     path = path.resolve()
     try:
-
         return stat.S_ISFIFO(path.stat().st_mode)
     except OSError:
         return False

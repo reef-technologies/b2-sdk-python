@@ -45,9 +45,8 @@ class TestDownload(IntegrationTestBase):
                         max_chunk_size=download_manager.MAX_CHUNK_SIZE,
                         thread_pool=download_manager._thread_pool,
                     )
-                ]
+                ],
             ):
-
                 # let's check that small file downloads fail with these settings
                 zero = bucket.upload_bytes(b'0', 'a_single_zero')
                 with pytest.raises(ValueError) as exc_info:
@@ -58,14 +57,17 @@ class TestDownload(IntegrationTestBase):
                 f, sha1 = self._file_helper(bucket)
                 if zero._type() != 'large':
                     # if we are here, that's not the production server!
-                    assert f.download_version.content_sha1_verified  # large files don't have sha1, lets not check
+                    assert (
+                        f.download_version.content_sha1_verified
+                    )  # large files don't have sha1, lets not check
 
                 file_info = f.download_version.file_info
                 assert LARGE_FILE_SHA1 in file_info
                 assert file_info[LARGE_FILE_SHA1] == sha1
 
-    def _file_helper(self, bucket, sha1_sum=None,
-                     bytes_to_write: int | None = None) -> tuple[DownloadVersion, Sha1HexDigest]:
+    def _file_helper(
+        self, bucket, sha1_sum=None, bytes_to_write: int | None = None
+    ) -> tuple[DownloadVersion, Sha1HexDigest]:
         bytes_to_write = bytes_to_write or int(self.info.get_absolute_minimum_part_size()) * 2 + 1
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_dir = pathlib.Path(temp_dir)
@@ -106,7 +108,9 @@ class TestDownload(IntegrationTestBase):
             downloaded_uncompressed_file = temp_dir / 'downloaded_uncompressed_file'
             downloaded_compressed_file = temp_dir / 'downloaded_compressed_file'
 
-            data_to_write = b"I'm about to be compressed and sent to the cloud, yay!\n" * 100  # too short files failed somehow
+            data_to_write = (
+                b"I'm about to be compressed and sent to the cloud, yay!\n" * 100
+            )  # too short files failed somehow
             with gzip.open(source_file, 'wb') as gzip_file:
                 gzip_file.write(data_to_write)
             file_version = bucket.upload_local_file(

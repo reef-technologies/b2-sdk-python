@@ -69,7 +69,7 @@ class TestIncrementalHexDigester(TestBase):
         digester = self._get_digester(stream)
 
         for idx in range(blocks_count - 1):
-            expected_sha1_part = self._get_sha1(input_data[:limit * (idx + 1)])
+            expected_sha1_part = self._get_sha1(input_data[: limit * (idx + 1)])
             result_sha1_part = digester.update_from_stream(limit)
             self.assertEqual(expected_sha1_part, result_sha1_part)
 

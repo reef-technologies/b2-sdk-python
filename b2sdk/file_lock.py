@@ -19,6 +19,7 @@ ACTIONS_WITHOUT_LOCK_SETTINGS = frozenset(['hide', 'folder'])
 @enum.unique
 class RetentionMode(enum.Enum):
     """Enum class representing retention modes set in files and buckets"""
+
     GOVERNANCE = "governance"  #: retention settings for files in this mode can be modified by clients with appropriate application key capabilities
     COMPLIANCE = "compliance"  #: retention settings for files in this mode can only be modified by extending the retention dates by clients with appropriate application key capabilities
     NONE = None  #: retention not set
@@ -30,6 +31,7 @@ RETENTION_MODES_REQUIRING_PERIODS = frozenset({RetentionMode.COMPLIANCE, Retenti
 
 class RetentionPeriod:
     """Represent a time period (either in days or in years) that is used as a default for bucket retention"""
+
     KNOWN_UNITS = ['days', 'years']
 
     def __init__(self, years: int | None = None, days: int | None = None):
@@ -110,8 +112,8 @@ class FileRetentionSetting:
         if 'fileRetention' not in file_version_dict:
             if file_version_dict['action'] not in ACTIONS_WITHOUT_LOCK_SETTINGS:
                 raise UnexpectedCloudBehaviour(
-                    'No fileRetention provided for file version with action=%s' %
-                    (file_version_dict['action'])
+                    'No fileRetention provided for file version with action=%s'
+                    % (file_version_dict['action'])
                 )
             return NO_RETENTION_FILE_SETTING
         file_retention_dict = file_version_dict['fileRetention']
@@ -125,7 +127,6 @@ class FileRetentionSetting:
     def from_file_retention_value_dict(
         cls, file_retention_value_dict: dict
     ) -> FileRetentionSetting:
-
         mode = file_retention_value_dict['mode']
         if mode is None:
             return NO_RETENTION_FILE_SETTING
@@ -150,7 +151,8 @@ class FileRetentionSetting:
                 retain_until = None
             return cls(RetentionMode(headers[retention_mode_header]), retain_until)
         if 'X-Bz-Client-Unauthorized-To-Read' in headers and retention_mode_header in headers[
-            'X-Bz-Client-Unauthorized-To-Read'].split(','):
+            'X-Bz-Client-Unauthorized-To-Read'
+        ].split(','):
             return UNKNOWN_FILE_RETENTION_SETTING
         return NO_RETENTION_FILE_SETTING  # the bucket is not file-lock-enabled or the file is has no retention set
 
@@ -179,9 +181,7 @@ class FileRetentionSetting:
         return self.mode == other.mode and self.retain_until == other.retain_until
 
     def __repr__(self):
-        return '{}({}, {})'.format(
-            self.__class__.__name__, repr(self.mode.value), repr(self.retain_until)
-        )
+        return f'{self.__class__.__name__}({repr(self.mode.value)}, {repr(self.retain_until)})'
 
 
 @enum.unique
@@ -210,8 +210,8 @@ class LegalHold(enum.Enum):
         if 'legalHold' not in file_version_dict:
             if file_version_dict['action'] not in ACTIONS_WITHOUT_LOCK_SETTINGS:
                 raise UnexpectedCloudBehaviour(
-                    'legalHold not provided for file version with action=%s' %
-                    (file_version_dict['action'])
+                    'legalHold not provided for file version with action=%s'
+                    % (file_version_dict['action'])
                 )
             return cls.UNSET
         if not file_version_dict['legalHold']['isClientAuthorizedToRead']:
@@ -232,9 +232,12 @@ class LegalHold(enum.Enum):
         if legal_hold_header in headers:
             return cls(headers['X-Bz-File-Legal-Hold'])
         if 'X-Bz-Client-Unauthorized-To-Read' in headers and legal_hold_header in headers[
-            'X-Bz-Client-Unauthorized-To-Read'].split(','):
+            'X-Bz-Client-Unauthorized-To-Read'
+        ].split(','):
             return cls.UNKNOWN
-        return cls.UNSET  # the bucket is not file-lock-enabled or the header is missing for any other reason
+        return (
+            cls.UNSET
+        )  # the bucket is not file-lock-enabled or the header is missing for any other reason
 
     def to_server(self) -> str:
         if self.is_unknown():
@@ -249,7 +252,7 @@ class LegalHold(enum.Enum):
 
 class BucketRetentionSetting:
     """Represent bucket's default file retention settings, i.e. whether the files should be retained, in which mode
-       and for how long"""
+    and for how long"""
 
     def __init__(self, mode: RetentionMode, period: RetentionPeriod | None = None):
         if mode in RETENTION_MODES_REQUIRING_PERIODS and period is None:
@@ -354,7 +357,10 @@ class FileLockConfiguration:
         }
 
     def __eq__(self, other):
-        return self.default_retention == other.default_retention and self.is_file_lock_enabled == other.is_file_lock_enabled
+        return (
+            self.default_retention == other.default_retention
+            and self.is_file_lock_enabled == other.is_file_lock_enabled
+        )
 
     def __repr__(self):
         return '{}({}, {})'.format(

@@ -15,7 +15,7 @@ from b2sdk.utils import Sha1HexDigest
 
 
 class OutboundTransferSource(metaclass=ABCMeta):
-    """ Abstract class for defining outbound transfer sources.
+    """Abstract class for defining outbound transfer sources.
 
     Supported outbound transfer sources are:
 

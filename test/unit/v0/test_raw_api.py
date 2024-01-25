@@ -52,9 +52,7 @@ class TestRawAPIFilenames(TestBase):
         :param exception_message: regexp that matches the exception's detailed message
         """
         print(
-            "Filename \"{}\" should raise UnusableFileName(\".*{}.*\").".format(
-                filename, exception_message
-            )
+            f"Filename \"{filename}\" should raise UnusableFileName(\".*{exception_message}.*\")."
         )
         with self.assertRaisesRegex(UnusableFileName, exception_message):
             self.raw_api.check_b2_filename(filename)
@@ -125,13 +123,15 @@ class TestUpdateBucket(BucketTestBase):
             self.raw_api.update_bucket('test', 'account_auth_token', 'account_id', 'bucket_id')
 
     @pytest.mark.parametrize(
-        'bucket_type,bucket_info,default_retention', (
+        'bucket_type,bucket_info,default_retention',
+        (
             (None, {}, None),
             (
-                'allPublic', None,
-                BucketRetentionSetting(RetentionMode.COMPLIANCE, RetentionPeriod(years=1))
+                'allPublic',
+                None,
+                BucketRetentionSetting(RetentionMode.COMPLIANCE, RetentionPeriod(years=1)),
             ),
-        )
+        ),
     )
     def test_assertion_not_raises(self, bucket_type, bucket_info, default_retention):
         self.raw_api.update_bucket(
@@ -145,14 +145,17 @@ class TestUpdateBucket(BucketTestBase):
         )
 
     @pytest.mark.parametrize(
-        'encryption_setting,', (
+        'encryption_setting,',
+        (
             EncryptionSetting(
                 mode=EncryptionMode.SSE_C,
                 algorithm=EncryptionAlgorithm.AES256,
-                key=EncryptionKey(b'key', 'key-id')
+                key=EncryptionKey(b'key', 'key-id'),
             ),
-            EncryptionSetting(mode=EncryptionMode.UNKNOWN,),
-        )
+            EncryptionSetting(
+                mode=EncryptionMode.UNKNOWN,
+            ),
+        ),
     )
     def test_update_bucket_wrong_encryption(self, encryption_setting):
         with pytest.raises(WrongEncryptionModeForBucketDefault):
@@ -170,17 +173,19 @@ class TestCreateBucket(BucketTestBase):
     """Test creating bucket."""
 
     @pytest.mark.parametrize(
-        'encryption_setting,', (
+        'encryption_setting,',
+        (
             EncryptionSetting(
                 mode=EncryptionMode.SSE_C,
                 algorithm=EncryptionAlgorithm.AES256,
-                key=EncryptionKey(b'key', 'key-id')
+                key=EncryptionKey(b'key', 'key-id'),
             ),
-            EncryptionSetting(mode=EncryptionMode.UNKNOWN,),
-        )
+            EncryptionSetting(
+                mode=EncryptionMode.UNKNOWN,
+            ),
+        ),
     )
     def test_create_bucket_wrong_encryption(self, encryption_setting):
-
         with pytest.raises(WrongEncryptionModeForBucketDefault):
             self.raw_api.create_bucket(
                 'test',

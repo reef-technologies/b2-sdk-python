@@ -67,7 +67,8 @@ def url_for_api(info, api_name):
 
 
 class Services:
-    """ Gathers objects that provide high level logic over raw api usage. """
+    """Gathers objects that provide high level logic over raw api usage."""
+
     UPLOAD_MANAGER_CLASS = staticmethod(UploadManager)
     COPY_MANAGER_CLASS = staticmethod(CopyManager)
     DOWNLOAD_MANAGER_CLASS = staticmethod(DownloadManager)
@@ -132,6 +133,7 @@ class B2Api(metaclass=B2TraceMeta):
     The class also keeps a cache of information needed to access the
     service, such as auth tokens and upload URLs.
     """
+
     BUCKET_FACTORY_CLASS = staticmethod(BucketFactory)
     BUCKET_CLASS = staticmethod(Bucket)
     SESSION_CLASS = staticmethod(B2Session)
@@ -269,8 +271,12 @@ class B2Api(metaclass=B2TraceMeta):
             replication=replication,
         )
         bucket = self.BUCKET_FACTORY_CLASS.from_api_bucket_dict(self, response)
-        assert name == bucket.name, f'API created a bucket with different name than requested: {name} != {name}'
-        assert bucket_type == bucket.type_, f'API created a bucket with different type than requested: {bucket_type} != {bucket.type_}'
+        assert (
+            name == bucket.name
+        ), f'API created a bucket with different name than requested: {name} != {name}'
+        assert (
+            bucket_type == bucket.type_
+        ), f'API created a bucket with different type than requested: {bucket_type} != {bucket.type_}'
         self.cache.save_bucket(bucket)
         return bucket
 
@@ -414,9 +420,10 @@ class B2Api(metaclass=B2TraceMeta):
             cached_list = self.cache.list_bucket_names_ids()
             buckets = [
                 self.BUCKET_CLASS(self, cache_b_id, name=cached_b_name)
-                for cached_b_name, cache_b_id in cached_list if (
-                    (bucket_name is None or bucket_name == cached_b_name) and
-                    (bucket_id is None or bucket_id == cache_b_id)
+                for cached_b_name, cache_b_id in cached_list
+                if (
+                    (bucket_name is None or bucket_name == cached_b_name)
+                    and (bucket_id is None or bucket_id == cache_b_id)
                 )
             ]
             if buckets:
@@ -520,7 +527,7 @@ class B2Api(metaclass=B2TraceMeta):
             key_name=key_name,
             valid_duration_seconds=valid_duration_seconds,
             bucket_id=bucket_id,
-            name_prefix=name_prefix
+            name_prefix=name_prefix,
         )
 
         assert set(response['capabilities']) == set(capabilities)
@@ -547,8 +554,9 @@ class B2Api(metaclass=B2TraceMeta):
         response = self.session.delete_key(application_key_id=application_key_id)
         return ApplicationKey.from_api_response(response)
 
-    def list_keys(self, start_application_key_id: str | None = None
-                 ) -> Generator[ApplicationKey, None, None]:
+    def list_keys(
+        self, start_application_key_id: str | None = None
+    ) -> Generator[ApplicationKey, None, None]:
         """
         List application keys. Lazily perform requests to B2 cloud and return all keys.
 
@@ -599,7 +607,7 @@ class B2Api(metaclass=B2TraceMeta):
 
     def get_file_info_by_name(self, bucket_name: str, file_name: str) -> DownloadVersion:
         """
-        Gets info about a file version. Similar to `get_file_info` but 
+        Gets info about a file version. Similar to `get_file_info` but
         takes the bucket name and file name instead of file id.
 
         :param str bucket_name: The name of the bucket where the file resides.

@@ -34,7 +34,7 @@ from b2sdk.utils import iterator_peek
 
 
 class UploadBuffer:
-    """ data container used by EmergePlanner for temporary storage of write intents """
+    """data container used by EmergePlanner for temporary storage of write intents"""
 
     def __init__(self, start_offset, buff=None):
         self._start_offset = start_offset
@@ -79,12 +79,12 @@ class UploadBuffer:
             if start_idx == 0:
                 start_offset = self.start_offset
             else:
-                start_offset = self._buff[start_idx - 1:start_idx][0][1]
+                start_offset = self._buff[start_idx - 1 : start_idx][0][1]
         return self.__class__(start_offset, buff_slice)
 
 
 class EmergePlanner:
-    """ Creates a list of actions required for advanced creation of an object in the cloud from an iterator of write intent objects """
+    """Creates a list of actions required for advanced creation of an object in the cloud from an iterator of write intent objects"""
 
     def __init__(
         self,
@@ -93,7 +93,9 @@ class EmergePlanner:
         max_part_size=None,
     ):
         self.min_part_size = min_part_size or DEFAULT_MIN_PART_SIZE
-        self.recommended_upload_part_size = recommended_upload_part_size or DEFAULT_RECOMMENDED_UPLOAD_PART_SIZE
+        self.recommended_upload_part_size = (
+            recommended_upload_part_size or DEFAULT_RECOMMENDED_UPLOAD_PART_SIZE
+        )
         self.max_part_size = max_part_size or DEFAULT_MAX_PART_SIZE
         if self.min_part_size > self.recommended_upload_part_size:
             raise InvalidUserInput(
@@ -106,11 +108,7 @@ class EmergePlanner:
 
     @classmethod
     def from_account_info(
-        cls,
-        account_info,
-        min_part_size=None,
-        recommended_upload_part_size=None,
-        max_part_size=None
+        cls, account_info, min_part_size=None, recommended_upload_part_size=None, max_part_size=None
     ):
         if recommended_upload_part_size is None:
             recommended_upload_part_size = account_info.get_recommended_part_size()
@@ -138,10 +136,12 @@ class EmergePlanner:
             min(
                 ceil(1.5 * max_destination_offset / 10000),
                 self.max_part_size,
-            )
+            ),
         )
         assert self.min_part_size <= self.recommended_upload_part_size <= self.max_part_size, (
-            self.min_part_size, self.recommended_upload_part_size, self.max_part_size
+            self.min_part_size,
+            self.recommended_upload_part_size,
+            self.max_part_size,
         )
         return self._get_emerge_plan(write_intents, EmergePlan)
 
@@ -278,7 +278,7 @@ class EmergePlanner:
                     yield self._get_upload_part(upload_buffer_part)
 
     def _get_upload_part(self, upload_buffer):
-        """ Build emerge part from upload buffer. """
+        """Build emerge part from upload buffer."""
         if upload_buffer.intent_count() == 1 and upload_buffer.get_intent(0).is_upload():
             intent = upload_buffer.get_intent(0)
             relative_offset = upload_buffer.start_offset - intent.destination_offset
@@ -302,7 +302,7 @@ class EmergePlanner:
         return EmergePart(definition)
 
     def _get_copy_parts(self, copy_intent, start_offset, end_offset):
-        """ Split copy intent to emerge parts. """
+        """Split copy intent to emerge parts."""
         fragment_length = end_offset - start_offset
         part_count = int(fragment_length / self.max_part_size)
         last_part_length = fragment_length % self.max_part_size
@@ -329,7 +329,7 @@ class EmergePlanner:
             relative_offset += part_size
 
     def _buff_split(self, upload_buffer):
-        """ Split upload buffer to parts candidates - smaller upload buffers.
+        """Split upload buffer to parts candidates - smaller upload buffers.
 
         :rtype iterator[b2sdk.transfer.emerge.planner.planner.UploadBuffer]:
         """
@@ -347,7 +347,7 @@ class EmergePlanner:
             yield head_buff
 
     def _buff_partition(self, upload_buffer):
-        """ Split upload buffer to two parts (smaller upload buffers).
+        """Split upload buffer to two parts (smaller upload buffers).
 
         In result left part cannot be split more, and nothing can be assumed about right part.
 
@@ -372,7 +372,7 @@ class EmergePlanner:
         return left_buff, UploadBuffer(left_buff.end_offset)
 
     def _select_intent_fragments(self, write_intent_iterator):
-        """ Select overlapping write intent fragments to use.
+        """Select overlapping write intent fragments to use.
 
         To solve overlapping intents selection, intents can be split to smaller fragments.
         Those fragments are yielded as soon as decision can be made to use them,
@@ -417,11 +417,14 @@ class EmergePlanner:
             if incoming_offset is not None and last_sent_offset < incoming_offset:
                 raise ValueError(
                     'Cannot emerge file with holes. '
-                    'Found hole range: ({}, {})'.format(last_sent_offset, incoming_offset)
+                    f'Found hole range: ({last_sent_offset}, {incoming_offset})'
                 )
 
             if incoming_intent is None:
-                yield None, None  # lets yield sentinel for cleaner `_get_emerge_parts` implementation
+                yield (
+                    None,
+                    None,
+                )  # lets yield sentinel for cleaner `_get_emerge_parts` implementation
                 return
             if incoming_intent.is_upload():
                 upload_intents_state.add(incoming_intent)
@@ -431,7 +434,7 @@ class EmergePlanner:
                 raise RuntimeError('This should not happen at all!')
 
     def _merge_intent_fragments(self, start_offset, upload_intents, copy_intents):
-        """ Select "competing" upload and copy fragments.
+        """Select "competing" upload and copy fragments.
 
         Upload and copy fragments may overlap so we need to choose right one
         to use - copy fragments are prioritized unless this fragment is unprotected
@@ -468,7 +471,7 @@ class EmergePlanner:
                 return
 
     def _validatation_iterator(self, write_intents):
-        """ Iterate over write intents and validate length and order. """
+        """Iterate over write intents and validate length and order."""
         last_offset = 0
         for write_intent in write_intents:
             if write_intent.length is None:
@@ -480,7 +483,7 @@ class EmergePlanner:
 
 
 class IntentsState:
-    """ Store and process state of incoming write intents to solve
+    """Store and process state of incoming write intents to solve
     overlapping intents selection in streaming manner.
 
     It does not check if intents are of the same kind (upload/copy), but the intention
@@ -502,7 +505,7 @@ class IntentsState:
         self._next_intent_end = None
 
     def add(self, incoming_intent):
-        """ Add incoming intent to state.
+        """Add incoming intent to state.
 
         It has to called *after* ``IntentsState.state_update`` but it is not verified.
         """
@@ -518,7 +521,7 @@ class IntentsState:
             self._set_next_intent(incoming_intent)
 
     def state_update(self, last_sent_offset, incoming_offset):
-        """ Update the state using incoming intent offset.
+        """Update the state using incoming intent offset.
 
         It has to be called *before* ``IntentsState.add`` and even if incoming intent
         would not be added to this intents state. It would yield a state of this stream
@@ -543,9 +546,11 @@ class IntentsState:
             return
 
         if (
-            self._current_intent is None and self._next_intent is not None and (
-                self._next_intent.destination_offset != effective_incoming_offset or
-                incoming_offset is None
+            self._current_intent is None
+            and self._next_intent is not None
+            and (
+                self._next_intent.destination_offset != effective_incoming_offset
+                or incoming_offset is None
             )
         ):
             self._set_current_intent(self._next_intent, last_sent_offset)
@@ -553,8 +558,9 @@ class IntentsState:
 
         # current and next can be both not None at this point only if they overlap
         if (
-            self._current_intent is not None and self._next_intent is not None and
-            effective_incoming_offset > self._current_intent_end
+            self._current_intent is not None
+            and self._next_intent is not None
+            and effective_incoming_offset > self._current_intent_end
         ):
             # incoming intent does not overlap with current intent
             # so we switch to next because we are sure that we will have to use it anyway
@@ -601,7 +607,7 @@ class IntentsState:
             self._next_intent_end = None
 
     def _is_current_intent_protected(self):
-        """ States if current intent is protected.
+        """States if current intent is protected.
 
         Intent can be split to smaller fragments, but to choose upload over "small copy"
         we need to know for fragment if it is a "small copy" or not. In result of solving
@@ -688,10 +694,7 @@ class EmergePart:
         self.verification_ranges = verification_ranges
 
     def __repr__(self):
-        return '<{classname} part_definition={part_definition}>'.format(
-            classname=self.__class__.__name__,
-            part_definition=repr(self.part_definition),
-        )
+        return f'<{self.__class__.__name__} part_definition={repr(self.part_definition)}>'
 
     def get_length(self):
         return self.part_definition.get_length()

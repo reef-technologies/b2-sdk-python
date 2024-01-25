@@ -25,8 +25,9 @@ def dummy_bucket():
 
 def test_bucket__upload_file__supports_file_infos(dummy_bucket, file_info):
     """Test v2.Bucket.upload_file support of deprecated file_infos param"""
-    with patch_bind_params(v3.Bucket, 'upload_local_file') as mock_method,\
-        pytest.warns(DeprecationWarning, match=r'deprecated argument'):
+    with patch_bind_params(v3.Bucket, 'upload_local_file') as mock_method, pytest.warns(
+        DeprecationWarning, match=r'deprecated argument'
+    ):
         dummy_bucket.upload_local_file(
             'filename',
             'filename',
@@ -38,8 +39,9 @@ def test_bucket__upload_file__supports_file_infos(dummy_bucket, file_info):
 
 def test_bucket__upload_bytes__supports_file_infos(dummy_bucket, file_info):
     """Test v2.Bucket.upload_bytes support of deprecated file_infos param"""
-    with patch_bind_params(dummy_bucket, 'upload') as mock_method,\
-        pytest.warns(DeprecationWarning, match=r'deprecated argument'):
+    with patch_bind_params(dummy_bucket, 'upload') as mock_method, pytest.warns(
+        DeprecationWarning, match=r'deprecated argument'
+    ):
         dummy_bucket.upload_bytes(
             b'data',
             'filename',

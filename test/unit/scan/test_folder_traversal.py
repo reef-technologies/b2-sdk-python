@@ -21,7 +21,6 @@ from b2sdk.utils import fix_windows_path_limit
 
 class TestFolderTraversal:
     def test_flat_folder(self, tmp_path):
-
         # Create a directory structure below with initial scannig point at tmp_path/dir:
         # tmp_path
         # └── dir
@@ -46,7 +45,6 @@ class TestFolderTraversal:
         ]
 
     def test_folder_with_subfolders(self, tmp_path):
-
         # Create a directory structure below with initial scannig point at tmp_path:
         # tmp_path
         # ├── dir1
@@ -82,7 +80,6 @@ class TestFolderTraversal:
         reason="Symlinks not supported on PyPy/Windows",
     )
     def test_folder_with_symlink_to_file(self, tmp_path):
-
         # Create a directory structure below with initial scannig point at tmp_path:
         # tmp_path
         # ├── dir
@@ -104,7 +101,7 @@ class TestFolderTraversal:
 
         assert absolute_paths == [
             fix_windows_path_limit(str(file)),
-            fix_windows_path_limit(str(symlink_file))
+            fix_windows_path_limit(str(symlink_file)),
         ]
 
     @pytest.mark.skipif(
@@ -113,7 +110,6 @@ class TestFolderTraversal:
     )
     @pytest.mark.timeout(5)
     def test_folder_with_circular_symlink(self, tmp_path):
-
         # Create a directory structure below with initial scannig point at tmp_path:
         # tmp_path
         # ├── dir
@@ -141,7 +137,6 @@ class TestFolderTraversal:
     )
     @pytest.mark.timeout(5)
     def test_folder_with_symlink_to_parent(self, tmp_path):
-
         # Create a directory structure below with the scannig point at tmp_path/parent/child/:
         #   tmp_path
         #   ├── parent
@@ -182,7 +177,6 @@ class TestFolderTraversal:
     )
     @pytest.mark.timeout(5)
     def test_root_short_loop(self, tmp_path):
-
         # Create a symlink to the tmp_path directory itself
         # tmp_path
         # └── tmp_path_symlink -> tmp_path
@@ -203,7 +197,6 @@ class TestFolderTraversal:
     )
     @pytest.mark.timeout(5)
     def test_root_parent_loop(self, tmp_path):
-
         # Create a symlink that points to the parent of the initial scanning point
         # tmp_path
         # └── start
@@ -229,7 +222,6 @@ class TestFolderTraversal:
         reason="Symlinks not supported on PyPy/Windows",
     )
     def test_symlink_that_points_deeper(self, tmp_path):
-
         # Create a directory structure with a symlink that points to a deeper directory
         # tmp_path
         # ├── a
@@ -272,10 +264,9 @@ class TestFolderTraversal:
 
     @pytest.mark.skipif(
         platform.system() == 'Windows' and platform.python_implementation() == 'PyPy',
-        reason="Symlinks not supported on PyPy/Windows"
+        reason="Symlinks not supported on PyPy/Windows",
     )
     def test_symlink_that_points_up(self, tmp_path):
-
         # Create a directory structure with a symlink that points to a upper directory
         # tmp_path
         # ├── a
@@ -296,7 +287,7 @@ class TestFolderTraversal:
         (tmp_path / "b" / "d" / "e").mkdir(parents=True)
         (tmp_path / "b" / "d" / "d.txt").write_text("d")
         (tmp_path / "b" / "d" / "e" / "e.txt").write_text("e")
-        (tmp_path / "b" / "d" / "e" / "symlink").symlink_to(tmp_path / "a", target_is_directory=True) # yapf: disable
+        (tmp_path / "b" / "d" / "e" / "symlink").symlink_to(tmp_path / "a", target_is_directory=True)  # yapf: disable
 
         folder = LocalFolder(str(tmp_path))
 
@@ -313,11 +304,10 @@ class TestFolderTraversal:
 
     @pytest.mark.skipif(
         platform.system() == 'Windows' and platform.python_implementation() == 'PyPy',
-        reason="Symlinks not supported on PyPy/Windows"
+        reason="Symlinks not supported on PyPy/Windows",
     )
     @pytest.mark.timeout(5)
     def test_elaborate_infinite_loop(self, tmp_path):
-
         # Create a directory structure with an elaborate infinite loop of symlinks
         # tmp_path
         # ├── a
@@ -353,7 +343,6 @@ class TestFolderTraversal:
         reason="Symlinks not supported on PyPy/Windows",
     )
     def test_valid_symlink_pattern_where_the_link_goes_down_and_up(self, tmp_path):
-
         # tmp_path
         # ├── a
         # │   └── a.txt
@@ -369,7 +358,7 @@ class TestFolderTraversal:
 
         (tmp_path / "a").mkdir()
         (tmp_path / "a" / "a.txt").write_text("a")
-        (tmp_path / "b").symlink_to(tmp_path / "c" / "d", target_is_directory=True) # yapf: disable
+        (tmp_path / "b").symlink_to(tmp_path / "c" / "d", target_is_directory=True)  # yapf: disable
         (tmp_path / "c").mkdir()
         (tmp_path / "c" / "d").mkdir()
         (tmp_path / "c" / "d" / "b.txt").write_text("b")
@@ -398,7 +387,6 @@ class TestFolderTraversal:
         reason="Symlinks not supported on PyPy/Windows",
     )
     def test_valid_symlink_pattern_where_the_link_goes_up_and_down(self, tmp_path):
-
         # Create a directory structure with a valid symlink pattern where the link goes up and down
         # tmp_path
         # ├── a
@@ -439,7 +427,6 @@ class TestFolderTraversal:
     )
     @pytest.mark.timeout(5)
     def test_loop_that_goes_down_and_up(self, tmp_path):
-
         # Create a directory structure with a loop that goes down and up
         # tmp_path
         # ├── a
@@ -472,11 +459,10 @@ class TestFolderTraversal:
 
     @pytest.mark.skipif(
         platform.system() == 'Windows' and platform.python_implementation() == 'PyPy',
-        reason="Symlinks not supported on PyPy/Windows"
+        reason="Symlinks not supported on PyPy/Windows",
     )
     @pytest.mark.timeout(5)
     def test_loop_that_goes_up_and_down(self, tmp_path):
-
         # Create a directory structure with a loop that goes up and down
         # tmp_path
         # ├── a

@@ -35,7 +35,8 @@ logger = logging.getLogger(__name__)
 
 @unique
 class UploadMode(Enum):
-    """ Mode of file uploads """
+    """Mode of file uploads"""
+
     FULL = auto()  #: always upload the whole file
     INCREMENTAL = auto()  #: use incremental uploads when possible
 
@@ -90,8 +91,9 @@ class UploadSourceBytes(AbstractUploadSource):
     def __repr__(self) -> str:
         return '<{classname} data={data} id={id}>'.format(
             classname=self.__class__.__name__,
-            data=str(self.data_bytes[:20]) +
-            '...' if len(self.data_bytes) > 20 else self.data_bytes,
+            data=str(self.data_bytes[:20]) + '...'
+            if len(self.data_bytes) > 20
+            else self.data_bytes,
             id=id(self),
         )
 
@@ -192,15 +194,8 @@ class UploadSourceLocalFileRange(UploadSourceLocalFileBase):
 
     def __repr__(self) -> str:
         return (
-            '<{classname} local_path={local_path} offset={offset} '
-            'content_length={content_length} content_sha1={content_sha1} id={id}>'
-        ).format(
-            classname=self.__class__.__name__,
-            local_path=self.local_path,
-            offset=self.offset,
-            content_length=self.content_length,
-            content_sha1=self.content_sha1,
-            id=id(self),
+            f'<{self.__class__.__name__} local_path={self.local_path} offset={self.offset} '
+            f'content_length={self.content_length} content_sha1={self.content_sha1} id={id(self)}>'
         )
 
     def open(self):
@@ -231,14 +226,15 @@ class UploadSourceLocalFile(UploadSourceLocalFileBase):
             # existing file size below minimal large file part size
             logger.debug(
                 "Fallback to full upload for %s -- remote file is smaller than %i bytes",
-                self.local_path, min_part_size
+                self.local_path,
+                min_part_size,
             )
             return [self]
 
         if self.get_content_length() < file_version.size:
             logger.debug(
                 "Fallback to full upload for %s -- local file is smaller than remote",
-                self.local_path
+                self.local_path,
             )
             return [self]
 
@@ -247,7 +243,7 @@ class UploadSourceLocalFile(UploadSourceLocalFileBase):
         if not content_sha1:
             logger.debug(
                 "Fallback to full upload for %s -- remote file content SHA1 unknown",
-                self.local_path
+                self.local_path,
             )
             return [self]
 

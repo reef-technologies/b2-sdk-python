@@ -54,7 +54,7 @@ def _print_exception(e, indent=''):
     """
     print(indent + 'EXCEPTION', repr(e))
     print(indent + 'CLASS', type(e))
-    for (i, a) in enumerate(e.args):
+    for i, a in enumerate(e.args):
         print(indent + 'ARG %d: %s' % (i, repr(a)))
         if isinstance(a, Exception):
             _print_exception(a, indent + '        ')
@@ -449,7 +449,9 @@ class B2Http:
                 except (TypeError, ValueError) as exc:
                     logger.warning(
                         'Inconsistent status codes returned by the server %r != %r; parsing exception: %r',
-                        error.get('status'), response.status_code, exc
+                        error.get('status'),
+                        response.status_code,
+                        exc,
                     )
                     status = response.status_code
 

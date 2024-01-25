@@ -29,7 +29,9 @@ B2_ACCOUNT_INFO_PROFILE_FILE = os.path.join('~', '.b2db-{profile}.sqlite')
 B2_ACCOUNT_INFO_PROFILE_NAME_REGEXP = re.compile(r'[a-zA-Z0-9_\-]{1,64}')
 XDG_CONFIG_HOME_ENV_VAR = 'XDG_CONFIG_HOME'
 
-DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE = 5000000  # this value is used ONLY in migrating db, and in v1 wrapper, it is not
+DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE = (
+    5000000  # this value is used ONLY in migrating db, and in v1 wrapper, it is not
+)
 # meant to be a default for other applications
 
 
@@ -119,8 +121,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         elif B2_ACCOUNT_INFO_ENV_VAR in os.environ:
             if profile:
                 raise ValueError(
-                    'Provide either {} env var or profile, not both'.
-                    format(B2_ACCOUNT_INFO_ENV_VAR)
+                    f'Provide either {B2_ACCOUNT_INFO_ENV_VAR} env var or profile, not both'
                 )
             user_account_info_path = os.environ[B2_ACCOUNT_INFO_ENV_VAR]
         elif not profile and os.path.exists(os.path.expanduser(B2_ACCOUNT_INFO_DEFAULT_FILE)):
@@ -163,8 +164,13 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             with open(self.filename, 'rb') as f:
                 data = json.loads(f.read().decode('utf-8'))
                 keys = [
-                    'account_id', 'application_key', 'account_auth_token', 'api_url',
-                    'download_url', 'minimum_part_size', 'realm'
+                    'account_id',
+                    'application_key',
+                    'account_auth_token',
+                    'api_url',
+                    'download_url',
+                    'minimum_part_size',
+                    'realm',
                 ]
             if all(k in data for k in keys):
                 # remove the json file
@@ -185,7 +191,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                     # new column absolute_minimum_part_size = DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE
                     conn.execute(
                         insert_statement,
-                        (*(data[k] for k in keys), DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE)
+                        (*(data[k] for k in keys), DEFAULT_ABSOLUTE_MINIMUM_PART_SIZE),
                     )
                 # all is happy now
                 return
@@ -229,16 +235,13 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             conn.close()
 
     def _create_tables(self, conn, last_upgrade_to_run):
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS
             update_done (
                 update_number INT NOT NULL
             );
-        """
-        )
-        conn.execute(
-            """
+        """)
+        conn.execute("""
            CREATE TABLE IF NOT EXISTS
            account (
                account_id TEXT NOT NULL,
@@ -249,30 +252,25 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                minimum_part_size INT NOT NULL,
                realm TEXT NOT NULL
            );
-        """
-        )
-        conn.execute(
-            """
+        """)
+        conn.execute("""
            CREATE TABLE IF NOT EXISTS
            bucket (
                bucket_name TEXT NOT NULL,
                bucket_id TEXT NOT NULL
            );
-        """
-        )
+        """)
         # This table is not used any more.  We may use it again
         # someday if we save upload URLs across invocations of
         # the command-line tool.
-        conn.execute(
-            """
+        conn.execute("""
            CREATE TABLE IF NOT EXISTS
            bucket_upload_url (
                bucket_id TEXT NOT NULL,
                upload_url TEXT NOT NULL,
                upload_auth_token TEXT NOT NULL
            );
-        """
-        )
+        """)
         # By default, we run all the upgrades
         last_upgrade_to_run = 4 if last_upgrade_to_run is None else last_upgrade_to_run
         # Add the 'allowed' column if it hasn't been yet.
@@ -288,7 +286,8 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             self._ensure_update(3, ['ALTER TABLE account ADD COLUMN s3_api_url TEXT;'])
         if 4 <= last_upgrade_to_run:
             self._ensure_update(
-                4, [
+                4,
+                [
                     """
                     CREATE TABLE
                     tmp_account (
@@ -374,7 +373,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                                 FROM tmp_account;
                                 """,
                     'DROP TABLE tmp_account;',
-                ]
+                ],
             )
 
     def _ensure_update(self, update_number, update_commands: list[str]):
@@ -388,7 +387,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             conn.execute('BEGIN')
             cursor = conn.execute(
                 'SELECT COUNT(*) AS count FROM update_done WHERE update_number = ?;',
-                (update_number,)
+                (update_number,),
             )
             update_count = cursor.fetchone()[0]
             if update_count == 0:
@@ -434,7 +433,8 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             """
 
             conn.execute(
-                insert_statement, (
+                insert_statement,
+                (
                     account_id,
                     application_key_id,
                     application_key,
@@ -446,7 +446,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                     realm,
                     json.dumps(allowed),
                     s3_api_url,
-                )
+                ),
             )
 
     def set_auth_data_with_schema_0_for_test(
@@ -481,7 +481,8 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             """
 
             conn.execute(
-                insert_statement, (
+                insert_statement,
+                (
                     account_id,
                     application_key,
                     auth_token,
@@ -489,7 +490,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
                     download_url,
                     minimum_part_size,
                     realm,
-                )
+                ),
             )
 
     def get_application_key(self):
@@ -577,17 +578,17 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
         except Exception as e:
             logger.exception(
                 '_get_account_info_or_raise encountered a problem while trying to retrieve "%s"',
-                column_name
+                column_name,
             )
             raise MissingAccountData(str(e))
 
     def refresh_entire_bucket_name_cache(self, name_id_iterable):
         with self._get_connection() as conn:
             conn.execute('DELETE FROM bucket;')
-            for (bucket_name, bucket_id) in name_id_iterable:
+            for bucket_name, bucket_id in name_id_iterable:
                 conn.execute(
                     'INSERT INTO bucket (bucket_name, bucket_id) VALUES (?, ?);',
-                    (bucket_name, bucket_id)
+                    (bucket_name, bucket_id),
                 )
 
     def save_bucket(self, bucket):
@@ -595,7 +596,7 @@ class SqliteAccountInfo(UrlPoolAccountInfo):
             conn.execute('DELETE FROM bucket WHERE bucket_id = ?;', (bucket.id_,))
             conn.execute(
                 'INSERT INTO bucket (bucket_id, bucket_name) VALUES (?, ?);',
-                (bucket.id_, bucket.name)
+                (bucket.id_, bucket.name),
             )
 
     def remove_bucket_name(self, bucket_name):

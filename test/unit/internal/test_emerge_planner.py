@@ -41,7 +41,7 @@ class CopySource(OrigCopySource):
 
 
 def part(source_or_def_list, *offset_len):
-    """ Helper for building emerge parts from outbound sources defs. Makes planner tests easier to read.
+    """Helper for building emerge parts from outbound sources defs. Makes planner tests easier to read.
 
     Possible "def" structures:
 

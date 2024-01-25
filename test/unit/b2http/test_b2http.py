@@ -108,7 +108,9 @@ class TestTranslateErrors(TestBase):
         response = MagicMock()
         response.status_code = 429
         response.headers = {'retry-after': 1}
-        response.content = b'{"status": 429, "code": "Too Many requests", "message": "retry after some time"}'
+        response.content = (
+            b'{"status": 429, "code": "Too Many requests", "message": "retry after some time"}'
+        )
         with self.assertRaises(TooManyRequests):
             B2Http._translate_errors(lambda: response)
 
@@ -206,7 +208,8 @@ class TestTranslateAndRetry(TestBase):
             fcn.side_effect = [
                 ServiceError('a'),
                 ServiceError('a'),
-                ServiceError('a'), self.response
+                ServiceError('a'),
+                self.response,
             ]
             with self.assertRaises(ServiceError):
                 B2Http._translate_and_retry(fcn, 3)
@@ -260,7 +263,6 @@ class TestTranslateAndRetry(TestBase):
 
 
 class TestB2Http(TestBase):
-
     URL = 'http://example.com'
     UA_APPEND = None
     HEADERS = dict(my_header='my_value')
@@ -284,7 +286,7 @@ class TestB2Http(TestBase):
                 B2HttpApiConfig(
                     requests.Session,
                     install_clock_skew_hook=False,
-                    user_agent_append=self.UA_APPEND
+                    user_agent_append=self.UA_APPEND,
                 )
             )
 
@@ -342,7 +344,6 @@ class TestB2Http(TestBase):
 
 
 class TestB2HttpUserAgentAppend(TestB2Http):
-
     UA_APPEND = 'ua_extra_string'
     EXPECTED_HEADERS = {**TestB2Http.EXPECTED_HEADERS, 'User-Agent': f'{USER_AGENT} {UA_APPEND}'}
 

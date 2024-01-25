@@ -100,10 +100,7 @@ class UploadSubpartsEmergePartDefinition(BaseEmergePartDefinition):
         self._sha1 = None
 
     def __repr__(self):
-        return '<{classname} upload_subparts={upload_subparts}>'.format(
-            classname=self.__class__.__name__,
-            upload_subparts=repr(self.upload_subparts),
-        )
+        return f'<{self.__class__.__name__} upload_subparts={repr(self.upload_subparts)}>'
 
     def get_length(self):
         return sum(subpart.length for subpart in self.upload_subparts)
@@ -131,12 +128,10 @@ class UploadSubpartsEmergePartDefinition(BaseEmergePartDefinition):
         )
 
     def _get_stream(self, emerge_execution=None):
-        return ChainedStream(
-            [
-                subpart.get_stream_opener(emerge_execution=emerge_execution)
-                for subpart in self.upload_subparts
-            ]
-        )
+        return ChainedStream([
+            subpart.get_stream_opener(emerge_execution=emerge_execution)
+            for subpart in self.upload_subparts
+        ])
 
 
 class CopyEmergePartDefinition(BaseEmergePartDefinition):

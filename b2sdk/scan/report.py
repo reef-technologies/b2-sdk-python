@@ -197,6 +197,7 @@ def sample_report_run():
     Generate a sample report.
     """
     import sys
+
     report = ProgressReport(sys.stdout, False)
 
     for i in range(20):

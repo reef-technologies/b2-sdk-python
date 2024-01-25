@@ -59,8 +59,9 @@ class AbstractFolder(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def all_files(self, reporter: ProgressReport | None,
-                  policies_manager=DEFAULT_SCAN_MANAGER) -> Iterator[AbstractPath]:
+    def all_files(
+        self, reporter: ProgressReport | None, policies_manager=DEFAULT_SCAN_MANAGER
+    ) -> Iterator[AbstractPath]:
         """
         Return an iterator over all of the files in the folder, in
         the order that B2 uses.
@@ -133,8 +134,9 @@ class LocalFolder(AbstractFolder):
         """
         return 'local'
 
-    def all_files(self, reporter: ProgressReport | None,
-                  policies_manager=DEFAULT_SCAN_MANAGER) -> Iterator[LocalPath]:
+    def all_files(
+        self, reporter: ProgressReport | None, policies_manager=DEFAULT_SCAN_MANAGER
+    ) -> Iterator[LocalPath]:
         """
         Yield all files.
 
@@ -242,11 +244,10 @@ class LocalFolder(AbstractFolder):
             visited_symlinks.add(inode_number)
 
         for name in (x.name for x in local_dir.iterdir()):
-
             if '/' in name:
                 raise UnsupportedFilename(
                     "scan does not support file names that include '/'",
-                    f"{name} in dir {local_dir}"
+                    f"{name} in dir {local_dir}",
                 )
 
             local_path = local_dir / name
@@ -276,16 +277,15 @@ class LocalFolder(AbstractFolder):
         #
         # Sorting the list of triples puts them in the right order because 'name',
         # the sort key, is the first thing in the triple.
-        for (name, local_path, relative_file_path) in sorted(names):
+        for name, local_path, relative_file_path in sorted(names):
             if name.endswith('/'):
-                for subdir_file in self._walk_relative_paths(
+                yield from self._walk_relative_paths(
                     local_path,
                     relative_file_path,
                     reporter,
                     policies_manager,
                     visited_symlinks,
-                ):
-                    yield subdir_file
+                )
             else:
                 # Check that the file still exists and is accessible, since it can take a long time
                 # to iterate through large folders
@@ -358,7 +358,7 @@ class B2Folder(AbstractFolder):
     def all_files(
         self,
         reporter: ProgressReport | None,
-        policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER
+        policies_manager: ScanPoliciesManager = DEFAULT_SCAN_MANAGER,
     ) -> Iterator[B2Path]:
         """
         Yield all files.
@@ -374,7 +374,7 @@ class B2Folder(AbstractFolder):
             assert file_version.file_name.startswith(self.prefix)
             if file_version.action == 'start':
                 continue
-            file_name = file_version.file_name[len(self.prefix):]
+            file_name = file_version.file_name[len(self.prefix) :]
             if last_ignored_dir is not None and file_name.startswith(last_ignored_dir):
                 continue
 
@@ -395,7 +395,7 @@ class B2Folder(AbstractFolder):
                 yield B2Path(
                     relative_path=current_name,
                     selected_version=current_versions[0],
-                    all_versions=current_versions
+                    all_versions=current_versions,
                 )
                 current_versions = []
 
@@ -406,7 +406,7 @@ class B2Folder(AbstractFolder):
             yield B2Path(
                 relative_path=current_name,
                 selected_version=current_versions[0],
-                all_versions=current_versions
+                all_versions=current_versions,
             )
 
     def get_file_versions(self):

@@ -78,7 +78,7 @@ class CopySource(OutboundTransferSource):
             range_length,
             encryption=self.encryption,
             source_file_info=self.source_file_info,
-            source_content_type=self.source_content_type
+            source_content_type=self.source_content_type,
         )
 
     def get_content_sha1(self):

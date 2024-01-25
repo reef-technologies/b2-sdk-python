@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from b2sdk.v2.exception import *  # noqa
+
 v2DestFileNewer = DestFileNewer
 
 

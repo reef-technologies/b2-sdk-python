@@ -23,7 +23,6 @@ if typing.TYPE_CHECKING:
 
 # Overridden to raise old style BucketIdNotFound exception
 class Bucket(v3.Bucket):
-
     FILE_VERSION_FACTORY_CLASS = staticmethod(FileVersionFactory)
 
     def get_fresh_state(self) -> Bucket:
@@ -47,7 +46,7 @@ class Bucket(v3.Bucket):
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         return super().upload_bytes(
             data_bytes,
@@ -82,7 +81,7 @@ class Bucket(v3.Bucket):
         custom_upload_timestamp: int | None = None,
         cache_control: str | None = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         return super().upload_local_file(
             local_file,

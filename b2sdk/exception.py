@@ -278,6 +278,7 @@ class UnusableFileName(B2SimpleError):
     Could possibly use InvalidUploadSource, but this is intended for the filename on the
     server, which could differ.  https://www.backblaze.com/b2/docs/files.html.
     """
+
     pass
 
 
@@ -296,11 +297,14 @@ class InvalidRange(B2Error):
         self.range_ = range_
 
     def __str__(self):
-        return 'A range of %d-%d was requested (size of %d), but cloud could only serve %d of that' % (
-            self.range_[0],
-            self.range_[1],
-            self.range_[1] - self.range_[0] + 1,
-            self.content_length,
+        return (
+            'A range of %d-%d was requested (size of %d), but cloud could only serve %d of that'
+            % (
+                self.range_[0],
+                self.range_[1],
+                self.range_[1] - self.range_[0] + 1,
+                self.content_length,
+            )
         )
 
 
@@ -377,10 +381,7 @@ class MaxFileSizeExceeded(B2Error):
         self.max_allowed_size = max_allowed_size
 
     def __str__(self):
-        return 'Allowed file size of exceeded: {} > {}'.format(
-            self.size,
-            self.max_allowed_size,
-        )
+        return f'Allowed file size of exceeded: {self.size} > {self.max_allowed_size}'
 
 
 class MaxRetriesExceeded(B2Error):
@@ -391,10 +392,7 @@ class MaxRetriesExceeded(B2Error):
 
     def __str__(self):
         exceptions = '\n'.join(str(wrapped_error) for wrapped_error in self.exception_info_list)
-        return 'FAILED to upload after {} tries. Encountered exceptions: {}'.format(
-            self.limit,
-            exceptions,
-        )
+        return f'FAILED to upload after {self.limit} tries. Encountered exceptions: {exceptions}'
 
 
 class MissingPart(B2SimpleError):
@@ -508,8 +506,10 @@ class SSECKeyError(AccessDenied):
 
 class RetentionWriteError(AccessDenied):
     def __str__(self):
-        return "Auth token not authorized to write retention or file already in 'compliance' mode or " \
-               "bypassGovernance=true parameter missing"
+        return (
+            "Auth token not authorized to write retention or file already in 'compliance' mode or "
+            "bypassGovernance=true parameter missing"
+        )
 
 
 class WrongEncryptionModeForBucketDefault(InvalidUserInput):
@@ -545,7 +545,7 @@ class InvalidJsonResponse(B2SimpleError):
 
     def __init__(self, content: bytes):
         self.content = content
-        message = self.content[:self.UP_TO_BYTES_COUNT].decode('utf-8', errors='replace')
+        message = self.content[: self.UP_TO_BYTES_COUNT].decode('utf-8', errors='replace')
         if len(self.content) > self.UP_TO_BYTES_COUNT:
             message += '...'
 
@@ -586,16 +586,15 @@ def interpret_b2_error(
     code: str | None,
     message: str | None,
     response_headers: dict[str, Any],
-    post_params: dict[str, Any] | None = None
+    post_params: dict[str, Any] | None = None,
 ) -> B2Error:
     post_params = post_params or {}
     if status == 400 and code == "already_hidden":
         return FileAlreadyHidden(post_params.get('fileName'))
     elif status == 400 and code == 'bad_json':
         return BadJson(message)
-    elif (
-        (status == 400 and code in ("no_such_file", "file_not_present")) or
-        (status == 404 and code == "not_found")
+    elif (status == 400 and code in ("no_such_file", "file_not_present")) or (
+        status == 404 and code == "not_found"
     ):
         # hide_file returns 400 and "no_such_file"
         # delete_file_version returns 400 and "file_not_present"
@@ -635,13 +634,18 @@ def interpret_b2_error(
     elif status == 400 and code == 'restricted_bucket_conflict':
         return EnablingFileLockOnRestrictedBucket()
     elif status == 400 and code == 'bad_request':
-
         # it's "bad_request" on 2022-09-14, but will become 'disabling_file_lock_not_allowed'  # TODO: cleanup after 2022-09-22
-        if message == 'fileLockEnabled value of false is not allowed when bucket is already file lock enabled.':
+        if (
+            message
+            == 'fileLockEnabled value of false is not allowed when bucket is already file lock enabled.'
+        ):
             return DisablingFileLockNotSupported()
 
         # it's "bad_request" on 2022-09-14, but will become 'source_replication_conflict'  # TODO: cleanup after 2022-09-22
-        if message == 'Turning on file lock for an existing bucket having source replication configuration is not allowed.':
+        if (
+            message
+            == 'Turning on file lock for an existing bucket having source replication configuration is not allowed.'
+        ):
             return SourceReplicationConflict()
 
         # it's "bad_request" on 2022-09-14, but will become 'restricted_bucket_conflict'  # TODO: cleanup after 2022-09-22

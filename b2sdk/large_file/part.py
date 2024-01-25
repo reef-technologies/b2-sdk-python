@@ -39,8 +39,11 @@ class Part:
 
     def __repr__(self):
         return '<{} {} {} {} {}>'.format(
-            self.__class__.__name__, self.file_id, self.part_number, self.content_length,
-            self.content_sha1
+            self.__class__.__name__,
+            self.file_id,
+            self.part_number,
+            self.content_length,
+            self.content_sha1,
         )
 
     def __eq__(self, other):

@@ -176,6 +176,7 @@ def sample_sync_report_run():
     Generate a sample report.
     """
     import sys
+
     sync_report = SyncReport(sys.stdout, False)
 
     for i in range(20):

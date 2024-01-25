@@ -60,7 +60,7 @@ class IntegrationTestBase:
             bucket = self.b2_api.create_bucket(
                 bucket_name,
                 'allPublic',
-                bucket_info={BUCKET_CREATED_AT_MILLIS: str(current_time_millis())}
+                bucket_info={BUCKET_CREATED_AT_MILLIS: str(current_time_millis())},
             )
         except DuplicateBucketName:
             self._duplicated_bucket_name_debug_info(bucket_name)

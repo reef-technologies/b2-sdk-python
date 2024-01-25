@@ -60,23 +60,29 @@ class TestReplication(TestBase):
         )
 
         from pprint import pprint
+
         pprint([k.as_dict() for k in self.api.list_keys()])
 
         keymap = {k.key_name: k for k in self.api.list_keys()}
 
         source_application_key = keymap['bucket1-replisrc']
         assert source_application_key
-        assert set(source_application_key.capabilities) == set(
-            ('readFiles', 'readFileLegalHolds', 'readFileRetentions')
-        )
+        assert set(source_application_key.capabilities) == set((
+            'readFiles',
+            'readFileLegalHolds',
+            'readFileRetentions',
+        ))
         assert not source_application_key.name_prefix
         assert source_application_key.expiration_timestamp_millis is None
 
         destination_application_key = keymap['bucket2-replidst']
         assert destination_application_key
-        assert set(destination_application_key.capabilities) == set(
-            ('writeFiles', 'writeFileLegalHolds', 'writeFileRetentions', 'deleteFiles')
-        )
+        assert set(destination_application_key.capabilities) == set((
+            'writeFiles',
+            'writeFileLegalHolds',
+            'writeFileRetentions',
+            'deleteFiles',
+        ))
         assert not destination_application_key.name_prefix
         assert destination_application_key.expiration_timestamp_millis is None
 

@@ -30,8 +30,9 @@ def dummy_raw_simulator():
 
 def test_bucket_simulator__upload_file__supports_file_infos(dummy_bucket_simulator, file_info):
     """Test v2.BucketSimulator.upload_file support of deprecated file_infos param"""
-    with patch_bind_params(v3.BucketSimulator, 'upload_file') as mock_method,\
-        pytest.warns(DeprecationWarning, match=r'deprecated argument'):
+    with patch_bind_params(v3.BucketSimulator, 'upload_file') as mock_method, pytest.warns(
+        DeprecationWarning, match=r'deprecated argument'
+    ):
         dummy_bucket_simulator.upload_file(
             'upload_id',
             'upload_auth_token',
@@ -48,8 +49,9 @@ def test_bucket_simulator__upload_file__supports_file_infos(dummy_bucket_simulat
 
 def test_raw_simulator__get_upload_file_headers__supports_file_infos(file_info):
     """Test v2.RawSimulator.get_upload_file_headers support of deprecated file_infos param"""
-    with patch_bind_params(v3.RawSimulator, 'get_upload_file_headers') as mock_method,\
-        pytest.warns(DeprecationWarning, match=r'deprecated argument'):
+    with patch_bind_params(v3.RawSimulator, 'get_upload_file_headers') as mock_method, pytest.warns(
+        DeprecationWarning, match=r'deprecated argument'
+    ):
         RawSimulator.get_upload_file_headers(
             upload_auth_token='upload_auth_token',
             file_name='file_name',
@@ -67,8 +69,9 @@ def test_raw_simulator__get_upload_file_headers__supports_file_infos(file_info):
 
 def test_raw_simulator__upload_file__supports_file_infos(dummy_raw_simulator, file_info):
     """Test v2.RawSimulator.upload_file support of deprecated file_infos param"""
-    with patch_bind_params(v3.RawSimulator, 'upload_file') as mock_method,\
-        pytest.warns(DeprecationWarning, match=r'deprecated argument'):
+    with patch_bind_params(v3.RawSimulator, 'upload_file') as mock_method, pytest.warns(
+        DeprecationWarning, match=r'deprecated argument'
+    ):
         dummy_raw_simulator.upload_file(
             'upload_url',
             'upload_auth_token',

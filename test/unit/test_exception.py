@@ -62,6 +62,7 @@ class TestExceptions:
     @pytest.mark.apiver(to_ver=1)
     def test_command_error(self):
         from apiver_deps_exception import CommandError
+
         try:
             raise CommandError('foo')
         except CommandError as e:
@@ -71,8 +72,9 @@ class TestExceptions:
 class TestInterpretError:
     def test_file_already_hidden(self):
         self._check_one(FileAlreadyHidden, 400, 'already_hidden', '', {})
-        assert 'File already hidden: file.txt' == \
-            str(interpret_b2_error(400, 'already_hidden', '', {}, {'fileName': 'file.txt'}))
+        assert 'File already hidden: file.txt' == str(
+            interpret_b2_error(400, 'already_hidden', '', {}, {'fileName': 'file.txt'})
+        )
 
     def test_bad_json(self):
         self._check_one(BadJson, 400, 'bad_json', '', {})
@@ -81,34 +83,34 @@ class TestInterpretError:
         self._check_one(FileNotPresent, 400, 'no_such_file', '', {})
         self._check_one(FileNotPresent, 400, 'file_not_present', '', {})
         self._check_one(FileNotPresent, 404, 'not_found', '', {})
-        assert 'File not present: file.txt' == \
-            str(interpret_b2_error(404, 'not_found', '', {}, {'fileName': 'file.txt'}))
-        assert 'File not present: 01010101' == \
-            str(interpret_b2_error(404, 'not_found', '', {}, {'fileId': '01010101'}))
+        assert 'File not present: file.txt' == str(
+            interpret_b2_error(404, 'not_found', '', {}, {'fileName': 'file.txt'})
+        )
+        assert 'File not present: 01010101' == str(
+            interpret_b2_error(404, 'not_found', '', {}, {'fileId': '01010101'})
+        )
 
     def test_file_or_bucket_not_present(self):
         self._check_one(ResourceNotFound, 404, None, None, {})
-        assert 'No such file, bucket, or endpoint: ' == \
-            str(interpret_b2_error(404, None, None, {}))
+        assert 'No such file, bucket, or endpoint: ' == str(interpret_b2_error(404, None, None, {}))
 
     def test_duplicate_bucket_name(self):
         self._check_one(DuplicateBucketName, 400, 'duplicate_bucket_name', '', {})
-        assert 'Bucket name is already in use: my-bucket' == \
-            str(
-                interpret_b2_error(
-                    400, 'duplicate_bucket_name', '', {}, {'bucketName': 'my-bucket'}
-                )
-            )
+        assert 'Bucket name is already in use: my-bucket' == str(
+            interpret_b2_error(400, 'duplicate_bucket_name', '', {}, {'bucketName': 'my-bucket'})
+        )
 
     def test_missing_part(self):
         self._check_one(MissingPart, 400, 'missing_part', '', {})
-        assert 'Part number has not been uploaded: my-file-id' == \
-            str(interpret_b2_error(400, 'missing_part', '', {}, {'fileId': 'my-file-id'}))
+        assert 'Part number has not been uploaded: my-file-id' == str(
+            interpret_b2_error(400, 'missing_part', '', {}, {'fileId': 'my-file-id'})
+        )
 
     def test_part_sha1_mismatch(self):
         self._check_one(PartSha1Mismatch, 400, 'part_sha1_mismatch', '', {})
-        assert 'Part number my-file-id has wrong SHA1' == \
-            str(interpret_b2_error(400, 'part_sha1_mismatch', '', {}, {'fileId': 'my-file-id'}))
+        assert 'Part number my-file-id has wrong SHA1' == str(
+            interpret_b2_error(400, 'part_sha1_mismatch', '', {}, {'fileId': 'my-file-id'})
+        )
 
     def test_unauthorized(self):
         self._check_one(Unauthorized, 401, '', '', {})

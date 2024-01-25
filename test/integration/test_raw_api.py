@@ -99,8 +99,11 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     # b2_authorize_account
     print('b2_authorize_account')
     auth_dict = authorize_raw_api(raw_api)
-    missing_capabilities = set(ALL_CAPABILITIES) - {'readBuckets', 'listAllBucketNames'
-                                                   } - set(auth_dict['allowed']['capabilities'])
+    missing_capabilities = (
+        set(ALL_CAPABILITIES)
+        - {'readBuckets', 'listAllBucketNames'}
+        - set(auth_dict['allowed']['capabilities'])
+    )
     assert not missing_capabilities, 'it appears that the raw_api integration test is being run with a non-full key. Missing capabilities: {}'.format(
         missing_capabilities,
     )
@@ -137,11 +140,13 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     # other accounts.
     print('b2_create_bucket')
     bucket_name = 'test-raw-api-%s-%d-%d' % (
-        account_id, int(time.time()), random.randint(1000, 9999)
+        account_id,
+        int(time.time()),
+        random.randint(1000, 9999),
     )
 
     # very verbose http debug
-    #import http.client; http.client.HTTPConnection.debuglevel = 1
+    # import http.client; http.client.HTTPConnection.debuglevel = 1
 
     bucket_dict = raw_api.create_bucket(
         api_url,
@@ -179,7 +184,9 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     try:
         # in order to test replication, we need to create a second bucket
         replication_source_bucket_name = 'test-raw-api-%s-%d-%d' % (
-            account_id, int(time.time()), random.randint(1000, 9999)
+            account_id,
+            int(time.time()),
+            random.randint(1000, 9999),
         )
         replication_source_bucket_dict = raw_api.create_bucket(
             api_url,
@@ -202,25 +209,22 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         assert 'replicationConfiguration' in replication_source_bucket_dict
         assert replication_source_bucket_dict['replicationConfiguration'] == {
             'isClientAuthorizedToRead': True,
-            'value':
-                {
-                    "asReplicationSource":
+            'value': {
+                "asReplicationSource": {
+                    "replicationRules": [
                         {
-                            "replicationRules":
-                                [
-                                    {
-                                        "destinationBucketId": bucket_id,
-                                        "fileNamePrefix": "",
-                                        "includeExistingFiles": True,
-                                        "isEnabled": True,
-                                        "priority": 128,
-                                        "replicationRuleName": "test-rule"
-                                    },
-                                ],
-                            "sourceApplicationKeyId": replication_source_key,
+                            "destinationBucketId": bucket_id,
+                            "fileNamePrefix": "",
+                            "includeExistingFiles": True,
+                            "isEnabled": True,
+                            "priority": 128,
+                            "replicationRuleName": "test-rule",
                         },
-                    "asReplicationDestination": None,
+                    ],
+                    "sourceApplicationKeyId": replication_source_key,
                 },
+                "asReplicationDestination": None,
+            },
         }
 
         # 3) upload test file and check replication status
@@ -241,8 +245,9 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
             io.BytesIO(file_contents),
         )
 
-        assert ReplicationStatus[file_dict['replicationStatus'].upper()
-                                ] == ReplicationStatus.PENDING
+        assert (
+            ReplicationStatus[file_dict['replicationStatus'].upper()] == ReplicationStatus.PENDING
+        )
 
     finally:
         raw_api.delete_key(api_url, account_auth_token, replication_source_key)
@@ -276,17 +281,14 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         )
         assert bucket_dict['replicationConfiguration'] == {
             'isClientAuthorizedToRead': True,
-            'value':
-                {
-                    'asReplicationDestination':
-                        {
-                            'sourceToDestinationKeyMapping':
-                                {
-                                    replication_source_key: replication_destination_key,
-                                },
-                        },
-                    'asReplicationSource': None,
+            'value': {
+                'asReplicationDestination': {
+                    'sourceToDestinationKeyMapping': {
+                        replication_source_key: replication_destination_key,
+                    },
                 },
+                'asReplicationSource': None,
+            },
         }
     finally:
         raw_api.delete_key(
@@ -327,7 +329,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     for encryption_setting, default_retention in [
         (
             sse_none,
-            BucketRetentionSetting(mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1))
+            BucketRetentionSetting(mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1)),
         ),
         (sse_b2_aes, None),
         (sse_b2_aes, BucketRetentionSetting(RetentionMode.NONE)),
@@ -345,7 +347,7 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     # b2_list_buckets
     print('b2_list_buckets')
     bucket_list_dict = raw_api.list_buckets(api_url, account_auth_token, account_id)
-    #print(bucket_list_dict)
+    # print(bucket_list_dict)
 
     # b2_get_upload_url
     print('b2_get_upload_url')
@@ -365,17 +367,14 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
         len(file_contents),
         'text/plain',
         file_sha1,
-        {
-            'color': 'blue',
-            'b2-cache-control': 'private, max-age=2222'
-        },
+        {'color': 'blue', 'b2-cache-control': 'private, max-age=2222'},
         io.BytesIO(file_contents),
         server_side_encryption=sse_b2_aes,
-        #custom_upload_timestamp=12345,
+        # custom_upload_timestamp=12345,
         file_retention=FileRetentionSetting(
             RetentionMode.GOVERNANCE,
             int(time.time() + 100) * 1000,
-        )
+        ),
     )
 
     file_id = file_dict['fileId']
@@ -500,8 +499,12 @@ def raw_api_test_helper(raw_api, should_cleanup_old_buckets):
     part_contents = b'hello part'
     part_sha1 = hex_sha1_of_stream(io.BytesIO(part_contents), len(part_contents))
     raw_api.upload_part(
-        upload_part_url, upload_path_auth, 1, len(part_contents), part_sha1,
-        io.BytesIO(part_contents)
+        upload_part_url,
+        upload_path_auth,
+        1,
+        len(part_contents),
+        part_sha1,
+        io.BytesIO(part_contents),
     )
 
     # b2_copy_part
@@ -606,15 +609,18 @@ def _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, b
         action = version_dict['action']
         if action in ['hide', 'upload']:
             print('b2_delete_file', file_name, action)
-            if action == 'upload' and version_dict[
-                'fileRetention'] and version_dict['fileRetention']['value']['mode'] is not None:
+            if (
+                action == 'upload'
+                and version_dict['fileRetention']
+                and version_dict['fileRetention']['value']['mode'] is not None
+            ):
                 raw_api.update_file_retention(
                     api_url,
                     account_auth_token,
                     file_id,
                     file_name,
                     NO_RETENTION_FILE_SETTING,
-                    bypass_governance=True
+                    bypass_governance=True,
                 )
             raw_api.delete_file_version(api_url, account_auth_token, file_id, file_name)
         else:

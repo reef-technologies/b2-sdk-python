@@ -289,7 +289,7 @@ class TestLocalFolder(TestFolder):
         prepare_files=True,
         broken_symlink=False,
         invalid_permissions=False,
-        use_file_versions_info=False
+        use_file_versions_info=False,
     ):
         assert not (broken_symlink and invalid_permissions)
 
@@ -305,7 +305,7 @@ class TestLocalFolder(TestFolder):
         if broken_symlink:
             os.symlink(
                 os.path.join(self.root_dir, 'non_existant_file'),
-                os.path.join(self.root_dir, 'bad_symlink')
+                os.path.join(self.root_dir, 'bad_symlink'),
             )
         elif invalid_permissions:
             os.chmod(os.path.join(self.root_dir, self.NAMES[0]), 0)
@@ -355,8 +355,9 @@ class TestLocalFolder(TestFolder):
 
     def test_syncable_paths(self):
         syncable_paths = (
-            ('test.txt', 'test.txt'), ('./a/test.txt', 'a/test.txt'),
-            ('./a/../test.txt', 'test.txt')
+            ('test.txt', 'test.txt'),
+            ('./a/test.txt', 'a/test.txt'),
+            ('./a/../test.txt', 'test.txt'),
         )
 
         folder = self.prepare_folder(prepare_files=False)
@@ -377,38 +378,39 @@ class TestB2Folder(TestFolder):
     __test__ = True
 
     FILE_VERSION_INFOS = {
-        os.path.join('inner', 'a.txt'):
-            [
-                (
-                    FileVersionInfo(
-                        'a2', 'inner/a.txt', 200, 'text/plain', 'sha1', {}, 2000, 'upload'
-                    ), ''
+        os.path.join('inner', 'a.txt'): [
+            (
+                FileVersionInfo('a2', 'inner/a.txt', 200, 'text/plain', 'sha1', {}, 2000, 'upload'),
+                '',
+            ),
+            (
+                FileVersionInfo('a1', 'inner/a.txt', 100, 'text/plain', 'sha1', {}, 1000, 'upload'),
+                '',
+            ),
+        ],
+        os.path.join('inner', 'b.txt'): [
+            (
+                FileVersionInfo('b2', 'inner/b.txt', 200, 'text/plain', 'sha1', {}, 1999, 'upload'),
+                '',
+            ),
+            (
+                FileVersionInfo('bs', 'inner/b.txt', 150, 'text/plain', 'sha1', {}, 1500, 'start'),
+                '',
+            ),
+            (
+                FileVersionInfo(
+                    'b1',
+                    'inner/b.txt',
+                    100,
+                    'text/plain',
+                    'sha1',
+                    {'src_last_modified_millis': 1001},
+                    6666,
+                    'upload',
                 ),
-                (
-                    FileVersionInfo(
-                        'a1', 'inner/a.txt', 100, 'text/plain', 'sha1', {}, 1000, 'upload'
-                    ), ''
-                )
-            ],
-        os.path.join('inner', 'b.txt'):
-            [
-                (
-                    FileVersionInfo(
-                        'b2', 'inner/b.txt', 200, 'text/plain', 'sha1', {}, 1999, 'upload'
-                    ), ''
-                ),
-                (
-                    FileVersionInfo(
-                        'bs', 'inner/b.txt', 150, 'text/plain', 'sha1', {}, 1500, 'start'
-                    ), ''
-                ),
-                (
-                    FileVersionInfo(
-                        'b1', 'inner/b.txt', 100, 'text/plain', 'sha1',
-                        {'src_last_modified_millis': 1001}, 6666, 'upload'
-                    ), ''
-                )
-            ]
+                '',
+            ),
+        ],
     }
 
     def setUp(self):
@@ -423,7 +425,7 @@ class TestB2Folder(TestFolder):
         prepare_files=True,
         broken_symlink=False,
         invalid_permissions=False,
-        use_file_versions_info=False
+        use_file_versions_info=False,
     ):
         if prepare_files:
             for relative_path in self.NAMES:
@@ -439,22 +441,26 @@ class TestB2Folder(TestFolder):
         if platform.system() == 'Windows':
             relative_path = relative_path.replace(os.sep, '/')
         if relative_path in self.MOD_TIMES:
-            self.bucket.ls.return_value.append(
-                (
-                    FileVersionInfo(
-                        relative_path, relative_path, 100, 'text/plain', 'sha1', {},
-                        self.MOD_TIMES[relative_path], 'upload'
-                    ), self.root_dir
-                )
-            )
+            self.bucket.ls.return_value.append((
+                FileVersionInfo(
+                    relative_path,
+                    relative_path,
+                    100,
+                    'text/plain',
+                    'sha1',
+                    {},
+                    self.MOD_TIMES[relative_path],
+                    'upload',
+                ),
+                self.root_dir,
+            ))
         else:
-            self.bucket.ls.return_value.append(
-                (
-                    FileVersionInfo(
-                        relative_path, relative_path, 100, 'text/plain', 'sha1', {}, TODAY, 'upload'
-                    ), self.root_dir
-                )
-            )
+            self.bucket.ls.return_value.append((
+                FileVersionInfo(
+                    relative_path, relative_path, 100, 'text/plain', 'sha1', {}, TODAY, 'upload'
+                ),
+                self.root_dir,
+            ))
 
     def test_empty(self):
         folder = self.prepare_folder(prepare_files=False)
@@ -467,11 +473,13 @@ class TestB2Folder(TestFolder):
         self.assertEqual(
             [
                 "B2Path(inner/a.txt, [('a2', 2000, 'upload'), ('a1', 1000, 'upload')])",
-                "B2Path(inner/b.txt, [('b2', 1999, 'upload'), ('b1', 1001, 'upload')])"
-            ], [
-                str(f) for f in folder.all_files(self.reporter)
+                "B2Path(inner/b.txt, [('b2', 1999, 'upload'), ('b1', 1001, 'upload')])",
+            ],
+            [
+                str(f)
+                for f in folder.all_files(self.reporter)
                 if f.relative_path in ('inner/a.txt', 'inner/b.txt')
-            ]
+            ],
         )
 
     def test_exclude_modified_multiple_versions(self):
@@ -480,10 +488,12 @@ class TestB2Folder(TestFolder):
         )
         folder = self.prepare_folder(use_file_versions_info=True)
         self.assertEqual(
-            ["B2Path(inner/b.txt, [('b2', 1999, 'upload'), ('b1', 1001, 'upload')])"], [
-                str(f) for f in folder.all_files(self.reporter, policies_manager=polices_manager)
+            ["B2Path(inner/b.txt, [('b2', 1999, 'upload'), ('b1', 1001, 'upload')])"],
+            [
+                str(f)
+                for f in folder.all_files(self.reporter, policies_manager=polices_manager)
                 if f.relative_path in ('inner/a.txt', 'inner/b.txt')
-            ]
+            ],
         )
 
     def test_exclude_modified_all_versions(self):
@@ -654,7 +664,8 @@ class FakeB2Folder(B2Folder):
                 file_info={'in_b2': 'yes'},
                 content_type='text/plain',
                 content_sha1='content_sha1',
-            ) for mod_time in mod_times
+            )
+            for mod_time in mod_times
         ]  # yapf disable
 
     @classmethod
@@ -700,7 +711,7 @@ class TestParseSyncFolder(TestBase):
 
 class TestFolderExceptions:
     """There is an exact copy of this class in unit/v0/test_sync.py - TODO: leave only one when migrating tests to
-       sync-like structure.
+    sync-like structure.
     """
 
     @pytest.mark.parametrize(
@@ -744,7 +755,7 @@ class TestFolderExceptions:
             pytest.param(
                 CommandError,
                 'Directory .* is empty.  Use --allowEmptySource to sync anyway.',
-                marks=pytest.mark.apiver(to_ver=1)
+                marks=pytest.mark.apiver(to_ver=1),
             ),
         ],
     )
@@ -764,7 +775,6 @@ class TestFolderExceptions:
         ],
     )
     def test_double_slash_not_allowed(self, exception, msg):
-
         with pytest.raises(exception, match=msg):
             parse_sync_folder('b2://a//b', MagicMock())
 
@@ -795,11 +805,13 @@ class TestZipFolders(TestSync):
                 (FakeB2Folder.sync_path_from_file_tuple(*file_a1), None),
                 (
                     FakeB2Folder.sync_path_from_file_tuple(*file_a2),
-                    FakeB2Folder.sync_path_from_file_tuple(*file_b1)
-                ), (FakeB2Folder.sync_path_from_file_tuple(*file_a3), None),
+                    FakeB2Folder.sync_path_from_file_tuple(*file_b1),
+                ),
+                (FakeB2Folder.sync_path_from_file_tuple(*file_a3), None),
                 (None, FakeB2Folder.sync_path_from_file_tuple(*file_b2)),
-                (FakeB2Folder.sync_path_from_file_tuple(*file_a4), None)
-            ], list(zip_folders(folder_a, folder_b, self.reporter))
+                (FakeB2Folder.sync_path_from_file_tuple(*file_a4), None),
+            ],
+            list(zip_folders(folder_a, folder_b, self.reporter)),
         )
 
     def test_pass_reporter_to_folder(self):
@@ -891,16 +903,16 @@ class TestExclusions(TestSync):
         # only remote
         file_c = ('c.txt', 100)
 
-        local_folder = FakeLocalFolder(
-            [local_file(*f) for f in (file_a, file_b, file_d, file_e, file_bi, file_z)]
-        )
+        local_folder = FakeLocalFolder([
+            local_file(*f) for f in (file_a, file_b, file_d, file_e, file_bi, file_z)
+        ])
         b2_folder = FakeB2Folder([file_bi, file_c, file_z])
 
         policies_manager = ScanPoliciesManager(
             exclude_dir_regexes=fakeargs.excludeDirRegex,
             exclude_file_regexes=fakeargs.excludeRegex,
             include_file_regexes=fakeargs.includeRegex,
-            exclude_all_symlinks=fakeargs.excludeAllSymlinks
+            exclude_all_symlinks=fakeargs.excludeAllSymlinks,
         )
         synchronizer = fakeargs.get_synchronizer(policies_manager=policies_manager)
         actions = list(
@@ -938,7 +950,7 @@ class TestExclusions(TestSync):
         fakeargs = FakeArgs(
             keep_days_or_delete=KeepOrDeleteMode.DELETE,
             excludeRegex=["b\\.txt"],
-            includeRegex=[".*\\.incl"]
+            includeRegex=[".*\\.incl"],
         )
         self._check_folder_sync(expected_actions, fakeargs)
 

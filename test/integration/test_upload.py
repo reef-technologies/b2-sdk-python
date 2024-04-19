@@ -21,10 +21,12 @@ from .test_raw_api import authorize_raw_api
 
 
 class TestUnboundStreamUpload(IntegrationTestBase):
+    test_prefix = "test-unbound-upload"
+
     def assert_data_uploaded_via_stream(self, data: bytes, part_size: int | None = None):
-        bucket = self.create_bucket()
+        bucket = self.single_bucket.bucket
         stream = io.BytesIO(data)
-        file_name = 'unbound_stream'
+        file_name = self.single_bucket.get_path_for_current_test('unbound_stream')
 
         bucket.upload_unbound_stream(stream, file_name, recommended_upload_part_size=part_size)
 
@@ -46,6 +48,8 @@ class TestUnboundStreamUpload(IntegrationTestBase):
 
 
 class TestUploadLargeFile(IntegrationTestBase):
+    test_prefix = "test-upload-large"
+
     def test_ssec_key_id(self):
         sse_c = EncryptionSetting(
             mode=EncryptionMode.SSE_C,
@@ -58,13 +62,12 @@ class TestUploadLargeFile(IntegrationTestBase):
         auth_dict = authorize_raw_api(raw_api)
         account_auth_token = auth_dict['authorizationToken']
         api_url = auth_dict['apiUrl']
-        bucket = self.create_bucket()
 
         large_info = raw_api.start_large_file(
             api_url,
             account_auth_token,
-            bucket.id_,
-            'test_largefile_sse_c.txt',
+            self.single_bucket.bucket_id,
+            self.single_bucket.get_path_for_current_test('test_largefile_sse_c.txt'),
             'text/plain',
             None,
             server_side_encryption=sse_c,

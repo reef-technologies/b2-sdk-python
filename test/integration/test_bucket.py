@@ -7,7 +7,12 @@
 # License https://www.backblaze.com/using_b2_code.html
 #
 ######################################################################
-def test_bucket_notification_rules(bucket):
+import pytest
+
+
+@pytest.mark.skip(reason="API disabled")
+def test_bucket_notification_rules(single_bucket):
+    bucket = single_bucket.bucket
     assert bucket.set_notification_rules([]) == []
     assert bucket.get_notification_rules() == []
 

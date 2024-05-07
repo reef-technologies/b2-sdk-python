@@ -38,7 +38,9 @@ class TestFileVersionAttributes(IntegrationTestBase):
                 dt.datetime(2105, 10, 21, 7, 28, tzinfo=dt.timezone.utc)
         }
 
-        file_version = bucket.upload_bytes(b'0', self.single_bucket.get_path_for_current_test('file'), **kwargs)
+        file_version = bucket.upload_bytes(
+            b'0', self.single_bucket.get_path_for_current_test('file'), **kwargs
+        )
         self._assert_object_has_attributes(file_version, expected_attributes)
 
         file_version = bucket.get_file_info_by_id(file_version.id_)

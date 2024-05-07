@@ -78,12 +78,9 @@ def delete_file(file_version, b2_api, logger) -> bool:
     """Returns True if deletion was successful and False if file remained due to compliance mode retention"""
     if file_version.file_retention:
         if file_version.file_retention.mode == RetentionMode.GOVERNANCE:
-            logger.info(
-                'Removing retention from file version: %s', file_version.id_
-            )
+            logger.info('Removing retention from file version: %s', file_version.id_)
             b2_api.update_file_retention(
-                file_version.id_, file_version.file_name,
-                NO_RETENTION_FILE_SETTING, True
+                file_version.id_, file_version.file_name, NO_RETENTION_FILE_SETTING, True
             )
         elif file_version.file_retention.mode == RetentionMode.COMPLIANCE:
             if file_version.file_retention.retain_until > current_time_millis():  # yapf: disable
@@ -95,16 +92,10 @@ def delete_file(file_version, b2_api, logger) -> bool:
         elif file_version.file_retention.mode == RetentionMode.NONE:
             pass
         else:
-            raise ValueError(
-                f'Unknown retention mode: {file_version.file_retention.mode}'
-            )
+            raise ValueError(f'Unknown retention mode: {file_version.file_retention.mode}')
     if file_version.legal_hold.is_on():
-        logger.info(
-            'Removing legal hold from file version: %s', file_version.id_
-        )
-        b2_api.update_file_legal_hold(
-            file_version.id_, file_version.file_name, LegalHold.OFF
-        )
+        logger.info('Removing legal hold from file version: %s', file_version.id_)
+        b2_api.update_file_legal_hold(file_version.id_, file_version.file_name, LegalHold.OFF)
     logger.info('Removing file version:', file_version.id_)
     b2_api.delete_file_version(file_version.id_, file_version.file_name)
     return True

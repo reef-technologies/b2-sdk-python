@@ -1,8 +1,19 @@
+######################################################################
+#
+# File: test/integration/test_raw_api.py
+#
+# Copyright 2021 Backblaze Inc. All Rights Reserved.
+#
+# License https://www.backblaze.com/using_b2_code.html
+#
+######################################################################
 import io
 import os
 import random
 import re
 import time
+from test.integration.base import RawSingleBucket
+from test.integration.helpers import raw_delete_file
 
 import pytest
 
@@ -27,9 +38,8 @@ from b2sdk._internal.raw_api import (
 from b2sdk._internal.replication.setting import ReplicationConfiguration, ReplicationRule
 from b2sdk._internal.replication.types import ReplicationStatus
 from b2sdk._internal.utils import hex_sha1_of_stream
-from test.integration.helpers import raw_delete_file
-from test.integration.base import RawSingleBucket
 
+#
 """
 Exercise the code in B2RawHTTPApi by making each call once, just
 to make sure the parameters are passed in, and the result is
@@ -50,10 +60,13 @@ def cleanup_old_buckets():
 
 
 def authorize_raw_api(raw_api):
-    if (application_key_id := os.environ.get('B2_TEST_APPLICATION_KEY_ID')) is None:
+    application_key_id = os.environ.get('B2_TEST_APPLICATION_KEY_ID')
+    application_key = os.environ.get('B2_TEST_APPLICATION_KEY')
+
+    if application_key_id is None:
         pytest.fail('B2_TEST_APPLICATION_KEY_ID is not set.')
 
-    if (application_key := os.environ.get('B2_TEST_APPLICATION_KEY')) is None:
+    if application_key is None:
         pytest.fail('B2_TEST_APPLICATION_KEY is not set.')
 
     realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
@@ -69,7 +82,7 @@ class RawApiIntegrationTestBase:
     account_auth_token: str
     account_id: str
     sse_b2_aes: EncryptionSetting
-    
+
     @classmethod
     def setup_class(cls):
         # very verbose http debug:
@@ -87,8 +100,9 @@ class RawApiIntegrationTestBase:
         print("b2_authorize_account")
         cls.auth_dict = authorize_raw_api(cls.raw_api)
 
-        missing_capabilities = set(ALL_CAPABILITIES) - {'readBuckets', 'listAllBucketNames'
-                                                        } - set(cls.auth_dict['allowed']['capabilities'])
+        missing_capabilities = set(ALL_CAPABILITIES) - {'readBuckets', 'listAllBucketNames'} - set(
+            cls.auth_dict['allowed']['capabilities']
+        )
         assert not missing_capabilities, 'it appears that the raw_api integration test is being run with a non-full key. Missing capabilities: {}'.format(
             missing_capabilities,
         )
@@ -124,10 +138,7 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
 
         # bucket_prefix needs to be changed because bucket settings collide with test-singlebucket
         cls.single_bucket = RawSingleBucket(
-            cls.raw_api,
-            cls.auth_dict,
-            "test-raw-api",
-            bucket_infix="sb-raw"
+            cls.raw_api, cls.auth_dict, "test-raw-api", bucket_infix="sb-raw"
         )
 
         cls.file_name = cls.single_bucket.get_path_for_current_test('test.txt')
@@ -151,15 +162,17 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
     def b2_get_download_authorization(cls):
         print("b2_get_download_authorization")
         download_auth = cls.raw_api.get_download_authorization(
-            cls.api_url, cls.account_auth_token, cls.single_bucket.bucket_id, cls.file_name[:-2], 12345
+            cls.api_url, cls.account_auth_token, cls.single_bucket.bucket_id, cls.file_name[:-2],
+            12345
         )
         cls.download_auth_token = download_auth['authorizationToken']
 
     @classmethod
     def test_file_upload(cls):
         print("b2_get_upload_url")
-        upload_url_dict = cls.raw_api.get_upload_url(cls.api_url, cls.account_auth_token,
-                                                         cls.single_bucket.bucket_id)
+        upload_url_dict = cls.raw_api.get_upload_url(
+            cls.api_url, cls.account_auth_token, cls.single_bucket.bucket_id
+        )
         upload_url = upload_url_dict['uploadUrl']
         upload_auth_token = upload_url_dict['authorizationToken']
 
@@ -205,7 +218,9 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
         large_file_id = large_info['fileId']
 
         print("b2_get_upload_part_url")
-        upload_part_dict = self.raw_api.get_upload_part_url(self.api_url, self.account_auth_token, large_file_id)
+        upload_part_dict = self.raw_api.get_upload_part_url(
+            self.api_url, self.account_auth_token, large_file_id
+        )
         upload_part_url = upload_part_dict['uploadUrl']
         upload_path_auth = upload_part_dict['authorizationToken']
 
@@ -214,18 +229,24 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
         self.part_sha1 = hex_sha1_of_stream(io.BytesIO(part_contents), len(part_contents))
         self.raw_api.upload_part(
             upload_part_url, upload_path_auth, 1, len(part_contents), self.part_sha1,
-            io.BytesIO(part_contents))
+            io.BytesIO(part_contents)
+        )
 
         print("b2_copy_part")
-        self.raw_api.copy_part(self.api_url, self.account_auth_token, self.file_id, large_file_id, 2, (0, 5))
+        self.raw_api.copy_part(
+            self.api_url, self.account_auth_token, self.file_id, large_file_id, 2, (0, 5)
+        )
 
         print("b2_list_parts")
-        parts_response = self.raw_api.list_parts(self.api_url, self.account_auth_token, large_file_id, 1, 100)
+        parts_response = self.raw_api.list_parts(
+            self.api_url, self.account_auth_token, large_file_id, 1, 100
+        )
         assert [1, 2] == [part['partNumber'] for part in parts_response['parts']]
 
         print("b2_list_unfinished_large_file")
-        unfinished_list = self.raw_api.list_unfinished_large_files(self.api_url, self.account_auth_token,
-                                                                   self.single_bucket.bucket_id)
+        unfinished_list = self.raw_api.list_unfinished_large_files(
+            self.api_url, self.account_auth_token, self.single_bucket.bucket_id
+        )
 
         unfinished_files_list = list(self.single_bucket.iter_test_files(unfinished_list['files']))
 
@@ -234,15 +255,18 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
 
         print("b2_finish_large_file")
         try:
-            self.raw_api.finish_large_file(self.api_url, self.account_auth_token, large_file_id,
-                                           [self.part_sha1])
+            self.raw_api.finish_large_file(
+                self.api_url, self.account_auth_token, large_file_id, [self.part_sha1]
+            )
             raise Exception('finish should have failed')
         except Exception as e:
             assert 'large files must have at least 2 parts' in str(e)
         # TODO: make another attempt to finish but this time successfully
 
     def test_b2_list_file_versions(self):
-        list_versions_dict = self.raw_api.list_file_versions(self.api_url, self.account_auth_token, self.single_bucket.bucket_id)
+        list_versions_dict = self.raw_api.list_file_versions(
+            self.api_url, self.account_auth_token, self.single_bucket.bucket_id
+        )
         files = list(self.single_bucket.iter_test_files(list_versions_dict['files']))
         assert len(files) == 2
 
@@ -250,7 +274,9 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
             if file['fileName'] == self.file_name:
                 assert file['fileInfo']['b2-cache-control'] == 'private, max-age=2222'
             elif file['fileName'] == self.file_name_large:
-                assert file['fileInfo'][next(iter(self.file_info.keys()))] == next(iter(self.file_info.values()))
+                assert file['fileInfo'][next(iter(self.file_info.keys()))] == next(
+                    iter(self.file_info.values())
+                )
             else:
                 pytest.fail("unexpected file in listing")
 
@@ -267,63 +293,95 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
             assert data == self.file_contents, data
 
     def test_b2_download_file_by_name_with_auth(self):
-        url = self.raw_api.get_download_url_by_name(self.download_url, self.single_bucket.bucket_name, self.file_name)
+        url = self.raw_api.get_download_url_by_name(
+            self.download_url, self.single_bucket.bucket_name, self.file_name
+        )
         with self.raw_api.download_file_from_url(self.account_auth_token, url) as response:
             data = next(response.iter_content(chunk_size=len(self.file_contents)))
             assert data == self.file_contents, data
 
     def test_b2_download_file_by_name_no_auth(self):
-        url = self.raw_api.get_download_url_by_name(self.download_url, self.single_bucket.bucket_name, self.file_name)
+        url = self.raw_api.get_download_url_by_name(
+            self.download_url, self.single_bucket.bucket_name, self.file_name
+        )
         with self.raw_api.download_file_from_url(None, url) as response:
             data = next(response.iter_content(chunk_size=len(self.file_contents)))
             assert data == self.file_contents, data
 
     def test_b2_download_file_by_name_dl_auth(self):
-        url = self.raw_api.get_download_url_by_name(self.download_url, self.single_bucket.bucket_name, self.file_name)
+        url = self.raw_api.get_download_url_by_name(
+            self.download_url, self.single_bucket.bucket_name, self.file_name
+        )
         with self.raw_api.download_file_from_url(self.download_auth_token, url) as response:
             data = next(response.iter_content(chunk_size=len(self.file_contents)))
             assert data == self.file_contents, data
 
     def test_b2_list_file_names(self):
-        list_names_dict = self.raw_api.list_file_names(self.api_url, self.account_auth_token, self.single_bucket.bucket_id)
-        assert [self.file_name] == [f_dict['fileName'] for f_dict in self.single_bucket.iter_test_files(list_names_dict['files'])]
+        list_names_dict = self.raw_api.list_file_names(
+            self.api_url, self.account_auth_token, self.single_bucket.bucket_id
+        )
+        assert [self.file_name] == [
+            f_dict['fileName']
+            for f_dict in self.single_bucket.iter_test_files(list_names_dict['files'])
+        ]
 
     def test_b2_list_file_names_start_count(self):
         list_names_dict = self.raw_api.list_file_names(
-            self.api_url, self.account_auth_token, self.single_bucket.bucket_id, start_file_name=self.file_name, max_file_count=5
+            self.api_url,
+            self.account_auth_token,
+            self.single_bucket.bucket_id,
+            start_file_name=self.file_name,
+            max_file_count=5
         )
-        assert [self.file_name] == [f_dict['fileName'] for f_dict in self.single_bucket.iter_test_files(list_names_dict['files'])]
+        assert [self.file_name] == [
+            f_dict['fileName']
+            for f_dict in self.single_bucket.iter_test_files(list_names_dict['files'])
+        ]
 
     def test_b2_copy_file(self):
-        self.raw_api.copy_file(self.api_url, self.account_auth_token, self.file_id, self.copy_file_name)
+        self.raw_api.copy_file(
+            self.api_url, self.account_auth_token, self.file_id, self.copy_file_name
+        )
 
     def test_b2_get_file_info_by_id(self):
-        file_info_dict = self.raw_api.get_file_info_by_id(self.api_url, self.account_auth_token, self.file_id)
+        file_info_dict = self.raw_api.get_file_info_by_id(
+            self.api_url, self.account_auth_token, self.file_id
+        )
         assert file_info_dict['fileName'] == self.file_name
 
     def test_b2_get_file_info_by_name_no_auth(self):
-        info_headers = self.raw_api.get_file_info_by_name(self.download_url, None, self.single_bucket.bucket_name, self.file_name)
+        info_headers = self.raw_api.get_file_info_by_name(
+            self.download_url, None, self.single_bucket.bucket_name, self.file_name
+        )
         assert info_headers['x-bz-file-id'] == self.file_id
 
     def test_b2_get_file_info_by_name_with_auth(self):
         info_headers = self.raw_api.get_file_info_by_name(
-            self.download_url, self.account_auth_token, self.single_bucket.bucket_name, self.file_name
+            self.download_url, self.account_auth_token, self.single_bucket.bucket_name,
+            self.file_name
         )
         assert info_headers['x-bz-file-id'] == self.file_id
 
     def test_b2_get_file_info_by_name_dl_auth(self):
         info_headers = self.raw_api.get_file_info_by_name(
-            self.download_url, self.download_auth_token, self.single_bucket.bucket_name, self.file_name
+            self.download_url, self.download_auth_token, self.single_bucket.bucket_name,
+            self.file_name
         )
         assert info_headers['x-bz-file-id'] == self.file_id
 
     def test_b2_hide_file(self):
-        self.raw_api.hide_file(self.api_url, self.account_auth_token, self.single_bucket.bucket_id, self.file_name)
+        self.raw_api.hide_file(
+            self.api_url, self.account_auth_token, self.single_bucket.bucket_id, self.file_name
+        )
 
     def test_b2_delete_file_version(self, dont_cleanup_old_buckets):
         with pytest.raises(Unauthorized):
-            self.raw_api.delete_file_version(self.api_url, self.account_auth_token, self.file_id, self.file_name)
-        self.raw_api.delete_file_version(self.api_url, self.account_auth_token, self.file_id, self.file_name, True)
+            self.raw_api.delete_file_version(
+                self.api_url, self.account_auth_token, self.file_id, self.file_name
+            )
+        self.raw_api.delete_file_version(
+            self.api_url, self.account_auth_token, self.file_id, self.file_name, True
+        )
 
 
 @pytest.mark.usefixtures('check_dont_cleanup_old_buckets')
@@ -358,21 +416,28 @@ class TestRawApiBucketTests(RawApiIntegrationTestBase):
         )
         cls.bucket_id = bucket_dict['bucketId']
         cls.first_bucket_revision = bucket_dict['revision']
-    
+
     @classmethod
     def b2_list_buckets(cls):
-        cls.bucket_list_dict = cls.raw_api.list_buckets(cls.api_url, cls.account_auth_token, cls.account_id)
+        cls.bucket_list_dict = cls.raw_api.list_buckets(
+            cls.api_url, cls.account_auth_token, cls.account_id
+        )
 
     @classmethod
     def teardown_class(cls):
         # Clean up this test.
-        _clean_and_delete_bucket(cls.raw_api, cls.api_url, cls.account_auth_token, cls.account_id, cls.bucket_id)
+        _clean_and_delete_bucket(
+            cls.raw_api, cls.api_url, cls.account_auth_token, cls.account_id, cls.bucket_id
+        )
 
         if cls.dont_cleanup_old_buckets:
             return
 
         # Clean up from old tests. Empty and delete any buckets more than an hour old.
-        _cleanup_old_buckets(cls.raw_api, cls.auth_dict, cls.bucket_list_dict or cls.raw_api.list_buckets(cls.api_url, cls.account_auth_token, cls.account_id))  # or because bucket_list_dict is set by other test which may not have been run
+        _cleanup_old_buckets(
+            cls.raw_api, cls.auth_dict, cls.bucket_list_dict or
+            cls.raw_api.list_buckets(cls.api_url, cls.account_auth_token, cls.account_id)
+        )  # or because bucket_list_dict is set by other test which may not have been run
 
     def test_b2_list_keys(self):
         print('b2_list_keys')
@@ -392,7 +457,9 @@ class TestRawApiBucketTests(RawApiIntegrationTestBase):
         )
 
         print("b2_delete_key")
-        self.raw_api.delete_key(self.api_url, self.account_auth_token, self.key_dict['applicationKeyId'])
+        self.raw_api.delete_key(
+            self.api_url, self.account_auth_token, self.key_dict['applicationKeyId']
+        )
 
     def test_b2_replication(self):
         # 1) create source key (read permissions)
@@ -560,12 +627,14 @@ class TestRawApiBucketTests(RawApiIntegrationTestBase):
         for encryption_setting, default_retention in [
             (
                 sse_none,
-                BucketRetentionSetting(mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1))
+                BucketRetentionSetting(
+                    mode=RetentionMode.GOVERNANCE, period=RetentionPeriod(days=1)
+                )
             ),
             (self.sse_b2_aes, None),
             (self.sse_b2_aes, BucketRetentionSetting(RetentionMode.NONE)),
         ]:
-            bucket_dict = self.raw_api.update_bucket(
+            self.raw_api.update_bucket(
                 self.api_url,
                 self.account_auth_token,
                 self.account_id,

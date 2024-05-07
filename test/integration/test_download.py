@@ -16,6 +16,8 @@ import pathlib
 import platform
 import tempfile
 from pprint import pprint
+from test.integration.base import IntegrationTestBase
+from test.integration.helpers import authorize, write_zeros
 from unittest import mock
 
 import pytest
@@ -23,9 +25,6 @@ import pytest
 from b2sdk._internal.utils import Sha1HexDigest
 from b2sdk._internal.utils.filesystem import _IS_WINDOWS
 from b2sdk.v2 import *
-
-from test.integration.base import IntegrationTestBase
-from test.integration.helpers import authorize, write_zeros
 
 
 class TestDownload(IntegrationTestBase):
@@ -96,7 +95,9 @@ class TestDownload(IntegrationTestBase):
 
     def test_small_unverified(self):
         file_name = self.single_bucket.get_path_for_current_test('small_file')
-        f, _ = self._file_helper(self.single_bucket.bucket, file_name, sha1_sum='do_not_verify', bytes_to_write=1)
+        f, _ = self._file_helper(
+            self.single_bucket.bucket, file_name, sha1_sum='do_not_verify', bytes_to_write=1
+        )
         if f.download_version.content_sha1_verified:
             pprint(f.download_version._get_args_for_clone())
             assert not f.download_version.content_sha1_verified
@@ -136,12 +137,16 @@ def source_file(tmp_path):
 
 @pytest.fixture
 def uploaded_source_file_version(single_bucket, source_file):
-    file_version = single_bucket.bucket.upload_local_file(str(source_file), single_bucket.get_path_for_current_test(source_file.name))
+    file_version = single_bucket.bucket.upload_local_file(
+        str(source_file), single_bucket.get_path_for_current_test(source_file.name)
+    )
     return file_version
 
 
 @pytest.mark.skipif(platform.system() == 'Windows', reason='no os.mkfifo() on Windows')
-def test_download_to_fifo(single_bucket, tmp_path, source_file, uploaded_source_file_version, bg_executor):
+def test_download_to_fifo(
+    single_bucket, tmp_path, source_file, uploaded_source_file_version, bg_executor
+):
     output_file = tmp_path / 'output.txt'
     os.mkfifo(output_file)
     output_string = None
@@ -152,7 +157,8 @@ def test_download_to_fifo(single_bucket, tmp_path, source_file, uploaded_source_
 
     reader_future = bg_executor.submit(reader)
 
-    single_bucket.bucket.download_file_by_id(file_id=uploaded_source_file_version.id_).save_to(output_file)
+    single_bucket.bucket.download_file_by_id(file_id=uploaded_source_file_version.id_
+                                            ).save_to(output_file)
 
     reader_future.result(timeout=1)
     assert source_file.read_text() == output_string
@@ -173,6 +179,7 @@ def binary_cap(request):
 def test_download_to_stdout(single_bucket, source_file, uploaded_source_file_version, binary_cap):
     output_file = "CON" if _IS_WINDOWS else "/dev/stdout"
 
-    single_bucket.bucket.download_file_by_id(file_id=uploaded_source_file_version.id_).save_to(output_file)
+    single_bucket.bucket.download_file_by_id(file_id=uploaded_source_file_version.id_
+                                            ).save_to(output_file)
 
     assert binary_cap.readouterr().out == source_file.read_bytes()

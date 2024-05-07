@@ -14,7 +14,6 @@ import http.client
 import os
 from test.integration import get_b2_auth_data
 from test.integration.base import NonRawSingleBucket
-
 from test.integration.helpers import (
     authorize,
     get_bucket_name_prefix,
@@ -72,4 +71,3 @@ def single_bucket(b2_api, bucket_name_prefix, dont_cleanup_old_buckets):
     bucket = NonRawSingleBucket(b2_api, bucket_name_prefix)
     yield bucket
     bucket.clean_test_files(dont_cleanup_old_buckets)
-

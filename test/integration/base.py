@@ -56,18 +56,18 @@ class AbstractSingleBucket(ABC):
     bucket_id: str
     bucket_dict: dict
 
-    def __init__(self, test_prefix):
+    def __init__(self, test_prefix, bucket_prefix="test-singlebucket"):
         self.test_prefix = test_prefix
         self.current_test_prefix = f"{test_prefix}-{int(time.time())}"
-        self.bucket_name = self.get_bucket_name()
+        self.bucket_name = self.get_bucket_name(bucket_prefix)
 
-    def get_bucket_name(self):
+    def get_bucket_name(self, bucket_prefix):
         """Get bucket name based on repository. 64 bits of entropyeeaah"""
         shortdigest = hashlib.sha256(
             os.popen("git remote get-url origin").read().strip().encode("UTF-8")
         ).hexdigest()[:16]
 
-        return f"test-singlebucket-{shortdigest}-{self.account_id}"  # 27 + 16 + 12 = 55 chars
+        return f"{bucket_prefix}-{shortdigest}-{self.account_id}"  # 27 + 16 + 12 = 55 chars
 
     def get_path_for_current_test(self, file_name):
         return os.path.join(self.current_test_prefix, file_name)
@@ -128,13 +128,13 @@ class AbstractSingleBucket(ABC):
 
 class RawSingleBucket(AbstractSingleBucket):
     """AbstractSingleBucket implemented for raw_api test"""
-    def __init__(self, raw_api: B2RawHTTPApi, auth_dict, test_prefix):
+    def __init__(self, raw_api: B2RawHTTPApi, auth_dict, test_prefix, bucket_prefix="test-singlebucket"):
         self.raw_api = raw_api
         self.api_url = auth_dict["apiUrl"]
         self.account_id = auth_dict["accountId"]
         self.account_auth_token = auth_dict["authorizationToken"]
 
-        super().__init__(test_prefix)
+        super().__init__(test_prefix, bucket_prefix=bucket_prefix)
 
         self.bucket_dict = self.get_or_create_bucket()
         self.bucket_id = self.bucket_dict["bucketId"]

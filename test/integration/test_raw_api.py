@@ -122,7 +122,13 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
     def setup_class(cls):
         super().setup_class()
 
-        cls.single_bucket = RawSingleBucket(cls.raw_api, cls.auth_dict, "test-raw-api")
+        # bucket_prefix needs to be changed because bucket settings collide with test-singlebucket
+        cls.single_bucket = RawSingleBucket(
+            cls.raw_api,
+            cls.auth_dict,
+            "test-raw-api",
+            bucket_prefix="test-ra-singlebucket"
+        )
 
         cls.file_name = cls.single_bucket.get_path_for_current_test('test.txt')
         cls.file_name_large = cls.single_bucket.get_path_for_current_test("test_large.txt")

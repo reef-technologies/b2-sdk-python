@@ -23,8 +23,7 @@ from b2sdk._internal.bucket import Bucket
 from b2sdk._internal.raw_api import B2RawHTTPApi
 from b2sdk._internal.utils import current_time_millis
 from b2sdk.v2 import B2Api
-from test.integration.helpers import raw_delete_file, BUCKET_CREATED_AT_MILLIS, delete_file
-
+from test.integration.helpers import raw_delete_file, BUCKET_CREATED_AT_MILLIS, delete_file, GENERAL_BUCKET_NAME_PREFIX
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class IntegrationTestBase:
     single_bucket: NonRawSingleBucket
 
     @pytest.fixture(autouse=True, scope="class")
-    def cls_setup(self, request, b2_api, b2_auth_data, bucket_name_prefix, bucket_cleaner):
+    def cls_setup(self, request, b2_api, b2_auth_data, bucket_name_prefix):
         cls = request.cls
         cls.b2_auth_data = b2_auth_data
         cls.b2_api = b2_api
@@ -56,18 +55,19 @@ class AbstractSingleBucket(ABC):
     bucket_id: str
     bucket_dict: dict
 
-    def __init__(self, test_prefix, bucket_prefix="test-singlebucket"):
+    def __init__(self, test_prefix, bucket_infix="sb"):
         self.test_prefix = test_prefix
         self.current_test_prefix = f"{test_prefix}-{int(time.time())}"
-        self.bucket_name = self.get_bucket_name(bucket_prefix)
+        self.bucket_name = self.get_bucket_name(bucket_infix)
 
-    def get_bucket_name(self, bucket_prefix):
+    def get_bucket_name(self, bucket_infix):
         """Get bucket name based on repository. 64 bits of entropyeeaah"""
         shortdigest = hashlib.sha256(
             os.popen("git remote get-url origin").read().strip().encode("UTF-8")
         ).hexdigest()[:16]
 
-        return f"{bucket_prefix}-{shortdigest}-{self.account_id}"  # 27 + 16 + 12 = 55 chars
+        # 6chars, dash, ?chars, dash, 16 chars, 12 chars
+        return f"{GENERAL_BUCKET_NAME_PREFIX}-{bucket_infix}-{shortdigest}-{self.account_id}"
 
     def get_path_for_current_test(self, file_name):
         return os.path.join(self.current_test_prefix, file_name)
@@ -128,13 +128,13 @@ class AbstractSingleBucket(ABC):
 
 class RawSingleBucket(AbstractSingleBucket):
     """AbstractSingleBucket implemented for raw_api test"""
-    def __init__(self, raw_api: B2RawHTTPApi, auth_dict, test_prefix, bucket_prefix="test-singlebucket"):
+    def __init__(self, raw_api: B2RawHTTPApi, auth_dict, test_prefix, bucket_infix="sb"):
         self.raw_api = raw_api
         self.api_url = auth_dict["apiUrl"]
         self.account_id = auth_dict["accountId"]
         self.account_auth_token = auth_dict["authorizationToken"]
 
-        super().__init__(test_prefix, bucket_prefix=bucket_prefix)
+        super().__init__(test_prefix, bucket_infix=bucket_infix)
 
         self.bucket_dict = self.get_or_create_bucket()
         self.bucket_id = self.bucket_dict["bucketId"]

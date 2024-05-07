@@ -127,7 +127,7 @@ class TestRawApiNonBucketTests(RawApiIntegrationTestBase):
             cls.raw_api,
             cls.auth_dict,
             "test-raw-api",
-            bucket_prefix="test-ra-singlebucket"
+            bucket_infix="sb-raw"
         )
 
         cls.file_name = cls.single_bucket.get_path_for_current_test('test.txt')

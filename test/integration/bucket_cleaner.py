@@ -12,15 +12,11 @@ from __future__ import annotations
 import logging
 
 from b2sdk.v2 import (
-    NO_RETENTION_FILE_SETTING,
     B2Api,
     Bucket,
-    LegalHold,
-    RetentionMode,
     current_time_millis,
 )
 from b2sdk.v2.exception import BadRequest
-
 from .helpers import BUCKET_CREATED_AT_MILLIS, GENERAL_BUCKET_NAME_PREFIX, delete_file
 
 ONE_HOUR_MILLIS = 60 * 60 * 1000

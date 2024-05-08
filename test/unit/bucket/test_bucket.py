@@ -1862,7 +1862,7 @@ class TestUpload(TestCaseWithBucket):
             path = os.path.join(d, 'file1')
             data = self._make_data(self.simulator.MIN_PART_SIZE * 10001)  # 2MB on the simulator
             write_file(path, data)
-            self.bucket.upload_local_file(path, 'file1')
+            self.single_bucket.upload_local_file(path, 'file1')
             self._check_file_contents('file1', data)
             self._check_large_file_sha1('file1', hex_sha1_of_bytes(data))
 

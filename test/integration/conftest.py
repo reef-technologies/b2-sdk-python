@@ -13,17 +13,13 @@ import http
 import http.client
 import os
 from test.integration import get_b2_auth_data
-from test.integration.bucket_cleaner import BucketCleaner
+from test.integration.base import NonRawSingleBucket
 from test.integration.helpers import (
-    BUCKET_CREATED_AT_MILLIS,
     authorize,
     get_bucket_name_prefix,
-    random_bucket_name,
 )
 
 import pytest
-
-from b2sdk._internal.utils import current_time_millis
 
 
 def pytest_addoption(parser):
@@ -66,30 +62,12 @@ def _b2_api(b2_auth_data):
 
 
 @pytest.fixture(scope="session")
-def bucket_cleaner(bucket_name_prefix, dont_cleanup_old_buckets, _b2_api):
-    cleaner = BucketCleaner(
-        dont_cleanup_old_buckets,
-        _b2_api,
-        current_run_prefix=bucket_name_prefix,
-    )
-    yield cleaner
-    cleaner.cleanup_buckets()
-
-
-@pytest.fixture(scope="session")
-def b2_api(_b2_api, bucket_cleaner):
+def b2_api(_b2_api):
     return _b2_api
 
 
 @pytest.fixture
-def bucket(b2_api, bucket_name_prefix, bucket_cleaner):
-    bucket = b2_api.create_bucket(
-        random_bucket_name(bucket_name_prefix),
-        "allPrivate",
-        bucket_info={
-            "created_by": "b2-sdk integration test",
-            BUCKET_CREATED_AT_MILLIS: str(current_time_millis()),
-        },
-    )
+def single_bucket(b2_api, bucket_name_prefix, dont_cleanup_old_buckets):
+    bucket = NonRawSingleBucket(b2_api, bucket_name_prefix)
     yield bucket
-    bucket_cleaner.cleanup_bucket(bucket)
+    bucket.clean_test_files(dont_cleanup_old_buckets)

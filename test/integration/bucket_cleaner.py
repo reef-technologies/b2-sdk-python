@@ -12,16 +12,13 @@ from __future__ import annotations
 import logging
 
 from b2sdk.v2 import (
-    NO_RETENTION_FILE_SETTING,
     B2Api,
     Bucket,
-    LegalHold,
-    RetentionMode,
     current_time_millis,
 )
 from b2sdk.v2.exception import BadRequest
 
-from .helpers import BUCKET_CREATED_AT_MILLIS, GENERAL_BUCKET_NAME_PREFIX
+from .helpers import BUCKET_CREATED_AT_MILLIS, GENERAL_BUCKET_NAME_PREFIX, delete_file
 
 ONE_HOUR_MILLIS = 60 * 60 * 1000
 
@@ -57,55 +54,24 @@ class BucketCleaner:
         b2_api = self.b2_api
         if not self._should_remove_bucket(bucket):
             logger.info('Skipping bucket removal:', bucket.name)
-        else:
-            logger.info('Trying to remove bucket:', bucket.name)
-            files_leftover = False
-            try:
-                b2_api.delete_bucket(bucket)
-            except BadRequest:
-                logger.info('Bucket is not empty, removing files')
-                files_leftover = True
+            return
 
-            if files_leftover:
-                files_leftover = False
-                file_versions = bucket.ls(latest_only=False, recursive=True)
-                for file_version_info, _ in file_versions:
-                    if file_version_info.file_retention:
-                        if file_version_info.file_retention.mode == RetentionMode.GOVERNANCE:
-                            logger.info(
-                                'Removing retention from file version: %s', file_version_info.id_
-                            )
-                            b2_api.update_file_retention(
-                                file_version_info.id_, file_version_info.file_name,
-                                NO_RETENTION_FILE_SETTING, True
-                            )
-                        elif file_version_info.file_retention.mode == RetentionMode.COMPLIANCE:
-                            if file_version_info.file_retention.retain_until > current_time_millis():  # yapf: disable
-                                logger.info(
-                                    'File version: %s cannot be removed due to compliance mode retention',
-                                    file_version_info.id_,
-                                )
-                                files_leftover = True
-                                continue
-                        elif file_version_info.file_retention.mode == RetentionMode.NONE:
-                            pass
-                        else:
-                            raise ValueError(
-                                f'Unknown retention mode: {file_version_info.file_retention.mode}'
-                            )
-                    if file_version_info.legal_hold.is_on():
-                        logger.info(
-                            'Removing legal hold from file version: %s', file_version_info.id_
-                        )
-                        b2_api.update_file_legal_hold(
-                            file_version_info.id_, file_version_info.file_name, LegalHold.OFF
-                        )
-                    logger.info('Removing file version:', file_version_info.id_)
-                    b2_api.delete_file_version(file_version_info.id_, file_version_info.file_name)
+        logger.info('Trying to remove bucket:', bucket.name)
+        try:
+            b2_api.delete_bucket(bucket)
+            return
+        except BadRequest:
+            logger.info('Bucket is not empty, removing files')
 
-                if files_leftover:
-                    logger.info('Unable to remove bucket because some retained files remain')
-                    return
-                else:
-                    b2_api.delete_bucket(bucket)
-            logger.info('Removed bucket:', bucket.name)
+        files_remained = False
+
+        for file_version, _ in bucket.ls(latest_only=False, recursive=True):
+            if not delete_file(file_version, b2_api, logger):
+                files_remained = True
+
+        if files_remained:
+            logger.info('Unable to remove bucket because some retained files remain')
+            return
+
+        b2_api.delete_bucket(bucket)
+        logger.info('Removed bucket:', bucket.name)

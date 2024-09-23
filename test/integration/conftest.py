@@ -21,10 +21,18 @@ from test.integration.helpers import (
     get_bucket_name_prefix,
     random_bucket_name,
 )
+from test.integration.persistent_bucket import (
+    PersistentBucketAggregate,
+    get_or_create_persistent_bucket,
+)
+from typing import Callable
 
 import pytest
 
+from b2sdk._internal.b2http import B2Http
+from b2sdk._internal.raw_api import REALM_URLS
 from b2sdk._internal.utils import current_time_millis
+from b2sdk.v2.raw_api import B2RawHTTPApi
 
 
 def pytest_addoption(parser):
@@ -100,3 +108,40 @@ def bucket(b2_api, bucket_name_prefix, bucket_cleaner):
 def b2_subfolder(bucket, request):
     subfolder_name = f"{request.node.name}_{secrets.token_urlsafe(4)}"
     return f"b2://{bucket.name}/{subfolder_name}"
+
+
+@pytest.fixture(scope="class")
+def raw_api():
+    return B2RawHTTPApi(B2Http())
+
+
+@pytest.fixture(scope="class")
+def auth_info(raw_api):
+    application_key_id = os.environ.get('B2_TEST_APPLICATION_KEY_ID')
+    application_key = os.environ.get('B2_TEST_APPLICATION_KEY')
+    if application_key_id is None or application_key is None:
+        pytest.fail('B2_TEST_APPLICATION_KEY_ID or B2_TEST_APPLICATION_KEY is not set.')
+
+    realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
+    realm_url = REALM_URLS.get(realm, realm)
+    return raw_api.authorize_account(realm_url, application_key_id, application_key)
+
+
+# -- Persistent bucket fixtures --
+@pytest.fixture(scope="session")
+def persistent_bucket_factory(b2_api) -> Callable[[], PersistentBucketAggregate]:
+    """
+    Since all consumers of the `bucket_name` fixture expect a new bucket to be created,
+    we need to mirror this behavior by appending a unique subfolder to the persistent bucket name.
+    """
+
+    def _persistent_bucket(**bucket_create_options):
+        persistent_bucket = get_or_create_persistent_bucket(b2_api, **bucket_create_options)
+        return PersistentBucketAggregate(persistent_bucket)
+
+    yield _persistent_bucket
+
+
+@pytest.fixture(scope="class")
+def persistent_bucket(persistent_bucket_factory):
+    return persistent_bucket_factory()

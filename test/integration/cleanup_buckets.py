@@ -13,7 +13,7 @@ from test.integration.helpers import authorize
 
 from . import get_b2_auth_data
 from .bucket_cleaner import BucketCleaner
-from .test_raw_api import cleanup_old_buckets
+from .helpers import cleanup_old_buckets
 
 if __name__ == '__main__':
     cleanup_old_buckets()

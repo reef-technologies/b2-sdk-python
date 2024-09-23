@@ -17,14 +17,13 @@ from b2sdk._internal.encryption.types import EncryptionAlgorithm, EncryptionMode
 from b2sdk.v2 import B2RawHTTPApi
 
 from .base import IntegrationTestBase
-from .test_raw_api import authorize_raw_api
 
 
 class TestUnboundStreamUpload(IntegrationTestBase):
     def assert_data_uploaded_via_stream(self, data: bytes, part_size: int | None = None):
-        bucket = self.create_bucket()
+        bucket = self.persistent_bucket.bucket
         stream = io.BytesIO(data)
-        file_name = 'unbound_stream'
+        file_name = f'{self.persistent_bucket.subfolder}/unbound_stream'
 
         bucket.upload_unbound_stream(stream, file_name, recommended_upload_part_size=part_size)
 
@@ -46,7 +45,7 @@ class TestUnboundStreamUpload(IntegrationTestBase):
 
 
 class TestUploadLargeFile(IntegrationTestBase):
-    def test_ssec_key_id(self):
+    def test_ssec_key_id(self, auth_info):
         sse_c = EncryptionSetting(
             mode=EncryptionMode.SSE_C,
             algorithm=EncryptionAlgorithm.AES256,
@@ -55,16 +54,15 @@ class TestUploadLargeFile(IntegrationTestBase):
 
         raw_api = B2RawHTTPApi(B2Http())
 
-        auth_dict = authorize_raw_api(raw_api)
-        account_auth_token = auth_dict['authorizationToken']
-        api_url = auth_dict['apiUrl']
-        bucket = self.create_bucket()
+        account_auth_token = auth_info['authorizationToken']
+        api_url = auth_info['apiUrl']
+        bucket = self.persistent_bucket.bucket
 
         large_info = raw_api.start_large_file(
             api_url,
             account_auth_token,
             bucket.id_,
-            'test_largefile_sse_c.txt',
+            f'{self.persistent_bucket.subfolder}/test_largefile_sse_c.txt',
             'text/plain',
             None,
             server_side_encryption=sse_c,

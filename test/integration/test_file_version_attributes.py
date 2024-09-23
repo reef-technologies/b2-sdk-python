@@ -19,11 +19,11 @@ class TestFileVersionAttributes(IntegrationTestBase):
         for key, value in kwargs.items():
             assert getattr(object, key) == value
 
-    def test_file_info_b2_attributes(self):
+    def test_file_info_b2_attributes(self, persistent_bucket):
         # This test checks that attributes that are internally represented as file_info items with prefix `b2-`
         # are saved and retrieved correctly.
 
-        bucket = self.create_bucket()
+        bucket = persistent_bucket.bucket
         expected_attributes = {
             'cache_control': 'max-age=3600',
             'expires': 'Wed, 21 Oct 2105 07:28:00 GMT',
@@ -36,7 +36,7 @@ class TestFileVersionAttributes(IntegrationTestBase):
                 dt.datetime(2105, 10, 21, 7, 28, tzinfo=dt.timezone.utc)
         }
 
-        file_version = bucket.upload_bytes(b'0', 'file', **kwargs)
+        file_version = bucket.upload_bytes(b'0', f'{persistent_bucket.subfolder}/file', **kwargs)
         self._assert_object_has_attributes(file_version, expected_attributes)
 
         file_version = bucket.get_file_info_by_id(file_version.id_)
@@ -47,7 +47,7 @@ class TestFileVersionAttributes(IntegrationTestBase):
 
         copied_version = bucket.copy(
             file_version.id_,
-            'file_copy',
+            f'{persistent_bucket.subfolder}/file_copy',
             content_type='text/plain',
             **{
                 **kwargs, 'content_language': 'de'

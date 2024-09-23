@@ -35,9 +35,14 @@ def local_folder_with_files(tmp_path):
     return folder
 
 
-def test_sync_folder(b2_api, local_folder_with_files, b2_subfolder):
+@pytest.fixture
+def persistent_bucket(persistent_bucket_factory):
+    return persistent_bucket_factory()
+
+
+def test_sync_folder(b2_api, local_folder_with_files, persistent_bucket):
     source_folder = parse_folder(str(local_folder_with_files), b2_api)
-    dest_folder = parse_folder(b2_subfolder, b2_api)
+    dest_folder = parse_folder(persistent_bucket.b2_uri, b2_api)
 
     synchronizer = Synchronizer(
         max_workers=10,

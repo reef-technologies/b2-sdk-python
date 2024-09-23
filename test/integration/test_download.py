@@ -30,7 +30,8 @@ from .helpers import authorize
 
 class TestDownload(IntegrationTestBase):
     def test_large_file(self):
-        bucket = self.create_bucket()
+        bucket = self.persistent_bucket.bucket
+        subfolder = self.persistent_bucket.subfolder
         with mock.patch.object(
             self.info, '_recommended_part_size', new=self.info.get_absolute_minimum_part_size()
         ):
@@ -49,12 +50,12 @@ class TestDownload(IntegrationTestBase):
             ):
 
                 # let's check that small file downloads do not fail with these settings
-                small_file_version = bucket.upload_bytes(b'0', 'a_single_char')
+                small_file_version = bucket.upload_bytes(b'0', f'{subfolder}/a_single_char')
                 with io.BytesIO() as io_:
-                    bucket.download_file_by_name('a_single_char').save(io_)
+                    bucket.download_file_by_name(f'{subfolder}/a_single_char').save(io_)
                     assert io_.getvalue() == b'0'
 
-                f, sha1 = self._file_helper(bucket)
+                f, sha1 = self._file_helper()
                 if small_file_version._type() != 'large':
                     # if we are here, that's not the production server!
                     assert f.download_version.content_sha1_verified  # large files don't have sha1, lets not check
@@ -63,9 +64,11 @@ class TestDownload(IntegrationTestBase):
                 assert LARGE_FILE_SHA1 in file_info
                 assert file_info[LARGE_FILE_SHA1] == sha1
 
-    def _file_helper(self, bucket, sha1_sum=None,
+    def _file_helper(self, sha1_sum=None,
                      bytes_to_write: int | None = None) -> tuple[DownloadVersion, Sha1HexDigest]:
         bytes_to_write = bytes_to_write or int(self.info.get_absolute_minimum_part_size()) * 2 + 1
+
+        bucket = self.persistent_bucket.bucket
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_dir = pathlib.Path(temp_dir)
             source_small_file = pathlib.Path(temp_dir) / 'source_small_file'
@@ -73,12 +76,12 @@ class TestDownload(IntegrationTestBase):
                 self.write_zeros(small_file, bytes_to_write)
             bucket.upload_local_file(
                 source_small_file,
-                'small_file',
+                f'{self.persistent_bucket.subfolder}/small_file',
                 sha1_sum=sha1_sum,
             )
             target_small_file = pathlib.Path(temp_dir) / 'target_small_file'
 
-            f = bucket.download_file_by_name('small_file')
+            f = bucket.download_file_by_name(f'{self.persistent_bucket.subfolder}/small_file')
             f.save_to(target_small_file)
 
             source_sha1 = hex_sha1_of_file(source_small_file)
@@ -86,20 +89,18 @@ class TestDownload(IntegrationTestBase):
         return f, source_sha1
 
     def test_small(self):
-        bucket = self.create_bucket()
-        f, _ = self._file_helper(bucket, bytes_to_write=1)
+        f, _ = self._file_helper(bytes_to_write=1)
         assert f.download_version.content_sha1_verified
 
     def test_small_unverified(self):
-        bucket = self.create_bucket()
-        f, _ = self._file_helper(bucket, sha1_sum='do_not_verify', bytes_to_write=1)
+        f, _ = self._file_helper(sha1_sum='do_not_verify', bytes_to_write=1)
         if f.download_version.content_sha1_verified:
             pprint(f.download_version._get_args_for_clone())
             assert not f.download_version.content_sha1_verified
 
 
 @pytest.mark.parametrize("size_multiplier", [1, 100])
-def test_gzip(b2_auth_data, bucket, tmp_path, b2_api, size_multiplier):
+def test_gzip(b2_auth_data, persistent_bucket, tmp_path, b2_api, size_multiplier):
     """Test downloading gzipped files of varius sizes with and without content-encoding."""
     source_file = tmp_path / 'compressed_file.gz'
     downloaded_uncompressed_file = tmp_path / 'downloaded_uncompressed_file'
@@ -107,8 +108,10 @@ def test_gzip(b2_auth_data, bucket, tmp_path, b2_api, size_multiplier):
 
     data_to_write = b"I'm about to be compressed and sent to the cloud, yay!\n" * size_multiplier
     source_file.write_bytes(gzip.compress(data_to_write))
-    file_version = bucket.upload_local_file(
-        str(source_file), 'gzipped_file', file_info={'b2-content-encoding': 'gzip'}
+    file_version = persistent_bucket.bucket.upload_local_file(
+        str(source_file),
+        f'{persistent_bucket.subfolder}/gzipped_file',
+        file_info={'b2-content-encoding': 'gzip'}
     )
     b2_api.download_file_by_id(file_id=file_version.id_).save_to(str(downloaded_compressed_file))
     assert downloaded_compressed_file.read_bytes() == source_file.read_bytes()
@@ -128,8 +131,10 @@ def source_file(tmp_path):
 
 
 @pytest.fixture
-def uploaded_source_file_version(bucket, source_file):
-    file_version = bucket.upload_local_file(str(source_file), source_file.name)
+def uploaded_source_file_version(persistent_bucket, source_file):
+    file_version = persistent_bucket.bucket.upload_local_file(
+        str(source_file), f'{persistent_bucket.subfolder}/{source_file.name}'
+    )
     return file_version
 
 

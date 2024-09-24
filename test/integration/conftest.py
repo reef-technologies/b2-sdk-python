@@ -116,12 +116,8 @@ def raw_api():
 
 
 @pytest.fixture(scope="class")
-def auth_info(raw_api):
-    application_key_id = os.environ.get('B2_TEST_APPLICATION_KEY_ID')
-    application_key = os.environ.get('B2_TEST_APPLICATION_KEY')
-    if application_key_id is None or application_key is None:
-        pytest.fail('B2_TEST_APPLICATION_KEY_ID or B2_TEST_APPLICATION_KEY is not set.')
-
+def auth_info(b2_auth_data, raw_api):
+    application_key_id, application_key = b2_auth_data
     realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
     realm_url = REALM_URLS.get(realm, realm)
     return raw_api.authorize_account(realm_url, application_key_id, application_key)

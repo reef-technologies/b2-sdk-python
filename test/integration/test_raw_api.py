@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import io
-import os
 import random
 import time
 from test.helpers import type_validator_factory
@@ -35,7 +34,6 @@ from b2sdk._internal.file_lock import (
 )
 from b2sdk._internal.raw_api import (
     ALL_CAPABILITIES,
-    REALM_URLS,
     B2RawHTTPApi,
     NotificationRuleResponse,
 )
@@ -47,18 +45,6 @@ from b2sdk._internal.utils import hex_sha1_of_stream
 @pytest.fixture(scope="class")
 def raw_api():
     return B2RawHTTPApi(B2Http())
-
-
-@pytest.fixture(scope="class")
-def auth_info(raw_api):
-    application_key_id = os.environ.get('B2_TEST_APPLICATION_KEY_ID')
-    application_key = os.environ.get('B2_TEST_APPLICATION_KEY')
-    if application_key_id is None or application_key is None:
-        pytest.fail('B2_TEST_APPLICATION_KEY_ID or B2_TEST_APPLICATION_KEY is not set.')
-
-    realm = os.environ.get('B2_TEST_ENVIRONMENT', 'production')
-    realm_url = REALM_URLS.get(realm, realm)
-    return raw_api.authorize_account(realm_url, application_key_id, application_key)
 
 
 @pytest.fixture(scope="session")
@@ -115,32 +101,41 @@ def part_contents_dict():
 
 
 @pytest.fixture(scope="class")
-def uploaded_file_dict(raw_api, lock_enabled_bucket, sse_b2_aes, upload_url_dict):
-    upload_url = upload_url_dict['uploadUrl']
-    upload_auth_token = upload_url_dict['authorizationToken']
-    # file_name = 'test.txt'
-    file_name = f'{lock_enabled_bucket.subfolder}/test.txt'
-    file_contents = b'hello world'
-    file_sha1 = hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents))
-    uploaded_file_dict = raw_api.upload_file(
-        upload_url,
-        upload_auth_token,
-        file_name,
-        len(file_contents),
-        'text/plain',
-        file_sha1, {
-            'color': 'blue',
-            'b2-cache-control': 'private, max-age=2222'
-        },
-        io.BytesIO(file_contents),
-        server_side_encryption=sse_b2_aes,
-        file_retention=FileRetentionSetting(
-            RetentionMode.GOVERNANCE,
-            int(time.time() + 100) * 1000,
+def upload_file_dict_factory(raw_api, lock_enabled_bucket, sse_b2_aes, upload_url_dict):
+    def _upload_file_dict_factory():
+        upload_url = upload_url_dict['uploadUrl']
+        upload_auth_token = upload_url_dict['authorizationToken']
+        subfolder = lock_enabled_bucket.new_subfolder()
+        file_name = f'{subfolder}/test.txt'
+        file_contents = b'hello world'
+        file_sha1 = hex_sha1_of_stream(io.BytesIO(file_contents), len(file_contents))
+        uploaded_file_dict = raw_api.upload_file(
+            upload_url,
+            upload_auth_token,
+            file_name,
+            len(file_contents),
+            'text/plain',
+            file_sha1, {
+                'color': 'blue',
+                'b2-cache-control': 'private, max-age=2222'
+            },
+            io.BytesIO(file_contents),
+            server_side_encryption=sse_b2_aes,
+            file_retention=FileRetentionSetting(
+                RetentionMode.GOVERNANCE,
+                int(time.time() + 100) * 1000,
+            )
         )
-    )
-    uploaded_file_dict['file_contents'] = file_contents
-    return uploaded_file_dict
+        uploaded_file_dict['file_contents'] = file_contents
+        uploaded_file_dict['subfolder'] = subfolder
+        return uploaded_file_dict
+
+    return _upload_file_dict_factory
+
+
+@pytest.fixture(scope="class")
+def uploaded_file_dict(upload_file_dict_factory):
+    return upload_file_dict_factory()
 
 
 @pytest.fixture(scope="class")
@@ -419,7 +414,7 @@ class TestRawAPIFileOps:
     @pytest.fixture(autouse=True, scope="class")
     def setup(
         self, request, raw_api, auth_info, lock_enabled_bucket, sse_b2_aes, uploaded_file_dict,
-        download_auth_token
+        upload_file_dict_factory, download_auth_token
     ):
         cls = request.cls
         cls.raw_api = raw_api
@@ -427,6 +422,7 @@ class TestRawAPIFileOps:
         cls.lock_enabled_bucket = lock_enabled_bucket
         cls.sse_b2_aes = sse_b2_aes
         cls.uploaded_file_dict = uploaded_file_dict
+        cls.single_file_dict = upload_file_dict_factory()
         cls.download_auth_token = download_auth_token
 
     @pytest.fixture(scope="class")
@@ -441,6 +437,7 @@ class TestRawAPIFileOps:
             'text/plain',
             file_info,
         )
+        large_info['subfolder'] = unique_subfolder
         return large_info
 
     @pytest.fixture(scope="class")
@@ -459,10 +456,12 @@ class TestRawAPIFileOps:
 
     def test_list_file_versions(self):
         file_name = self.uploaded_file_dict['fileName']
+        subfolder = self.uploaded_file_dict['subfolder']
         list_versions_dict = self.raw_api.list_file_versions(
             self.auth_info['apiUrl'],
             self.auth_info['authorizationToken'],
             self.lock_enabled_bucket.bucket_id,
+            prefix=subfolder
         )
         assert [file_name] == [f_dict['fileName'] for f_dict in list_versions_dict['files']]
         assert ['private, max-age=2222'] == [
@@ -530,6 +529,7 @@ class TestRawAPIFileOps:
             self.auth_info['apiUrl'],
             self.auth_info['authorizationToken'],
             self.lock_enabled_bucket.bucket_id,
+            prefix=self.uploaded_file_dict['subfolder'],
             start_file_name=self.uploaded_file_dict['fileName'],
             max_file_count=5
         )
@@ -603,8 +603,10 @@ class TestRawAPIFileOps:
 
     def test_list_unfinished_large_files(self, large_file):
         unfinished_list = self.raw_api.list_unfinished_large_files(
-            self.auth_info['apiUrl'], self.auth_info['authorizationToken'],
-            self.lock_enabled_bucket.bucket_id
+            self.auth_info['apiUrl'],
+            self.auth_info['authorizationToken'],
+            self.lock_enabled_bucket.bucket_id,
+            prefix=large_file['subfolder']
         )
         assert [large_file['fileName']] == [
             f_dict['fileName'] for f_dict in unfinished_list['files']
@@ -614,8 +616,10 @@ class TestRawAPIFileOps:
     def test_finish_large_file_too_few_parts(self, large_file, part_contents_dict):
         try:
             self.raw_api.finish_large_file(
-                self.auth_info['apiUrl'], self.auth_info['authorizationToken'],
-                large_file['fileId'], [part_contents_dict['part_sha1']]
+                self.auth_info['apiUrl'],
+                self.auth_info['authorizationToken'],
+                large_file['fileId'],
+                [part_contents_dict['part_sha1']],
             )
             pytest.fail('finish should have failed')
         except Exception as e:
@@ -646,8 +650,10 @@ class TestRawAPIFileOps:
         )
 
         self.raw_api.finish_large_file(
-            self.auth_info['apiUrl'], self.auth_info['authorizationToken'], large_file['fileId'],
-            [part1_sha1, part2_sha1]
+            self.auth_info['apiUrl'],
+            self.auth_info['authorizationToken'],
+            large_file['fileId'],
+            [part1_sha1, part2_sha1],
         )
 
     def test_list_finished_large_files(self, large_file):
@@ -655,7 +661,7 @@ class TestRawAPIFileOps:
             self.auth_info['apiUrl'],
             self.auth_info['authorizationToken'],
             self.lock_enabled_bucket.bucket_id,
-            prefix=large_file['fileName'][:6]
+            prefix=large_file['subfolder']
         )
         assert [large_file['fileName']] == [f_dict['fileName'] for f_dict in finished_file['files']]
         assert large_file['fileInfo'] == finished_file['files'][0]['fileInfo']

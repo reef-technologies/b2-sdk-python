@@ -95,8 +95,11 @@ def _cleanup_old_buckets(raw_api, auth_dict, bucket_list_dict):
 
 
 def _clean_and_delete_bucket(raw_api, api_url, account_auth_token, account_id, bucket_id):
-    # Delete the files. This test never creates more than a few files,
-    # so one call to list_file_versions should get them all.
+    """
+    Clean up and delete a bucket, including all its contents.
+    List and delete all file versions, handle retention settings,
+    and remove both regular and large files before deleting the bucket.
+    """
     versions_dict = raw_api.list_file_versions(api_url, account_auth_token, bucket_id)
     for version_dict in versions_dict['files']:
         file_id = version_dict['fileId']

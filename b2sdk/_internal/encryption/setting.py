@@ -96,8 +96,8 @@ class EncryptionSetting:
     def __init__(
         self,
         mode: EncryptionMode,
-        algorithm: EncryptionAlgorithm = None,
-        key: EncryptionKey = None,
+        algorithm: EncryptionAlgorithm | None = None,
+        key: EncryptionKey | None = None,
     ):
         """
         :param b2sdk.v2.EncryptionMode mode: encryption mode

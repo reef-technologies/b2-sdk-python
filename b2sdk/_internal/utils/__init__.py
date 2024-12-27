@@ -20,7 +20,7 @@ import time
 from dataclasses import dataclass, field
 from decimal import Decimal
 from itertools import chain
-from typing import Any, Iterator, NewType, TypeVar
+from typing import Any, Iterator, NewType, Protocol
 from urllib.parse import quote, unquote_plus
 
 from logfury.v1 import (
@@ -34,10 +34,16 @@ from logfury.v1 import (
 logger = logging.getLogger(__name__)
 
 Sha1HexDigest = NewType('Sha1HexDigest', str)
-T = TypeVar('T')
-# TODO: When we drop Python 3.7 support, this should be replaced
-#   with typing.Protocol that exposes read method.
-ReadOnlyStream = Any
+
+
+class ReadOnlyStream(Protocol):
+    def read(self, n: int | None) -> bytes: ...
+
+
+class Digest(Protocol):
+    def hexdigest(self) -> str: ...
+
+    def update(self, data: Any, /): ...
 
 
 def b2_url_encode(s):
@@ -101,7 +107,9 @@ def choose_part_ranges(content_length, minimum_part_size):
     return parts
 
 
-def update_digest_from_stream(digest: T, input_stream: ReadOnlyStream, content_length: int) -> T:
+def update_digest_from_stream(
+    digest: Digest, input_stream: ReadOnlyStream, content_length: int
+) -> Digest:
     """
     Update and return `digest` with data read from `input_stream`
 
@@ -487,7 +495,7 @@ def current_time_millis():
     return int(round(time.time() * 1000))
 
 
-def iterator_peek(iterator: Iterator[T], count: int) -> tuple[list[T], Iterator[T]]:
+def iterator_peek(iterator: Iterator[Digest], count: int) -> tuple[list[Digest], Iterator[Digest]]:
     """
     Get up to the `count` first elements yielded by `iterator`.
 

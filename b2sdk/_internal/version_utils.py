@@ -49,7 +49,7 @@ class _Version:
 
 
 class AbstractVersionDecorator(metaclass=ABCMeta):
-    WHAT = NotImplemented  # 'function', 'method', 'class' etc
+    WHAT: str = NotImplemented  # 'function', 'method', 'class' etc
 
     def __init__(self, changed_version, cutoff_version=None, reason='', current_version=None):
         """
@@ -85,7 +85,7 @@ class AbstractVersionDecorator(metaclass=ABCMeta):
 
 
 class AbstractDeprecator(AbstractVersionDecorator):
-    ALTERNATIVE_DECORATOR = NotImplemented
+    ALTERNATIVE_DECORATOR: str = NotImplemented
 
     def __init__(self, target, *args, **kwargs):
         self.target = target

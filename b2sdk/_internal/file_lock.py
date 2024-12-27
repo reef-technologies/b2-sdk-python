@@ -37,7 +37,7 @@ class RetentionPeriod:
     def __init__(self, years: int | None = None, days: int | None = None):
         """Create a retention period, provide exactly one of: days, years"""
         assert (years is None) != (days is None)
-        if years is not None:
+        if days is None:
             self.duration = years
             self.unit = 'years'
         else:

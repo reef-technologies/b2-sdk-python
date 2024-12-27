@@ -683,11 +683,13 @@ def interpret_b2_error(
     elif status == 400 and code == 'bad_bucket_id':
         return BucketIdNotFound(post_params.get('bucketId'))
     elif status == 400 and code == 'auth_token_limit':
+        assert message is not None, 'Received 400 auth_token_limit with no message'
         matcher = UPLOAD_TOKEN_USED_CONCURRENTLY_ERROR_MESSAGE_RE.match(message)
         assert matcher is not None, f'unexpected error message: {message}'
         token = matcher.group('token')
         return UploadTokenUsedConcurrently(token)
     elif status == 400 and code == 'source_too_large':
+        assert message is not None, 'Received 400 source_too_large with no message'
         matcher = COPY_SOURCE_TOO_BIG_ERROR_MESSAGE_RE.match(message)
         assert matcher is not None, f'unexpected error message: {message}'
         size = int(matcher.group('size'))

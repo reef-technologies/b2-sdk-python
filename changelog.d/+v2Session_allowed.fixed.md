@@ -1,0 +1,1 @@
+Add `Fix allowed dict construction in v2.Session.

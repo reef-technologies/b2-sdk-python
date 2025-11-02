@@ -229,12 +229,13 @@ class TestTranslateAndRetry:
         self,
         status_code: int = 400,
         *,
+        method: str = responses.GET,
         code: str = 'server_busy',
         message: str = 'dummy',
         headers: dict | None = None,
     ):
         responses.add(
-            responses.GET,
+            method,
             self.URL,
             status=status_code,
             json={'status': status_code, 'code': code, 'message': message},
@@ -336,6 +337,14 @@ class TestTranslateAndRetry:
 
         b2_http.request(responses.GET, self.URL, {}, try_count=4)
         assert mock_time.mock_calls == [call(1.0), call(5), call(2.25)]
+
+    @responses.activate
+    def test_post_json_return_json_retries(self, b2_http: B2Http, mock_time: MagicMock):
+        self._mock_error_response(503, method='POST')
+        responses.post(self.URL, json={'foo': 'bar'})
+
+        b2_http.post_json_return_json(self.URL, {}, {})
+        mock_time.assert_called_once_with(1.0)
 
 
 class TestB2Http(TestBase):

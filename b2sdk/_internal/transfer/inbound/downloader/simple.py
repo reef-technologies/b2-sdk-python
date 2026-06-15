@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 from io import IOBase
 
+from requests.exceptions import ChunkedEncodingError, ContentDecodingError
 from requests.models import Response
 
 from b2sdk._internal.encryption.setting import EncryptionSetting
@@ -43,10 +44,13 @@ class SimpleDownloader(AbstractDownloader):
         chunk_size = self._get_chunk_size(actual_size)
 
         decoded_bytes_read = 0
-        for data in response.iter_content(chunk_size=chunk_size):
-            file.write(data)
-            digest.update(data)
-            decoded_bytes_read += len(data)
+        try:
+            for data in response.iter_content(chunk_size=chunk_size):
+                file.write(data)
+                digest.update(data)
+                decoded_bytes_read += len(data)
+        except (ChunkedEncodingError, ContentDecodingError) as exc:
+            logger.debug('Stream read error during download, will retry if needed: %s', exc)
         bytes_read = response.raw.tell()
         response.close()
 
@@ -58,8 +62,7 @@ class SimpleDownloader(AbstractDownloader):
         # or something and the server closes connection, while neither tcp or http have a problem
         # with the truncated output, so we detect it here and try to continue
 
-        num_tries = 5  # this is hardcoded because we are going to replace the entire retry interface soon, so we'll avoid deprecation here and keep it private
-        retries_left = num_tries - 1
+        retries_left = 4  # this is hardcoded because we are going to replace the entire retry interface soon, so we'll avoid deprecation here and keep it private
         while retries_left and bytes_read < download_version.content_length:
             new_range = self._get_remote_range(
                 response,
@@ -79,12 +82,15 @@ class SimpleDownloader(AbstractDownloader):
                 new_range.as_tuple(),
                 encryption=encryption,
             ) as followup_response:
-                for data in followup_response.iter_content(
-                    chunk_size=self._get_chunk_size(actual_size)
-                ):
-                    file.write(data)
-                    digest.update(data)
-                    decoded_bytes_read += len(data)
+                try:
+                    for data in followup_response.iter_content(
+                        chunk_size=self._get_chunk_size(actual_size)
+                    ):
+                        file.write(data)
+                        digest.update(data)
+                        decoded_bytes_read += len(data)
+                except (ChunkedEncodingError, ContentDecodingError) as exc:
+                    logger.debug('Stream read error during download, will retry if needed: %s', exc)
                 bytes_read += followup_response.raw.tell()
             retries_left -= 1
         return bytes_read, digest.hexdigest()

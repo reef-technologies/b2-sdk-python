@@ -16,9 +16,9 @@ from typing import Any
 
 import pytest
 from apiver_deps import B2Api, Bucket, DownloadVersion, SimpleDownloader
-from requests.exceptions import ChunkedEncodingError, ContentDecodingError
+from requests.exceptions import ChunkedEncodingError, ConnectionError, ContentDecodingError
 from requests.models import Response
-from urllib3.exceptions import DecodeError, IncompleteRead, ProtocolError
+from urllib3.exceptions import DecodeError, IncompleteRead, ProtocolError, ReadTimeoutError
 
 CHUNKED_ENCODING_ERROR = ChunkedEncodingError(
     ProtocolError(
@@ -29,6 +29,7 @@ CHUNKED_ENCODING_ERROR = ChunkedEncodingError(
 CONTENT_DECODING_ERROR = ContentDecodingError(
     DecodeError('Error -3 while decompressing data: incorrect header check')
 )
+CONNECTION_ERROR = ConnectionError(ReadTimeoutError(None, None, 'Read timed out.'))
 
 
 @pytest.fixture
@@ -72,7 +73,7 @@ def _make_iter_content(
     response: Response,
     attempts: Iterator[int],
     fail_count: int,
-    stream_error: ChunkedEncodingError | ContentDecodingError,
+    stream_error: ChunkedEncodingError | ConnectionError | ContentDecodingError,
 ) -> Callable[..., Iterator[bytes]]:
     def iter_content(chunk_size: int = 1, decode_unicode: bool = False) -> Iterator[bytes]:
         attempt = next(attempts)
@@ -95,6 +96,7 @@ def _make_iter_content(
     'stream_error',
     [
         pytest.param(CHUNKED_ENCODING_ERROR, id='ChunkedEncodingError'),
+        pytest.param(CONNECTION_ERROR, id='ConnectionError'),
         pytest.param(CONTENT_DECODING_ERROR, id='ContentDecodingError'),
     ],
 )
@@ -107,7 +109,7 @@ def test_download_file__stream_read_error(
     file_content: bytes,
     mock_download_response: tuple[Response, DownloadVersion],
     fail_count: int,
-    stream_error: ChunkedEncodingError | ContentDecodingError,
+    stream_error: ChunkedEncodingError | ConnectionError | ContentDecodingError,
 ) -> None:
     mock_response, download_version = mock_download_response
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from io import IOBase
 
-from requests.exceptions import ChunkedEncodingError, ContentDecodingError
+from requests.exceptions import ChunkedEncodingError, ConnectionError, ContentDecodingError
 from requests.models import Response
 
 from b2sdk._internal.encryption.setting import EncryptionSetting
@@ -49,7 +49,7 @@ class SimpleDownloader(AbstractDownloader):
                 file.write(data)
                 digest.update(data)
                 decoded_bytes_read += len(data)
-        except (ChunkedEncodingError, ContentDecodingError) as exc:
+        except (ChunkedEncodingError, ConnectionError, ContentDecodingError) as exc:
             logger.debug('Stream read error during download, will retry if needed: %s', exc)
         bytes_read = response.raw.tell()
         response.close()
@@ -89,7 +89,7 @@ class SimpleDownloader(AbstractDownloader):
                         file.write(data)
                         digest.update(data)
                         decoded_bytes_read += len(data)
-                except (ChunkedEncodingError, ContentDecodingError) as exc:
+                except (ChunkedEncodingError, ConnectionError, ContentDecodingError) as exc:
                     logger.debug('Stream read error during download, will retry if needed: %s', exc)
                 bytes_read += followup_response.raw.tell()
             retries_left -= 1

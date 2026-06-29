@@ -136,3 +136,53 @@ def test_download_file__stream_read_error(
         assert output_file.getvalue() == file_content
     else:
         assert bytes_written == fail_count
+
+
+@pytest.mark.parametrize(
+    'stream_error',
+    [
+        pytest.param(CHUNKED_ENCODING_ERROR, id='ChunkedEncodingError'),
+        pytest.param(CONNECTION_ERROR, id='ConnectionError'),
+        pytest.param(CONTENT_DECODING_ERROR, id='ContentDecodingError'),
+    ],
+)
+def test_download_file__decoded_stream_stream_read_error_reraises(
+    b2api: B2Api,
+    bucket: Bucket,
+    downloader: SimpleDownloader,
+    output_file: BytesIO,
+    file_content: bytes,
+    mock_download_response: tuple[Response, DownloadVersion],
+    stream_error: ChunkedEncodingError | ConnectionError | ContentDecodingError,
+) -> None:
+    """
+    Test that a stream read error during a decoded stream download is re-raised and not retried
+    """
+
+    mock_response, download_version = mock_download_response
+    download_version.content_encoding = 'gzip'
+    download_version.api.api_config.decode_content = True
+
+    attempts = count(1)
+    mock_response.iter_content = _make_iter_content(
+        mock_response, attempts, 1, stream_error
+    )
+
+    followup_calls = 0
+    download_func = bucket.api.services.session.download_file_from_url
+
+    def download_func_mock(*args: Any, **kwargs: Any) -> Response:
+        nonlocal followup_calls
+        followup_calls += 1
+        response = download_func(*args, **kwargs).__enter__()
+        response.iter_content = _make_iter_content(response, attempts, 1, stream_error)
+        return response
+
+    bucket.api.services.session.download_file_from_url = download_func_mock
+
+    with pytest.raises(type(stream_error)):
+        downloader.download(
+            output_file, mock_response, download_version, b2api.session
+        )
+
+    assert followup_calls == 0

@@ -42,6 +42,7 @@ class SimpleDownloader(AbstractDownloader):
             response.close()
             return 0, digest.hexdigest()
         chunk_size = self._get_chunk_size(actual_size)
+        should_be_decoded = download_version._should_be_decoded
 
         decoded_bytes_read = 0
         try:
@@ -50,6 +51,8 @@ class SimpleDownloader(AbstractDownloader):
                 digest.update(data)
                 decoded_bytes_read += len(data)
         except (ChunkedEncodingError, ConnectionError, ContentDecodingError) as exc:
+            if should_be_decoded:
+                raise  # cannot resume a partially decoded stream
             logger.debug('Stream read error during download, will retry if needed: %s', exc)
         bytes_read = response.raw.tell()
         response.close()
@@ -63,7 +66,9 @@ class SimpleDownloader(AbstractDownloader):
         # with the truncated output, so we detect it here and try to continue
 
         retries_left = 4  # this is hardcoded because we are going to replace the entire retry interface soon, so we'll avoid deprecation here and keep it private
-        while retries_left and bytes_read < download_version.content_length:
+        while (
+            bytes_read < download_version.content_length and not should_be_decoded and retries_left
+        ):
             new_range = self._get_remote_range(
                 response,
                 download_version,

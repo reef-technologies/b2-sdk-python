@@ -116,10 +116,7 @@ class AbstractDownloader(metaclass=B2TraceMetaAbstract):
         """
         if self.REQUIRES_SEEKING and not allow_seeking:
             return False
-        if (
-            not self.SUPPORTS_DECODE_CONTENT
-            and download_version._should_be_decoded
-        ):
+        if not self.SUPPORTS_DECODE_CONTENT and download_version._should_be_decoded:
             return False
         return True
 

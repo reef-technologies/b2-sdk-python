@@ -63,3 +63,13 @@ def test_validate_download_hash_check(decode_content):
     else:
         with pytest.raises(ChecksumMismatch):
             downloaded_file._validate_download(100, 'wrong')
+
+
+@pytest.mark.parametrize('decode_content', [True, False])
+def test_validate_download_hash_check_skipped_for_range_download(decode_content):
+    downloaded_file = _generate_downloaded_file(
+        decode_content=decode_content,
+        range_=(10, 19),
+        check_hash=True,
+    )
+    downloaded_file._validate_download(10, 'wrong')

@@ -164,9 +164,7 @@ def test_download_file__decoded_stream_stream_read_error_reraises(
     download_version.api.api_config.decode_content = True
 
     attempts = count(1)
-    mock_response.iter_content = _make_iter_content(
-        mock_response, attempts, 1, stream_error
-    )
+    mock_response.iter_content = _make_iter_content(mock_response, attempts, 1, stream_error)
 
     followup_calls = 0
     download_func = bucket.api.services.session.download_file_from_url
@@ -181,8 +179,6 @@ def test_download_file__decoded_stream_stream_read_error_reraises(
     bucket.api.services.session.download_file_from_url = download_func_mock
 
     with pytest.raises(type(stream_error)):
-        downloader.download(
-            output_file, mock_response, download_version, b2api.session
-        )
+        downloader.download(output_file, mock_response, download_version, b2api.session)
 
     assert followup_calls == 0

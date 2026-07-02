@@ -9,11 +9,11 @@
 ######################################################################
 import pytest
 from apiver_deps import (
+    EMPTY_RANGE,
+    SSE_NONE,
     B2Api,
     B2HttpApiConfig,
     DownloadVersion,
-    EMPTY_RANGE,
-    SSE_NONE,
     StubAccountInfo,
 )
 

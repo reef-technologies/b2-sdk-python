@@ -57,6 +57,11 @@ extensions = [
     'sphinxcontrib.plantuml',
 ]
 
+# graphviz emits .png.map imagemap files that the epub builder cannot classify;
+# epub does not support imagemaps, so silence the un-actionable mimetype warning
+# (otherwise fail_on_warning breaks the epub build from `formats: all`).
+suppress_warnings = ['epub.unknown_project_files']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

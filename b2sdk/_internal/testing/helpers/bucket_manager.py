@@ -25,6 +25,7 @@ from b2sdk._internal.exception import (
     BucketIdNotFound,
     DuplicateBucketName,
     FileNotPresent,
+    ServiceError,
     TooManyRequests,
 )
 from b2sdk._internal.file_lock import NO_RETENTION_FILE_SETTING, LegalHold, RetentionMode
@@ -41,6 +42,11 @@ ONE_HOUR_MILLIS = 60 * 60 * 1000
 BUCKET_CLEANUP_PERIOD_MILLIS = timedelta(hours=3).total_seconds() * 1000
 
 logger = logging.getLogger(__name__)
+
+
+def _retry_bucket_test_operation(exc: BaseException) -> bool:
+    # Retry on TooManyRequests as well as all 5xx errors (covered by ServiceError)
+    return isinstance(exc, (TooManyRequests, ServiceError))
 
 
 class BucketManager:
@@ -83,7 +89,7 @@ class BucketManager:
         }
 
     @tenacity.retry(
-        retry=tenacity.retry_if_exception_type(TooManyRequests),
+        retry=tenacity.retry_if_exception(_retry_bucket_test_operation),
         wait=tenacity.wait_exponential(),
         stop=tenacity.stop_after_attempt(8),
     )
@@ -152,7 +158,7 @@ class BucketManager:
             print(bucket)
 
     @tenacity.retry(
-        retry=tenacity.retry_if_exception_type(TooManyRequests),
+        retry=tenacity.retry_if_exception(_retry_bucket_test_operation),
         wait=tenacity.wait_exponential(),
         stop=tenacity.stop_after_attempt(8),
     )

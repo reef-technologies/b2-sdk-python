@@ -87,10 +87,9 @@ class B2Session(v3.B2Session):
 
     def _construct_allowed_dict(self, storage_api_info):
         return {
-            'bucketId': storage_api_info['bucketId'],
-            'bucketName': storage_api_info['bucketName'],
-            'capabilities': storage_api_info['capabilities'],
-            'namePrefix': storage_api_info['namePrefix'],
+            'buckets': [
+                {'id': storage_api_info['bucketId'], 'name': storage_api_info['bucketName']}
+            ]
         }
 
     def _get_allowed_buckets_message(self, allowed) -> str | None:
